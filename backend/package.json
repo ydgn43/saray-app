@@ -4,6 +4,8 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
+    "build": "npx tsc --watch",
+    "start": "ts-node app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
