@@ -1,239 +1,119 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Existing head content -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Saray</title>
+    <title>Saray - Günlük Yoklama</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Line Icons CSS -->
     <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
-    <link href="style.css" rel="stylesheet">
-</head>
+    <!-- Custom stylesheet -->
+    <link href="stylesheet.css" rel="stylesheet">
+  </head>
   <body>  
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">   
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link " aria-current="page" href="index.html">Ana Sayfa</a>
-              </li>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle nav-link active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Yoklama
-                </a>
-                <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="yoklama.html">Günlük</a></li>
-                  <li><a class="dropdown-item" href="#">Istatistik</a></li>
-                  <li><a class="dropdown-item" href="ayarlar.html">Ayarlar</a></li>
-                </ul>
-              </li>
-            </ul>
-          </div>
+      <div class="container-fluid">   
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="index.html">Ana Sayfa</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Yoklama
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="yoklama.html">Günlük</a></li>
+                <li><a class="dropdown-item" href="istatistik.html">Istatistik</a></li>
+                <li><a class="dropdown-item" href="ayarlar.html">Ayarlar</a></li>
+              </ul>
+            </li>
+          </ul>
         </div>
-      </nav>
-      <h1>Günlük Yoklama</h1>
-      <div class="container">
-        <div class="row align-items-start">
-            <div class="col">
-                <div class="container">
-                    <div class="row align-items-start">
-                        <div class="col">
-                            <form action="">
-                                <label for="tarih">Tarih:</label>
-                                <input type="date">
-                                <input type="submit">
-                              </form>
-                        </div>
-                      <div class="col">
-                        <select class="form-select" aria-label="Default select example">
-                            <option selected>Program</option>
-                            <option value="1">Sabah Namazi</option>
-                            <option value="2">Ögle Namazi</option>
-                            <option value="3">Ikindi Namazi</option>
-                            <option value="4">Aksam Namazi</option>
-                            <option value="5">Yatsi Namazi</option>
-                            <option value="6">Hatim</option>
-                          </select>
-                      </div>
-                    </div>
-                  </div>
-                  <table class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Isim</th>
-                        <th scope="col">Soyisim</th>    
-                        <th scope="col">Var</th>
-                        <th scope="col">Gec</th>
-                        <th scope="col">Yok</th>
-                        <th scope="col">Izinli</th>
-                        <th scope="col">Sebep</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">1</th>
-                        <td>Tunahan</td>
-                        <td>Altun</td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <select class="form-select" aria-label="Default select example">
-                                <option selected>Sebep</option>
-                                <option value="1">Hasta</option>
-                                <option value="2">Rahatsiz</option>
-                                <option value="3">Yemekci</option>
-                                <option value="4">Kurs Disinda</option>
-                                <option value="5">Diger</option>
-                              </select> 
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">2</th>
-                        <td>Yusuf Emin</td>
-                        <td>Dogan</td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <select class="form-select" aria-label="Default select example">
-                                <option selected>Sebep</option>
-                                <option value="1">Hasta</option>
-                                <option value="2">Rahatsiz</option>
-                                <option value="3">Yemekci</option>
-                                <option value="4">Kurs Disinda</option>
-                                <option value="5">Diger</option>
-                              </select> 
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">3</th>
-                        <td>Tunahan</td>
-                        <td>Altun</td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                            <label class="form-check-label" for="flexCheckDefault">
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                            <select class="form-select" aria-label="Default select example">
-                                <option selected>Sebep</option>
-                                <option value="1">Hasta</option>
-                                <option value="2">Rahatsiz</option>
-                                <option value="3">Yemekci</option>
-                                <option value="4">Kurs Disinda</option>
-                                <option value="5">Diger</option>
-                              </select>     
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-
+      </div>
+    </nav>
+    <h1>Günlük Yoklama</h1>
+    <div class="container">
+      <div class="row align-items-start">
+        <div class="col">
+          <!-- Existing form content -->
+          <div class="container">
+            <div class="row align-items-start">
+              <div class="col">
+                <form action="">
+                  <label for="tarih">Tarih:</label>
+                  <input type="date">
+                  <input type="submit">
+                </form>
+              </div>
+              <div class="col">
+                <select class="form-select" aria-label="Default select example">
+                  <option selected>Program</option>
+                  <option value="1">Sabah Namazi</option>
+                  <option value="2">Ögle Namazi</option>
+                  <option value="3">Ikindi Namazi</option>
+                  <option value="4">Aksam Namazi</option>
+                  <option value="5">Yatsi Namazi</option>
+                  <option value="6">Hatim</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <div class="col">
-            <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Isim</th>
-                    <th scope="col">Yüzdelik</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="table-success">
-                    <th scope="row">1</th>
-                    <td>Tunahan Altun</td>
-                    <td>100%</td>
-                  </tr>
-                  <tr class="table-success">
-                    <th scope="row">3</th>
-                    <td>Tunahan Altun</td>
-                    <td>100%</td>
-                  </tr> 
-                  <tr class="table-warning">
-                    <th scope="row">2   </th>
-                    <td>Yusuf Emin Dogan</td>
-                    <td>89%</td>
-                  </tr>
-                </tbody>
-              </table>
-          </div>
+          <!-- Updated table with tbody id="userTableBody" -->
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Isim</th>
+                <th scope="col">Soyisim</th>    
+                <th scope="col">Var</th>
+                <th scope="col">Gec</th>
+                <th scope="col">Yok</th>
+                <th scope="col">Izinli</th>
+                <th scope="col">Sebep</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <!-- User rows will be populated here by script.js -->
+            </tbody>
+          </table>
         </div>
+        <div class="col">
+          <!-- Existing statistics table -->
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Isim</th>
+                <th scope="col">Yüzdelik</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="table-success">
+                <th scope="row">1</th>
+                <td>Tunahan Altun</td>
+                <td>100%</td>
+              </tr>
+              <tr class="table-success">
+                <th scope="row">3</th>
+                <td>Tunahan Altun</td>
+                <td>100%</td>
+              </tr> 
+              <tr class="table-warning">
+                <th scope="row">2</th>
+                <td>Yusuf Emin Dogan</td>
+                <td>89%</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      
+      </div>
+    </div>
+    <!-- Bootstrap JS and custom script.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
   </body>
 </html>
