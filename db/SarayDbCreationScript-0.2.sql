@@ -30,12 +30,12 @@ ENGINE = InnoDB;
 -- Table `mydb`.`User`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `saray_appdb`.`User` (
-  `accountid` INT NOT NULL AUTO_INCREMENT,
+  `userid` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(45) NOT NULL,
   `role_name` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`accountid`),
-  INDEX `fk_User_Role_idx` (`Role_role_name` ASC),
+  PRIMARY KEY (`userid`),
+  INDEX `fk_User_Role_idx` (`role_name` ASC),
   CONSTRAINT `fk_User_Role`
     FOREIGN KEY (`role_name`)
     REFERENCES `saray_appdb`.`Role` (`role_name`)
@@ -50,12 +50,12 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `saray_appdb`.`Password` (
   `password` VARCHAR(45) NOT NULL,
   `creation_date` DATETIME NOT NULL,
-  `accountid` INT NOT NULL,
-  PRIMARY KEY (`creation_date`, `password`, `accountid`),
-  INDEX `fk_Password_User1_idx` (`accountid` ASC),
+  `userid` INT NOT NULL,
+  PRIMARY KEY (`creation_date`, `password`, `userid`),
+  INDEX `fk_Password_User1_idx` (`userid` ASC),
   CONSTRAINT `fk_Password_User1`
-    FOREIGN KEY (`accountid`)
-    REFERENCES `saray_appdb`.`User` (`accountid`)
+    FOREIGN KEY (`userid`)
+    REFERENCES `saray_appdb`.`User` (`userid`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
