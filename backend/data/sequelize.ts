@@ -1,3 +1,4 @@
+import path from "path";
 import { Sequelize } from "sequelize-typescript";
 
 export const sequelize = new Sequelize({
@@ -5,5 +6,5 @@ export const sequelize = new Sequelize({
     dialect: 'mysql',
     username: process.env.USER_RELATIONAL_DB,
     password: process.env.PASSWORD_RELATIONAL_DB,
-    models: ['./models'],
+    models: [path.join(__dirname, './models')],
 });

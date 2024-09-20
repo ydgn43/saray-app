@@ -1,9 +1,12 @@
 import express, { Request, Response } from 'express';
+import { StudentData } from '../data/studentData';
 
 export const studentRouter = express.Router();
 
+const studentData = new StudentData();
+
 studentRouter.get('/', (req: Request, res: Response) => {
-    res.send('student GET not yet implemented')
+    studentData.getAllStudent(req, res);
 })
 
 studentRouter.post('/', (req: Request, res: Response) => {
