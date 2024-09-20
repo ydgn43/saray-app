@@ -32,13 +32,12 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `saray_appdb`.`User` (
   `accountid` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(45) NOT NULL,
-  `rolename` VARCHAR(45) NOT NULL,
   `password` VARCHAR(45) NOT NULL,
-  `Role_role_name` VARCHAR(45) NOT NULL,
+  `role_name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`accountid`),
   INDEX `fk_User_Role_idx` (`Role_role_name` ASC),
   CONSTRAINT `fk_User_Role`
-    FOREIGN KEY (`Role_role_name`)
+    FOREIGN KEY (`role_name`)
     REFERENCES `saray_appdb`.`Role` (`role_name`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
