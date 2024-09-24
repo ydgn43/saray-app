@@ -1,12 +1,16 @@
 import express, { Request, Response } from 'express';
+import { StudentController } from '../controller/studentController';
+import { StudentService } from '../business/services/studentService';
 import { StudentData } from '../data/studentData';
 
 export const studentRouter = express.Router();
 
-const studentData = new StudentData();
+const studentData = new StudentData()
+const studentService = new StudentService(studentData);
+const studentController = new StudentController(studentService);
 
 studentRouter.get('/', (req: Request, res: Response) => {
-    studentData.getAllStudent(req, res);
+    studentController.getAllStudents(req, res);
 })
 
 studentRouter.post('/', (req: Request, res: Response) => {

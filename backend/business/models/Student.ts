@@ -1,0 +1,92 @@
+export class Student {
+    private _studentId: number;
+    private _firstName: string;
+    private _lastName: string;
+    private _birthDate: Date;
+    private _seasonYear: string;
+    private _className: string;
+  
+    constructor(
+        studentId: number,
+        firstName: string,
+        seasonYear: string,
+        className: string,
+        lastName: string,
+        birthDate: Date
+    ) {
+        this._studentId = studentId;
+        this._firstName = firstName;
+        this._lastName = lastName;
+        this._birthDate = birthDate;
+        this._seasonYear = seasonYear;
+        this._className = className;
+    }
+  
+    public get studentId(): number {
+        return this._studentId;
+    }
+  
+    public set studentId(studentId: number) {
+        this._studentId = studentId;
+    }
+  
+    public get firstName(): string {
+        return this._firstName;
+    }
+  
+    public set firstName(firstname: string) {
+        const MAXCHAR: number = 45;
+        if (firstname.length > MAXCHAR) {
+            throw new Error('Too many characters.')
+        }
+
+        this._firstName = firstname;
+    }
+  
+    public get lastName(): string {
+      return this._lastName;
+    }
+  
+    public set lastName(lastName: string) {
+        const MAXCHAR: number = 45;
+        if (lastName.length > MAXCHAR) {
+            throw new Error('Too many characters.')
+        }
+
+        this._lastName = lastName;
+    }
+  
+    public get birthDate(): Date{
+        return this._birthDate;
+    }
+  
+    public set birthDate(birthDate: Date) {
+        this._birthDate = birthDate;
+    }
+  
+    public get seasonYear(): string {
+        return this._seasonYear;
+    }
+  
+    public set seasonYear(seasonYear: string) {
+        const SEASONREGEX: RegExp = /^\d{4}\/\d{4}$/;
+        if (!SEASONREGEX.test(seasonYear)) {
+            throw new Error('Incorrect season format. Needs to be: YYYY/YYYY.')
+        }
+
+        this._seasonYear = seasonYear;
+    }
+  
+    public get className(): string {
+        return this._className;
+    }
+  
+    public set className(className: string) {
+        const MAXCHAR: number = 45;
+        if (className.length > MAXCHAR) {
+            throw new Error('Too many characters.')
+        }
+
+        this._className = className;
+    } 
+}
