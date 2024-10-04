@@ -7,4 +7,19 @@ export class StudentData {
         const result = await StudentSequelize.findAll();
         return result;
     }
+
+    public async getAllStudentBySeason(seasonYear: string){
+        const result = await StudentSequelize.findAll({ where: {
+            season_year: seasonYear
+        }});
+        return result;
+    }
+
+    public async getAllStudentBySeasonAndClass(season: string, className: string){
+        const result = await StudentSequelize.findAll({ where: {
+            season_year: season,
+            class_name: className
+        }});
+        return result;
+    }
 }

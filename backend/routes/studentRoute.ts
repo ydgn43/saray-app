@@ -13,6 +13,14 @@ studentRouter.get('/', (req: Request, res: Response) => {
     studentController.getAllStudents(req, res);
 })
 
+studentRouter.get('/season/', (req: Request, res: Response) => {
+    studentController.getAllStudentsBySeason(req, res);
+})
+
+studentRouter.get('/season/class', (req: Request, res: Response) => {
+    studentController.getAllStudentsBySeasonAndClass(req, res);
+})
+
 studentRouter.post('/', (req: Request, res: Response) => {
     res.send('student POST not yet implemented')
 })
