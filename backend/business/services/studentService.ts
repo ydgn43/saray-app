@@ -9,15 +9,15 @@ export class StudentService {
     }
 
     public async getAllStudents(): Promise<StudentSequelize[]> {
-        return await this.studentData.getAllStudent();
+        return await this.studentData.getAllStudents();
     }
 
     public async getAllStudentsBySeason(season: string): Promise<StudentSequelize[]> {
-        return await this.studentData.getAllStudentBySeason(season);
+        return await this.studentData.getAllStudentsBySeason(season);
     }
 
     public async getAllStudentsBySeasonAndClass(season: string, className: string): Promise<StudentSequelize[]> {
-        return await this.studentData.getAllStudentBySeasonAndClass(season, className);
+        return await this.studentData.getAllStudentsBySeasonAndClass(season, className);
     }
     
 }

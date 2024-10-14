@@ -1,13 +1,20 @@
 import express, { Request, Response } from 'express';
+import { AttendanceController } from '../controller/attendanceController';
+import { AttendanceService } from '../business/services/attendanceService';
+import { AttendanceData } from '../data/attendanceData';
 
 export const attendanceRoute = express.Router();
 
-attendanceRoute.get('/', (req: Request, res: Response) => {
-    res.send('attendance GET not yet implemented')
+const attendanceData: AttendanceData = new AttendanceData();
+const attendanceService: AttendanceService = new AttendanceService(attendanceData);
+const attendanceController: AttendanceController = new AttendanceController(attendanceService);
+
+attendanceRoute.get('/all', (req: Request, res: Response) => {
+    attendanceController.getAllAttendance(req, res);
 })
 
-attendanceRoute.post('/', (req: Request, res: Response) => {
-    res.send('attendance POST not yet implemented')
+attendanceRoute.get('', (req: Request, res: Response) => {
+    attendanceController.getAttendance(req, res);
 })
 
 attendanceRoute.put('/', (req: Request, res: Response) => {

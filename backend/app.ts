@@ -9,6 +9,7 @@ import { userRouter } from './routes/userRoute';'./routes/userRoute';
 
 const app = express() // Create express applicaiton
 const port = process.env.PORT_HTTP
+app.use(express.json()); // parsing JSON
 
 // Routes
 app.use("/student", studentRouter);

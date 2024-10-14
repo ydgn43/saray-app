@@ -3,23 +3,23 @@ import StudentSequelize from "./models/Student";
 import {Request, Response} from 'express';
 
 export class StudentData {
-    public async getAllStudent(){
-        const result = await StudentSequelize.findAll();
-        return result;
+    public async getAllStudents(){
+        const allStudents = await StudentSequelize.findAll();
+        return allStudents;
     }
 
-    public async getAllStudentBySeason(seasonYear: string){
-        const result = await StudentSequelize.findAll({ where: {
+    public async getAllStudentsBySeason(seasonYear: string){
+        const allStudentsBySeason = await StudentSequelize.findAll({ where: {
             season_year: seasonYear
         }});
-        return result;
+        return allStudentsBySeason;
     }
 
-    public async getAllStudentBySeasonAndClass(season: string, className: string){
-        const result = await StudentSequelize.findAll({ where: {
+    public async getAllStudentsBySeasonAndClass(season: string, className: string){
+        const allStudentsBySeasonAndClass = await StudentSequelize.findAll({ where: {
             season_year: season,
             class_name: className
         }});
-        return result;
+        return allStudentsBySeasonAndClass;
     }
 }
