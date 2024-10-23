@@ -17,7 +17,19 @@ export class AttendanceData {
             }})
             return attendance;
         } catch (error) {
-            throw new Error("Could not create new attendance")
+            throw new Error("Could not find attendance")
+        }  
+    }
+
+    public async getAttendanceByDateAndProgram(date: string, programName: string){
+        try {
+            const attendance = await AttendanceSequelize.findAll({ where: {
+                date: date,
+                program_name: programName
+            }})
+            return attendance;
+        } catch (error) {
+            throw new Error("Could not find attendance")
         }  
     }
 

@@ -31,6 +31,20 @@ export class AttendanceController {
         }
     }
 
+    public async getAttendanceByDateAndProgram(req: Request, res: Response){
+        try {
+            const date: string = req.body.date;
+            const programName: string = req.body.program_name;
+
+            const attendance: AttendanceSequelize[] = await this.attendanceService.getAttendanceByDateAndProgram(date, programName);
+
+            res.status(202).json(attendance);
+        } catch (error) {
+            console.log(error);
+            res.status(404).json({ message: "Attendance not found or bad request" });
+        }
+    }
+
     public async createAttendance(req: Request, res: Response){
         try {
             const attendanceData: Attendance = new Attendance(req.body.studentid, req.body.date, req.body.attendance_type_name, req.body.program_name);
