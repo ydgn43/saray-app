@@ -13,4 +13,12 @@ export class AttendanceService {
     public async getAttendance(attendance: Attendance): Promise<AttendanceSequelize | null> {
         return await this.attendaceData.getAttendance(attendance);
     }
+
+    public async createAttendance(attendance: Attendance): Promise<void> {
+        await this.attendaceData.createAttendance(attendance);
+    }
+
+    public async updateAttendance(attendance: Attendance): Promise<void> {
+        await this.attendaceData.updateAttendance(attendance);
+    }
 }

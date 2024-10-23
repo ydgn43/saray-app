@@ -17,8 +17,12 @@ attendanceRoute.get('', (req: Request, res: Response) => {
     attendanceController.getAttendance(req, res);
 })
 
-attendanceRoute.put('/', (req: Request, res: Response) => {
-    res.send('attendance PUT not yet implemented')
+attendanceRoute.post('/create', (req: Request, res: Response) => {
+    attendanceController.createAttendance(req, res);
+})
+
+attendanceRoute.put('/put', (req: Request, res: Response) => {
+    attendanceController.updateAttendance(req, res);
 })
 
 attendanceRoute.delete('/', (req: Request, res: Response) => {

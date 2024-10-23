@@ -23,7 +23,7 @@ export class AttendanceData {
 
     public async createAttendance(attendance: Attendance){
         try {
-            const newAttendance: AttendanceSequelize = await AttendanceSequelize.create({ 
+            await AttendanceSequelize.create({ 
                 studentid: attendance.studentId, 
                 date: attendance.date,
                 attendance_type_name: attendance.attendanceTypeName,
@@ -35,6 +35,19 @@ export class AttendanceData {
     }
 
     public async updateAttendance(attendance: Attendance){
-
+        try {
+            await AttendanceSequelize.update({ 
+                attendance_type_name: attendance.attendanceTypeName,
+            },
+            {
+                where: {
+                    studentid: attendance.studentId,
+                    date: attendance.date,
+                    program_name: attendance.programName
+                }
+            });
+        } catch {
+            throw new Error("Could not update attendance")
+        }
     }
 }
