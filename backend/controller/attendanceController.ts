@@ -20,7 +20,7 @@ export class AttendanceController {
 
     public async getAttendance(req: Request, res: Response){
         try {
-            const attendanceData: Attendance = new Attendance(req.body.studentid, req.body.date, undefined, req.body.program_name);
+            const attendanceData: Attendance = new Attendance(req.body.studentid, req.body.date, undefined, req.body.query);
 
             const attendance: AttendanceSequelize | null = await this.attendanceService.getAttendance(attendanceData);
 
@@ -33,8 +33,8 @@ export class AttendanceController {
 
     public async getAttendanceByDateAndProgram(req: Request, res: Response){
         try {
-            const date: string = req.body.date as string;
-            const programName: string = req.body.program_name as string;
+            const date: string = req.query.date as string;
+            const programName: string = req.query.program_name as string;
 
             const attendance: AttendanceSequelize[] = await this.attendanceService.getAttendanceByDateAndProgram(date, programName);
 
