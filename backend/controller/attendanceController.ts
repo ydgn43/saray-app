@@ -33,8 +33,8 @@ export class AttendanceController {
 
     public async getAttendanceByDateAndProgram(req: Request, res: Response){
         try {
-            const date: string = req.body.date;
-            const programName: string = req.body.program_name;
+            const date: string = req.body.date as string;
+            const programName: string = req.body.program_name as string;
 
             const attendance: AttendanceSequelize[] = await this.attendanceService.getAttendanceByDateAndProgram(date, programName);
 
