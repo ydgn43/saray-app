@@ -45,10 +45,11 @@ function displayAttendance(attendanceData) {
       if (row) {
           // Uncheck all attendance checkboxes first
           row.querySelectorAll('.form-check-input').forEach(checkbox => checkbox.checked = false);
-
+          
           // Check the checkbox that matches the attendance status
-          if (record.status) {
-              const statusCheckbox = row.querySelector(`.form-check-input.${record.status.toLowerCase()}-checkbox`);
+          if (record.attendance_type_name) {
+              console.log(record.attendance_type_name);
+              const statusCheckbox = row.querySelector(`.form-check-input.${record.attendance_type_name.toLowerCase()}-checkbox`);
               if (statusCheckbox) {
                   statusCheckbox.checked = true;
               }
@@ -60,33 +61,6 @@ function displayAttendance(attendanceData) {
       }
   });
 }
-
-async function request(
-  url,      // Endpoint to be appended to the base URL
-  method = "GET", // HTTP method (GET, POST, etc.)
-  data = null     // Data to be sent in the request body (for POST, PUT)
-) {
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  if (data) { 
-    options.body = JSON.stringify(data);
-  }
-
-  const baseUrl = "http://localhost:3001"; // Set your base URL here
-  const response = await fetch(`${baseUrl}/${url}`, options);
-
-  if (!response.ok) {
-    throw new Error(`Error: ${response.status} ${response.statusText}`);
-  }
-
-  return await response.json();
-}
-
 
 // Function to fetch attendance data based on date and program
 document.getElementById('attendanceFilterForm').addEventListener('submit', async (e) => {
@@ -101,16 +75,12 @@ document.getElementById('attendanceFilterForm').addEventListener('submit', async
   }
 
   try {
-    // Use the request function with query parameters for GET requests
-    const attendanceData = await request(
-      `attendance/dailyprogram`,
-      "GET",
-      { date: date, 
-        program_name: program }
-    );
-    displayAttendance(attendanceData); // Update only attendance cells
+      populateUserTable(); // Reset all checkboxes
+      const response = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+      const attendanceData = await response.json();
+      displayAttendance(attendanceData); // Update only attendance cells
   } catch (error) {
-    console.error("Error fetching attendance data:", error);
+      console.error("Error fetching attendance data:", error);
   }
 });
 
