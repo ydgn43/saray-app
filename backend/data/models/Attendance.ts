@@ -26,7 +26,7 @@ export default class AttendanceSequelize extends Model {
     @ForeignKey(() => AttendanceType)
     @Column({
         type: DataType.STRING(45),
-        allowNull: false
+        allowNull: true
     })
     declare attendance_type_name: string;
 
