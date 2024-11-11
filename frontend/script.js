@@ -1,177 +1,243 @@
-// script.js
-
 // Load users from the database
 async function loadUsers() {
-  try {
+    try {
       const response = await fetch('http://localhost:3001/student'); // Update with the correct endpoint
       const users = await response.json();
       return users;
-  } catch (error) {
+    } catch (error) {
       console.error("Error fetching users:", error);
       return [];
+    }
   }
-}
-
-// Populate the user table with all students
-async function populateUserTable() {
-  const users = await loadUsers();
-  let tbody = document.querySelector('#userTableBody');
-  tbody.innerHTML = '';
-
-  users.forEach((user, index) => {
+  
+  // Function to create or update a student's attendance status in the database
+  async function createOrUpdateAttendance(studentId, date, programName, attendanceType, sebep = null) {
+    try {
+      // First, check if the attendance record already exists
+      const checkResponse = await fetch('http://localhost:3001/attendance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentid: studentId,
+          date: date,
+          program_name: programName,
+        }),
+      });
+  
+      if (checkResponse.ok) {
+        const attendanceData = await checkResponse.json();
+        if (attendanceData) {
+          // If attendance record exists, update it
+          await fetch('http://localhost:3001/attendance/put', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              studentid: studentId,
+              date: date,
+              program_name: programName,
+              attendance_type_name: attendanceType,
+              sebep: sebep,
+            }),
+          });
+          console.log('Attendance updated successfully');
+        } else {
+          // If attendance record does not exist, create it
+          await fetch('http://localhost:3001/attendance/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              studentid: studentId,
+              date: date,
+              program_name: programName,
+              attendance_type_name: attendanceType,
+              sebep: sebep,
+            }),
+          });
+          console.log('Attendance created successfully');
+        }
+      } else {
+        throw new Error('Failed to check attendance record existence');
+      }
+    } catch (error) {
+      console.error('Error creating or updating attendance:', error);
+      alert('Failed to create or update attendance');
+    }
+  }
+  
+  // Populate the user table with all students
+  async function populateUserTable() {
+    const users = await loadUsers();
+    let tbody = document.querySelector('#userTableBody');
+    tbody.innerHTML = '';
+  
+    users.forEach((user, index) => {
       let row = document.createElement('tr');
       row.dataset.studentId = user.studentid; // Set student ID as data attribute for easy lookup
-
+  
       row.innerHTML = `
-          <th scope="row">${index + 1}</th>
-          <td>${user.class_name}</td>
-          <td>${user.first_name}</td>
-          <td>${user.last_name}</td>
-          <td><input type="checkbox" class="form-check-input var-checkbox" disabled></td>
-          <td><input type="checkbox" class="form-check-input gec-checkbox" disabled></td>
-          <td><input type="checkbox" class="form-check-input yok-checkbox" disabled></td>
-          <td><input type="checkbox" class="form-check-input izinli-checkbox" disabled></td>
-          <td class="reason-cell"></td>
+        <th scope="row">${index + 1}</th>
+        <td>${user.class_name}</td>
+        <td>${user.first_name}</td>
+        <td>${user.last_name}</td>
+        <td><input type="checkbox" class="form-check-input var-checkbox"></td>
+        <td><input type="checkbox" class="form-check-input gec-checkbox"></td>
+        <td><input type="checkbox" class="form-check-input yok-checkbox"></td>
+        <td><input type="checkbox" class="form-check-input izinli-checkbox"></td>
+        <td class="reason-cell"></td>
       `;
-
+  
       tbody.appendChild(row);
-  });
-}
-
-// Display attendance data by updating only relevant rows
-function displayAttendance(attendanceData) {
-  attendanceData.forEach(record => {
-      const row = document.querySelector(`tr[data-student-id="${record.studentid}"]`);
-      if (row) {
-          // Uncheck all attendance checkboxes first
-          row.querySelectorAll('.form-check-input').forEach(checkbox => checkbox.checked = false);
-          
-          // Check the checkbox that matches the attendance status
-          if (record.attendance_type_name) {
-              console.log(record.attendance_type_name);
-              const statusCheckbox = row.querySelector(`.form-check-input.${record.attendance_type_name.toLowerCase()}-checkbox`);
-              if (statusCheckbox) {
-                  statusCheckbox.checked = true;
-              }
+  
+      // Add event listeners to ensure only one status checkbox is checked at a time
+      const varCheckbox = row.querySelector('.var-checkbox');
+      const gecCheckbox = row.querySelector('.gec-checkbox');
+      const yokCheckbox = row.querySelector('.yok-checkbox');
+      const izinliCheckbox = row.querySelector('.izinli-checkbox');
+  
+      function uncheckOthers(selectedCheckbox) {
+        [varCheckbox, gecCheckbox, yokCheckbox, izinliCheckbox].forEach(checkbox => {
+          if (checkbox !== selectedCheckbox) {
+            checkbox.checked = false;
           }
-
-          // Update the reason cell
-          const reasonCell = row.querySelector('.reason-cell');
-          reasonCell.textContent = record.sebep || '';
+        });
       }
-  });
-}
-
-// Function to fetch attendance data based on date and program
-document.getElementById('attendanceFilterForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const date = document.getElementById('attendanceDate').value;
-  const program = document.getElementById('programSelect').value;
-
-  if (!date || !program) {
+  
+      // Attach the uncheckOthers function and save to database when a checkbox changes
+      [varCheckbox, gecCheckbox, yokCheckbox, izinliCheckbox].forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          if (this.checked) {
+            uncheckOthers(this);
+  
+            let attendanceType = '';
+            if (varCheckbox.checked) attendanceType = 'Var';
+            else if (gecCheckbox.checked) attendanceType = 'Gec';
+            else if (yokCheckbox.checked) attendanceType = 'Yok';
+            else if (izinliCheckbox.checked) attendanceType = 'Izinli';
+  
+            const date = document.getElementById('attendanceDate').value;
+            const programName = document.getElementById('programSelect').value;
+  
+            // Create or update the attendance in the database
+            createOrUpdateAttendance(user.studentid, date, programName, attendanceType);
+          }
+        });
+      });
+    });
+  }
+  
+  // Function to fetch attendance data based on date and program
+  document.getElementById('attendanceFilterForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+  
+    const date = document.getElementById('attendanceDate').value;
+    const program = document.getElementById('programSelect').value;
+  
+    if (!date || !program) {
       alert("Please select both a date and a program.");
       return;
-  }
-
-  try {
-      populateUserTable(); // Reset all checkboxes
+    }
+  
+    try {
+      // Check if attendance data exists for the selected date and program
       const response = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const attendanceData = await response.json();
-      displayAttendance(attendanceData); // Update only attendance cells
-  } catch (error) {
-      console.error("Error fetching attendance data:", error);
-  }
-});
-
-// Function to save attendance data
-async function saveAttendanceData() {
-  const users = await loadUsers();
-  let tbody = document.querySelector('#userTableBody');
-  let rows = tbody.querySelectorAll('tr');
-
-  const attendanceData = Array.from(rows).map(row => {
-      let studentId = row.dataset.studentId;
-      let varCheckbox = row.querySelector('.var-checkbox');
-      let gecCheckbox = row.querySelector('.gec-checkbox');
-      let yokCheckbox = row.querySelector('.yok-checkbox');
-      let izinliCheckbox = row.querySelector('.izinli-checkbox');
-      let sebepSelect = row.querySelector('.sebep-select');
-
-      let status = '';
-      if (varCheckbox.checked) status = 'Var';
-      else if (gecCheckbox.checked) status = 'Gec';
-      else if (yokCheckbox.checked) status = 'Yok';
-      else if (izinliCheckbox.checked) status = 'Izinli';
-
-      return {
-          studentid: studentId,
-          status,
-          sebep: sebepSelect ? sebepSelect.value : null,
-      };
-  });
-
-  try {
-      await fetch('http://localhost:3001/attendance', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(attendanceData),
-      });
-      alert('Attendance saved successfully');
-  } catch (error) {
-      console.error("Error saving attendance:", error);
-      alert('Failed to save attendance');
-  }
-}
-
-// Function to update the percentage table
-function updatePercentageTable() {
-  let attendance = loadAttendance();
-  let percentageTbody = document.querySelector('#percentageTableBody');
-  percentageTbody.innerHTML = '';
-
-  attendance.forEach((user, index) => {
-      let records = user.records || [];
-      let total = records.length;
-      let presentCount = records.filter(record => record.status === 'Var' || record.status === 'Gec').length;
-      let percentage = total > 0 ? ((presentCount / total) * 100).toFixed(2) : '0.00';
-
-      let row = document.createElement('tr');
-      row.innerHTML = `
-          <th scope="row">${index + 1}</th>
-          <td>${user.firstName} ${user.lastName}</td>
-          <td>${percentage}%</td>
-      `;
-
-      if (percentage >= 90) {
-          row.classList.add('table-success');
-      } else if (percentage >= 70) {
-          row.classList.add('table-warning');
+  
+      // If attendance data exists, populate the user table
+      if (attendanceData.length > 0) {
+        populateUserTable(); // Reset all checkboxes
+        displayAttendance(attendanceData); // Update only attendance cells
       } else {
-          row.classList.add('table-danger');
+        // If no attendance data exists, show the "Create Attendance" button
+        document.getElementById('createAttendanceButton').style.display = 'block';
+        document.getElementById('userTableBody').innerHTML = ''; // Clear the table
       }
-
-      percentageTbody.appendChild(row);
+    } catch (error) {
+      console.error("Error fetching attendance data:", error);
+    }
   });
-}
-
-// Event listeners for DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-  // Populate user table with all students initially
-  populateUserTable();
-
-  // Save attendance data and update percentage table on Save button click
-  const saveButton = document.getElementById('saveButton');
-  if (saveButton) {
-      saveButton.addEventListener('click', function() {
-          saveAttendanceData();
-          updatePercentageTable();
-          alert('Attendance saved and percentages updated!');
+  
+  // Event listener for "Create Attendance" button
+  document.getElementById('createAttendanceButton').addEventListener('click', async () => {
+    const date = document.getElementById('attendanceDate').value;
+    const program = document.getElementById('programSelect').value;
+  
+    if (!date || !program) {
+      alert("Please select both a date and a program.");
+      return;
+    }
+  
+    try {
+      // Create new attendance entries for all students for the selected date
+      const users = await loadUsers();
+      const newAttendanceData = users.map(user => ({
+        studentid: user.studentid,
+        date: date,
+        program_name: program,
+        attendance_type_name: '', // Default to no status selected
+      }));
+  
+      // Send new attendance data to the server using the '/create' endpoint
+      await fetch('http://localhost:3001/attendance/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newAttendanceData),
       });
+  
+      alert('New attendance created successfully');
+      populateUserTable(); // Populate the table with all students
+    } catch (error) {
+      console.error("Error creating new attendance:", error);
+      alert('Failed to create attendance');
+    }
+  });
+  
+  // Function to display attendance data by updating only relevant rows
+  function displayAttendance(attendanceData) {
+    attendanceData.forEach(record => {
+      const row = document.querySelector(`tr[data-student-id="${record.studentid}"]`);
+      if (row) {
+        // Uncheck all attendance checkboxes first
+        row.querySelectorAll('.form-check-input').forEach(checkbox => checkbox.checked = false);
+  
+        // Check the checkbox that matches the attendance status
+        if (record.attendance_type_name) {
+          const statusCheckbox = row.querySelector(`.form-check-input.${record.attendance_type_name.toLowerCase()}-checkbox`);
+          if (statusCheckbox) {
+            statusCheckbox.checked = true;
+          }
+        }
+  
+        // Update the reason cell
+        const reasonCell = row.querySelector('.reason-cell');
+        reasonCell.textContent = record.sebep || '';
+      }
+    });
   }
-
-  // Update percentage table on page load
-  updatePercentageTable();
-});
+  
+  // Event listeners for DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Populate user table with all students initially
+    populateUserTable();
+  
+    // Save attendance data and update percentage table on Save button click
+    const saveButton = document.getElementById('saveButton');
+    if (saveButton) {
+      saveButton.addEventListener('click', function() {
+        saveAttendanceData();
+        updatePercentageTable();
+        alert('Attendance saved and percentages updated!');
+      });
+    }
+  
+    // Update percentage table on page load
+    updatePercentageTable();
+  });
+  
