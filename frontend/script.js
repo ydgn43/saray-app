@@ -61,7 +61,7 @@ async function createOrUpdateAttendance(studentId, date, programName, attendance
 }
 
 // Populate the user table with all students
-async function populateUserTable() {
+async function populateUserTable(attendanceData = []) {
   const users = await loadUsers();
   let tbody = document.querySelector('#userTableBody');
   tbody.innerHTML = '';
@@ -118,7 +118,78 @@ async function populateUserTable() {
         }
       });
     });
+
+    // Update the row with attendance data if available
+    const attendanceRecord = attendanceData.find(record => record.studentid === user.studentid);
+    if (attendanceRecord) {
+      if (attendanceRecord.attendance_type_name) {
+        const statusCheckbox = row.querySelector(`.form-check-input.${attendanceRecord.attendance_type_name.toLowerCase()}-checkbox`);
+        if (statusCheckbox) {
+          statusCheckbox.checked = true;
+        }
+      }
+      const reasonCell = row.querySelector('.reason-cell');
+      reasonCell.textContent = attendanceRecord.sebep || '';
+    }
   });
+
+  // Add sorting functionality to table headers
+  document.querySelectorAll('th').forEach(header => {
+    header.classList.add('sortable-header'); // Add class to visually indicate sortable columns
+    header.addEventListener('click', () => {
+      const column = header.cellIndex;
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      let sortedRows;
+      if (header.dataset.sorted === 'asc') {
+        sortedRows = rows.sort((a, b) => {
+          const aText = a.children[column].textContent.trim().toLowerCase();
+          const bText = b.children[column].textContent.trim().toLowerCase();
+          return bText.localeCompare(aText);
+        });
+        header.dataset.sorted = 'desc';
+      } else {
+        sortedRows = rows.sort((a, b) => {
+          const aText = a.children[column].textContent.trim().toLowerCase();
+          const bText = b.children[column].textContent.trim().toLowerCase();
+          return aText.localeCompare(bText);
+        });
+        header.dataset.sorted = 'asc';
+      }
+      tbody.innerHTML = '';
+      sortedRows.forEach(row => tbody.appendChild(row));
+    });
+  });
+
+  // Add sorting functionality for checkboxes
+  ['var-checkbox', 'gec-checkbox', 'yok-checkbox', 'izinli-checkbox'].forEach((className, index) => {
+    const header = document.querySelectorAll('th')[index + 4];
+    header.addEventListener('click', () => {
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      let sortedRows;
+      if (header.dataset.sorted === 'asc') {
+        sortedRows = rows.sort((a, b) => {
+          const aChecked = a.querySelector(`.${className}`).checked;
+          const bChecked = b.querySelector(`.${className}`).checked;
+          return bChecked - aChecked;
+        });
+        header.dataset.sorted = 'desc';
+      } else {
+        sortedRows = rows.sort((a, b) => {
+          const aChecked = a.querySelector(`.${className}`).checked;
+          const bChecked = b.querySelector(`.${className}`).checked;
+          return aChecked - bChecked;
+        });
+        header.dataset.sorted = 'asc';
+      }
+      tbody.innerHTML = '';
+      sortedRows.forEach(row => tbody.appendChild(row));
+    });
+  });
+}
+
+// Function to display attendance data by updating only relevant rows
+function displayAttendance(attendanceData) {
+  populateUserTable(attendanceData); // Populate the table with all students and attendance data
 }
 
 // Function to fetch attendance data based on date and program
@@ -191,25 +262,7 @@ document.getElementById('createAttendanceButton').addEventListener('click', asyn
 
 // Function to display attendance data by updating only relevant rows
 function displayAttendance(attendanceData) {
-  attendanceData.forEach(record => {
-    const row = document.querySelector(`tr[data-student-id="${record.studentid}"]`);
-    if (row) {
-      // Uncheck all attendance checkboxes first
-      row.querySelectorAll('.form-check-input').forEach(checkbox => checkbox.checked = false);
-
-      // Check the checkbox that matches the attendance status
-      if (record.attendance_type_name) {
-        const statusCheckbox = row.querySelector(`.form-check-input.${record.attendance_type_name.toLowerCase()}-checkbox`);
-        if (statusCheckbox) {
-          statusCheckbox.checked = true;
-        }
-      }
-
-      // Update the reason cell
-      const reasonCell = row.querySelector('.reason-cell');
-      reasonCell.textContent = record.sebep || '';
-    }
-  });
+  populateUserTable(attendanceData); // Populate the table with all students and attendance data
 }
 
 // Event listeners for DOMContentLoaded
@@ -230,4 +283,3 @@ document.addEventListener('DOMContentLoaded', function() {
   // Update percentage table on page load
   updatePercentageTable();
 });
-
