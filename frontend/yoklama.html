@@ -39,7 +39,7 @@
               <div class="col">
                 <form id="attendanceFilterForm">
                   <label for="tarih">Tarih:</label>
-                  <input type="date" id="attendanceDate" required>
+                  <input type="date" class="form-control" id="attendanceDate" required>
                   <select id="programSelect" class="form-select" aria-label="Default select example" required>
                     <option value="" selected disabled>Program</option>
                     <option value="sabah namazi">Sabah Namazi</option>
@@ -77,19 +77,6 @@
           </table>
 
           <button id="saveButton" class="btn btn-primary mt-3">Kaydet</button>
-        </div>
-        <div class="col">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Isim</th>
-                <th scope="col">Yüzdelik</th>
-              </tr>
-            </thead>
-            <tbody id="percentageTableBody">
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
