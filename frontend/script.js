@@ -205,6 +205,9 @@ document.getElementById('attendanceFilterForm').addEventListener('submit', async
   }
 
   try {
+    // Hide the "Create Attendance" button
+    document.getElementById('createAttendanceButton').style.display = 'none';
+
     // Check if attendance data exists for the selected date and program
     const response = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
     const attendanceData = await response.json();
@@ -270,16 +273,34 @@ document.addEventListener('DOMContentLoaded', function() {
   // Populate user table with all students initially
   populateUserTable();
 
+  // Set the date input field to the current date
+  const dateInput = document.getElementById('attendanceDate');
+  if (dateInput) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Hide the "Create Attendance" button when the date or program is changed
+  const dateField = document.getElementById('attendanceDate');
+  const programField = document.getElementById('programSelect');
+  if (dateField && programField) {
+    dateField.addEventListener('change', () => {
+      document.getElementById('createAttendanceButton').style.display = 'none';
+    });
+    programField.addEventListener('change', () => {
+      document.getElementById('createAttendanceButton').style.display = 'none';
+    });
+  }
+
   // Save attendance data and update percentage table on Save button click
   const saveButton = document.getElementById('saveButton');
   if (saveButton) {
     saveButton.addEventListener('click', function() {
       saveAttendanceData();
-      updatePercentageTable();
-      alert('Attendance saved and percentages updated!');
+      alert('Attendance saved successfully');
     });
   }
-
-  // Update percentage table on page load
-  updatePercentageTable();
 });
