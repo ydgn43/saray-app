@@ -51,10 +51,14 @@
                   </select>
                   <button type="submit" class="btn btn-primary">Göster</button>
                 </form>
-                
+              </div>
             </div>
           </div>
-          <table class="table table-striped">
+          
+          <!-- Button to create new attendance -->
+          <button id="createAttendanceButton" class="btn btn-success mt-3" style="display: none;">Yeni Yoklama Oluştur</button>
+
+          <table class="table table-striped mt-3">
             <thead>
               <tr>
                 <th scope="col">#</th>
@@ -71,7 +75,8 @@
             <tbody id="userTableBody">
             </tbody>
           </table>
-          <button id="saveButton" class="btn btn-primary">Kaydet</button>
+
+          <button id="saveButton" class="btn btn-primary mt-3">Kaydet</button>
         </div>
         <div class="col">
           <table class="table table-striped">
