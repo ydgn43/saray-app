@@ -39,4 +39,17 @@ export class StudentController {
             res.status(404).end();
         }
     }
+
+    public async createStudent(req: Request, res: Response){
+        try {
+            const student: Student = new Student(undefined, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name)
+
+            const createdResponse: string = await this.studentService.createStudent(student);
+
+            res.status(202).json(createdResponse);
+        } catch (error) {
+            console.error('Error creating student:', error);
+            res.status(404).end();
+        }
+    }
 }

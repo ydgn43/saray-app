@@ -21,8 +21,8 @@ studentRouter.get('/season/class', (req: Request, res: Response) => {
     studentController.getAllStudentsBySeasonAndClass(req, res);
 })
 
-studentRouter.post('/', (req: Request, res: Response) => {
-    res.send('student POST not yet implemented')
+studentRouter.post('/create', (req: Request, res: Response) => {
+    studentController.createStudent(req, res);
 })
 
 studentRouter.put('/', (req: Request, res: Response) => {

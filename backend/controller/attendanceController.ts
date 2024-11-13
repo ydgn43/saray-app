@@ -23,7 +23,7 @@ export class AttendanceController {
             const attendanceData: Attendance = new Attendance(+(req.query.studentid as string), new Date(req.query.date as string), undefined, req.query.program_name as string);
 
             const attendance: AttendanceSequelize | null = await this.attendanceService.getAttendance(attendanceData);
-
+            
             res.status(202).json(attendance);
         } catch (error) {
             console.log(error);

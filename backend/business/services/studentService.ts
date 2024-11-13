@@ -20,4 +20,7 @@ export class StudentService {
         return await this.studentData.getAllStudentsBySeasonAndClass(season, className);
     }
     
+    public async createStudent(student: Student): Promise<string> {
+        return await this.studentData.createStudent(student);
+    }
 }

@@ -1,32 +1,32 @@
 export class Student {
-    private _studentId: number;
-    private _firstName: string;
-    private _lastName: string;
-    private _birthDate: Date;
-    private _seasonYear: string;
-    private _className: string;
+    private _studentId: number | undefined;
+    private _firstName!: string;
+    private _lastName!: string;
+    private _birthDate!: Date;
+    private _seasonYear!: string;
+    private _className!: string;
   
     constructor(
-        studentId: number,
+        studentId: number | undefined,
         firstName: string,
-        seasonYear: string,
-        className: string,
         lastName: string,
-        birthDate: Date
+        birthDate: Date,
+        seasonYear: string,
+        className: string
     ) {
-        this._studentId = studentId;
-        this._firstName = firstName;
-        this._lastName = lastName;
-        this._birthDate = birthDate;
-        this._seasonYear = seasonYear;
-        this._className = className;
+        this.studentId = studentId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.birthDate = birthDate;
+        this.seasonYear = seasonYear;
+        this.className = className;
     }
   
-    public get studentId(): number {
+    public get studentId(): number | undefined{
         return this._studentId;
     }
   
-    public set studentId(studentId: number) {
+    public set studentId(studentId: number | undefined) {
         this._studentId = studentId;
     }
   

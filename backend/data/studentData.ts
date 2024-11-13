@@ -1,4 +1,5 @@
 // test
+import { Student } from "../business/models/Student";
 import StudentSequelize from "./models/Student";
 import {Request, Response} from 'express';
 
@@ -21,5 +22,31 @@ export class StudentData {
             class_name: className
         }});
         return allStudentsBySeasonAndClass;
+    }
+
+    public async createStudent(student: Student): Promise<string> {
+        try {
+            const [newStudent, created] = await StudentSequelize.findOrCreate({ where: { 
+                first_name: student.firstName,
+                last_name: student.lastName,
+                birth_date: student.birthDate,
+                season_year: student.seasonYear,
+                class_name: student.className
+            }, defaults: {
+                first_name: student.firstName,
+                last_name: student.lastName,
+                birth_date: student.birthDate,
+                season_year: student.seasonYear,
+                class_name: student.className
+            }});
+            
+            if (created){
+                return "Stundet succesfully created";
+            } else {
+                return "Stundet already exists";
+            }
+        } catch {
+            throw new Error("Could not create new student")
+        }
     }
 }

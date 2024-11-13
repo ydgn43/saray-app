@@ -27,7 +27,7 @@ export default class StudentSequelize extends Model {
     declare last_name: string | null;
 
     @Column({
-        type: DataType.DATE,
+        type: DataType.DATEONLY,
         allowNull: true
     })
     declare birth_date: Date | null;
