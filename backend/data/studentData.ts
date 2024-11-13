@@ -41,12 +41,19 @@ export class StudentData {
             }});
             
             if (created){
-                return "Stundet succesfully created";
+                return "Student succesfully created";
             } else {
-                return "Stundet already exists";
+                return "Student already exists";
             }
         } catch {
             throw new Error("Could not create new student")
         }
+    }
+
+    public async deleleteStudent(studentId: number): Promise<void> {
+        const test = await StudentSequelize.destroy({ where: { 
+            studentid: studentId
+        }});
+        console.log(test);
     }
 }

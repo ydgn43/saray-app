@@ -23,4 +23,8 @@ export class StudentService {
     public async createStudent(student: Student): Promise<string> {
         return await this.studentData.createStudent(student);
     }
+
+    public async deleteStudent(studentId: number): Promise<void> {
+        return await this.studentData.deleleteStudent(studentId);
+    }
 }

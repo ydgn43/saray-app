@@ -46,10 +46,21 @@ export class StudentController {
 
             const createdResponse: string = await this.studentService.createStudent(student);
 
-            res.status(202).json(createdResponse);
+            res.status(202).json({message: createdResponse});
         } catch (error) {
             console.error('Error creating student:', error);
             res.status(404).end();
         }
+    }
+
+    public async deleteStudent(req: Request, res: Response){
+        try {
+            await this.studentService.deleteStudent(+(req.query.studentid as string))
+            res.status(202).json({message: "Student succesfully deleted"});
+        } catch (error) {
+            console.error('Error deleting student:', error);
+            res.status(404).end();
+        }
+    
     }
 }

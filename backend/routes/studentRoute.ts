@@ -29,6 +29,6 @@ studentRouter.put('/', (req: Request, res: Response) => {
     res.send('student PUT not yet implemented')
 })
 
-studentRouter.delete('/', (req: Request, res: Response) => {
-    res.send('student DELETE not yet implemented')
+studentRouter.delete('/delete', (req: Request, res: Response) => {
+    studentController.deleteStudent(req, res);
 })
