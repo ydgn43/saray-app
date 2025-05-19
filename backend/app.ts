@@ -1,5 +1,6 @@
-import config from 'dotenv';
-config.config({ path: './config.env' });
+import dotenv from 'dotenv';
+dotenv.config({ path: './config.env' });
+
 
 import express, { Request, Response } from 'express';
 import cors from 'cors';
