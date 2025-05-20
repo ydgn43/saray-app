@@ -19,12 +19,20 @@ export class StudentService {
     public async getAllStudentsBySeasonAndClass(season: string, className: string): Promise<StudentSequelize[]> {
         return await this.studentData.getAllStudentsBySeasonAndClass(season, className);
     }
-    
+
     public async createStudent(student: Student): Promise<string> {
         return await this.studentData.createStudent(student);
     }
 
     public async deleteStudent(studentId: number): Promise<void> {
         return await this.studentData.deleteStudent(studentId);
+    }
+
+    public async getStudentById(id: number) {
+        return this.studentData.getStudentById(id);
+    }
+
+    public async updateStudent(student: Student): Promise<boolean> {
+        return await this.studentData.updateStudent(student);
     }
 }

@@ -21,13 +21,18 @@ studentRouter.get('/season/class', (req: Request, res: Response) => {
     studentController.getAllStudentsBySeasonAndClass(req, res);
 })
 
+studentRouter.get('/:id', (req: Request, res: Response) => {
+    studentController.getStudentById(req, res);
+});
+
+
 studentRouter.post('/create', (req: Request, res: Response) => {
     studentController.createStudent(req, res);
 })
 
 studentRouter.put('/', (req: Request, res: Response) => {
-    res.send('student PUT not yet implemented')
-})
+    studentController.updateStudent(req, res);
+});
 
 studentRouter.delete('/delete', (req: Request, res: Response) => {
     studentController.deleteStudent(req, res);
