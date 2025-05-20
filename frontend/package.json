@@ -12,6 +12,7 @@
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
     "lodash.debounce": "^4.0.8",
+    "papaparse": "^5.5.3",
     "react": "^19.1.0",
     "react-confirm-alert": "^3.0.6",
     "react-dom": "^19.1.0",
@@ -46,6 +47,7 @@
     ]
   },
   "devDependencies": {
-    "@types/lodash.debounce": "^4.0.9"
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/papaparse": "^5.3.16"
   }
 }

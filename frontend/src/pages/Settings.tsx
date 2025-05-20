@@ -4,6 +4,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import debounce from 'lodash.debounce';
+import { unparse } from 'papaparse';
+
 
 import { useCallback } from 'react';
 
@@ -193,6 +195,33 @@ const Settings = () => {
     const currentStudents = filteredStudents.slice(indexOfFirst, indexOfLast);
     const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
+    const handleExportCSV = () => {
+        if (filteredStudents.length === 0) {
+            toast.info("Dışa aktarılacak öğrenci bulunamadı.");
+            return;
+        }
+
+        const dataToExport = filteredStudents.map((s) => ({
+            ID: s.studentid,
+            Isim: s.first_name,
+            Soyisim: s.last_name,
+            Sinif: s.class_name,
+            Sezon: s.season_year,
+            DogumTarihi: s.birth_date,
+        }));
+
+        const csv = unparse(dataToExport);
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'talebeler.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
 
     return (
 
@@ -249,8 +278,42 @@ const Settings = () => {
                             );
                         })}
                     </select>
+
                 </div>
+                <div className="d-flex justify-content-end mb-2">
+                    <button className="btn btn-outline-success btn-sm" onClick={handleExportCSV}>
+                        CSV Olarak Dışa Aktar
+                    </button>
+                </div>
+
             </div>
+            {(selectedClass || selectedSeason) && (
+                <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
+                    {selectedClass && (
+                        <span className="badge bg-secondary d-flex align-items-center">
+                            {selectedClass}
+                            <button
+                                type="button"
+                                className="btn-close btn-close-white btn-sm ms-2"
+                                aria-label="Sınıf filtresini kaldır"
+                                onClick={() => setSelectedClass('')}
+                            ></button>
+                        </span>
+                    )}
+                    {selectedSeason && (
+                        <span className="badge bg-info text-dark d-flex align-items-center">
+                            {selectedSeason}
+                            <button
+                                type="button"
+                                className="btn-close btn-close-dark btn-sm ms-2"
+                                aria-label="Sezon filtresini kaldır"
+                                onClick={() => setSelectedSeason('')}
+                            ></button>
+                        </span>
+                    )}
+                </div>
+            )}
+
             {showAddModal && (
                 <div className="modal show fade d-block" tabIndex={-1} role="dialog">
                     <div className="modal-dialog" role="document">
