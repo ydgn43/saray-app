@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import AttendanceTable from '../components/AttendanceTable';
+import AttendanceResponsiveView from '../components/AttendanceResponsiveView';
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -192,7 +193,7 @@ const Attendance = () => {
 
       {showTable && (
         <>
-          <AttendanceTable
+          <AttendanceResponsiveView
             students={students}
             attendanceData={attendanceData}
             date={date}
