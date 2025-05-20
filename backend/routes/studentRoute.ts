@@ -25,7 +25,6 @@ studentRouter.get('/:id', (req: Request, res: Response) => {
     studentController.getStudentById(req, res);
 });
 
-
 studentRouter.post('/create', (req: Request, res: Response) => {
     studentController.createStudent(req, res);
 })

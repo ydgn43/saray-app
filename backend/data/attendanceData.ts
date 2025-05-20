@@ -1,44 +1,90 @@
 import AttendanceSequelize from './models/Attendance';
 import { Attendance } from '../business/models/Attendance';
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
+import { Op } from 'sequelize';
 
 export class AttendanceData {
-    public async getAllAttendance(){
+    public async getAllAttendance() {
         const attendance = await AttendanceSequelize.findAll();
         return attendance;
     }
 
-    public async getAttendance(attendanceData: Attendance){
+    public async getAttendance(attendanceData: Attendance) {
         try {
-            const attendance = await AttendanceSequelize.findOne({ where: {
-                studentid: attendanceData.studentId,
-                date: attendanceData.date,
-                program_name: attendanceData.programName
-            }})
+            const attendance = await AttendanceSequelize.findOne({
+                where: {
+                    studentid: attendanceData.studentId,
+                    date: attendanceData.date,
+                    program_name: attendanceData.programName
+                }
+            })
             return attendance;
         } catch (error) {
             throw new Error("Could not find attendance")
-        }  
+        }
     }
 
-    public async getAttendanceByDateAndProgram(date: string, programName: string){
+    public async getAttendanceStatisticsByDateRange(start: string, end: string) {
+        const records = await AttendanceSequelize.findAll({
+            where: {
+                date: {
+                    [Op.between]: [start, end]
+                }
+            }
+        });
+
+        const grouped: Record<number, Record<string, number>> = {};
+        const totalCounts: Record<number, number> = {};
+
+        for (const record of records) {
+            const id = record.studentid;
+            const type = record.attendance_type_name;
+
+            if (!grouped[id]) grouped[id] = {};
+            if (!totalCounts[id]) totalCounts[id] = 0;
+
+            grouped[id][type] = (grouped[id][type] || 0) + 1;
+            totalCounts[id]++;
+        }
+
+        const result = Object.entries(grouped).map(([studentId, types]) => {
+            const total = totalCounts[+studentId];
+            const percentages = Object.entries(types).reduce((acc, [type, count]) => {
+                acc[type] = Number(((count / total) * 100).toFixed(2));
+                return acc;
+            }, {} as Record<string, number>);
+
+            return {
+                studentid: +studentId,
+                total,
+                percentages,
+            };
+        });
+
+        return result;
+    }
+
+
+    public async getAttendanceByDateAndProgram(date: string, programName: string) {
         try {
-            const attendance = await AttendanceSequelize.findAll({ where: {
-                date: date,
-                program_name: programName
-            }})
+            const attendance = await AttendanceSequelize.findAll({
+                where: {
+                    date: date,
+                    program_name: programName
+                }
+            })
             return attendance;
         } catch (error) {
             throw new Error("Could not find attendance")
-        }  
+        }
     }
 
-    public async createAttendance(attendance: Attendance){
+    public async createAttendance(attendance: Attendance) {
         try {
             console.log("Trying to create attendance with:", attendance);
 
-            await AttendanceSequelize.create({ 
-                studentid: attendance.studentId, 
+            await AttendanceSequelize.create({
+                studentid: attendance.studentId,
                 date: attendance.date,
                 attendance_type_name: attendance.attendanceTypeName,
                 program_name: attendance.programName
@@ -49,18 +95,18 @@ export class AttendanceData {
         }
     }
 
-    public async updateAttendance(attendance: Attendance){
+    public async updateAttendance(attendance: Attendance) {
         try {
-            await AttendanceSequelize.update({ 
+            await AttendanceSequelize.update({
                 attendance_type_name: attendance.attendanceTypeName,
             },
-            {
-                where: {
-                    studentid: attendance.studentId,
-                    date: attendance.date,
-                    program_name: attendance.programName
-                }
-            });
+                {
+                    where: {
+                        studentid: attendance.studentId,
+                        date: attendance.date,
+                        program_name: attendance.programName
+                    }
+                });
         } catch {
             throw new Error("Could not update attendance")
         }

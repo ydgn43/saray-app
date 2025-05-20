@@ -14,6 +14,11 @@ export class AttendanceService {
         return await this.attendaceData.getAttendance(attendance);
     }
 
+    public async getAttendanceStatisticsByDateRange(start: string, end: string) {
+        return this.attendaceData.getAttendanceStatisticsByDateRange(start, end);
+    }
+
+
     public async getAttendanceByDateAndProgram(date: string, programName: string): Promise<AttendanceSequelize[]> {
         return await this.attendaceData.getAttendanceByDateAndProgram(date, programName);
     }

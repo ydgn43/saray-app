@@ -13,9 +13,13 @@ attendanceRoute.get('/all', (req: Request, res: Response) => {
     attendanceController.getAllAttendance(req, res);
 })
 
-attendanceRoute.get('', (req: Request, res: Response) => {
+attendanceRoute.get('/', (req: Request, res: Response) => {
     attendanceController.getAttendance(req, res);
 })
+
+attendanceRoute.get('/statistics', (req: Request, res: Response) => {
+    attendanceController.getAttendanceStatistics(req, res);
+});
 
 attendanceRoute.get('/dailyprogram', (req: Request, res: Response) => {
     attendanceController.getAttendanceByDateAndProgram(req, res);

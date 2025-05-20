@@ -5,6 +5,8 @@ import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import debounce from 'lodash.debounce';
 import { unparse } from 'papaparse';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 
 import { useCallback } from 'react';
@@ -28,7 +30,8 @@ const Settings = () => {
     const [adding, setAdding] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const studentsPerPage = 10;
-
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingStudent, setEditingStudent] = useState<Student | null>(null);
     const [searchInput, setSearchInput] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
@@ -231,62 +234,86 @@ const Settings = () => {
             <h1>Ayarlar</h1>
 
 
-            <h3>Mevcut Talebeler</h3>
-            <div className="mb-3">
-                <input
-                    type="text"
-                    className="form-control"
-                    placeholder="İsim, soyisim, sınıf veya sezon ile ara..."
-                    value={searchInput}
-                    onChange={(e) => {
-                        setSearchInput(e.target.value);
-                        debouncedSearch(e.target.value);
-                    }}
-                />
+            <h3 className="d-flex justify-content-between align-items-center">
+                Mevcut Talebeler
+                <span className="badge bg-info text-dark">
+                    Toplam: {filteredStudents.length}
+                </span>
+            </h3>
+            <div className="mb-3 d-flex flex-wrap gap-2">
+                {[
+                    "kuranikerim",
+                    "hazirlik",
+                    "ibtidai",
+                    "ihzari",
+                    "mezun tekamul alti",
+                    "tekamul alti"
+                ].map((className) => {
+                    const count = filteredStudents.filter((s) => s.class_name === className).length;
+                    return (
+                        <span key={className} className="badge bg-primary">
+                            {className}: {count}
+                        </span>
+                    );
+                })}
             </div>
-            <div className="row mb-3">
-                <div className="col-md-6">
-                    <select
-                        className="form-select"
-                        value={selectedClass}
-                        onChange={(e) => setSelectedClass(e.target.value)}
-                    >
-                        <option value="">Tüm Sınıflar</option>
-                        <option value="kuranikerim">Kuran-ı Kerim</option>
-                        <option value="hazirlik">Hazırlık</option>
-                        <option value="ibtidati">İbtidati</option>
-                        <option value="ihzari">İhzari</option>
-                        <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
-                        <option value="tekamul_alti">Tekamul Altı</option>
-                    </select>
+
+
+
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+            >
+                <div className="mb-3">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="İsim, soyisim, sınıf veya sezon ile ara..."
+                        value={searchInput}
+                        onChange={(e) => {
+                            setSearchInput(e.target.value);
+                            debouncedSearch(e.target.value);
+                        }}
+                    />
                 </div>
 
-                <div className="col-md-6">
-                    <select
-                        className="form-select"
-                        value={selectedSeason}
-                        onChange={(e) => setSelectedSeason(e.target.value)}
-                    >
-                        <option value="">Tüm Sezonlar</option>
-                        {Array.from({ length: 33 }).map((_, i) => {
-                            const year = 2018 + i;
-                            const season = `${year}/${year + 1}`;
-                            return (
-                                <option key={season} value={season}>
-                                    {season}
-                                </option>
-                            );
-                        })}
-                    </select>
+                <div className="row mb-3">
+                    <div className="col-md-6">
+                        <select className="form-select" value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
+                            <option value="">Tüm Sınıflar</option>
+                            <option value="kuranikerim">Kuran-ı Kerim</option>
+                            <option value="hazirlik">Hazırlık</option>
+                            <option value="ibtidati">İbtidati</option>
+                            <option value="ihzari">İhzari</option>
+                            <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
+                            <option value="tekamul_alti">Tekamul Altı</option>
+                        </select>
+                    </div>
 
-                </div>
-                <div className="d-flex justify-content-end mb-2">
-                    <button className="btn btn-outline-success btn-sm" onClick={handleExportCSV}>
-                        CSV Olarak Dışa Aktar
-                    </button>
-                </div>
+                    <div className="col-md-6">
+                        <select className="form-select" value={selectedSeason} onChange={(e) => setSelectedSeason(e.target.value)}>
+                            <option value="">Tüm Sezonlar</option>
+                            {Array.from({ length: 33 }).map((_, i) => {
+                                const year = 2018 + i;
+                                const season = `${year}/${year + 1}`;
+                                return (
+                                    <option key={season} value={season}>
+                                        {season}
+                                    </option>
+                                );
+                            })}
+                        </select>
 
-            </div>
+                        <div className="d-flex justify-content-end mb-2">
+                            <button className="btn btn-outline-success btn-sm" onClick={handleExportCSV}>
+                                CSV Olarak Dışa Aktar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
             {(selectedClass || selectedSeason) && (
                 <div className="mb-3 d-flex flex-wrap align-items-center gap-2">
                     {selectedClass && (
@@ -314,42 +341,131 @@ const Settings = () => {
                 </div>
             )}
 
-            {showAddModal && (
-                <div className="modal show fade d-block" tabIndex={-1} role="dialog">
-                    <div className="modal-dialog" role="document">
-                        <div className="modal-content">
-                            <form
-                                onSubmit={handleAddStudent}
-                            >
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Yeni Talebe Ekle</h5>
-                                    <button
-                                        type="button"
-                                        className="btn-close"
-                                        onClick={() => setShowAddModal(false)}
-                                    ></button>
-                                </div>
-
-                                <div className="modal-body">
-                                    <div className="row">
-                                        <div className="col-md-6 mb-3">
-                                            <label>İsim</label>
-                                            <input className="form-control" value={first_name} onChange={(e) => setFirstName(e.target.value)} />
+            <AnimatePresence>
+                {showAddModal && (
+                    <motion.div
+                        className="modal show fade d-block"
+                        tabIndex={-1}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="modal-dialog" role="document">
+                            <div className="modal-content">
+                                <form onSubmit={handleAddStudent}>
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Yeni Talebe Ekle</h5>
+                                        <button
+                                            type="button"
+                                            className="btn-close"
+                                            onClick={() => setShowAddModal(false)}
+                                        ></button>
+                                    </div>
+                                    <div className="modal-body">
+                                        {/* Form fields */}
+                                        <div className="row">
+                                            <div className="col-md-6 mb-3">
+                                                <label>İsim</label>
+                                                <input className="form-control" value={first_name} onChange={(e) => setFirstName(e.target.value)} />
+                                            </div>
+                                            <div className="col-md-6 mb-3">
+                                                <label>Soyisim</label>
+                                                <input className="form-control" value={last_name} onChange={(e) => setLastName(e.target.value)} />
+                                            </div>
                                         </div>
-                                        <div className="col-md-6 mb-3">
-                                            <label>Soyisim</label>
-                                            <input className="form-control" value={last_name} onChange={(e) => setLastName(e.target.value)} />
+                                        <div className="row">
+                                            <div className="col-md-6 mb-3">
+                                                <label>Doğum Tarihi</label>
+                                                <input type="date" className="form-control" value={birth_date} onChange={(e) => setBirthDate(e.target.value)} />
+                                            </div>
+                                            <div className="col-md-6 mb-3">
+                                                <label>Sezon</label>
+                                                <select className="form-select" value={season_year} onChange={(e) => setSeason(e.target.value)}>
+                                                    <option value="">Sezon Seç</option>
+                                                    {Array.from({ length: 33 }).map((_, i) => {
+                                                        const year = 2018 + i;
+                                                        return (
+                                                            <option key={year} value={`${year}/${year + 1}`}>
+                                                                {year}/{year + 1}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            <div className="col-md-6 mb-3">
+                                                <label>Sınıf Adı</label>
+                                                <select className="form-select" value={class_name} onChange={(e) => setClassName(e.target.value)}>
+                                                    <option value="">Sınıf Seç</option>
+                                                    <option value="kuranikerim">Kuran-ı Kerim</option>
+                                                    <option value="hazirlik">Hazırlık</option>
+                                                    <option value="ibtidati">İbtidati</option>
+                                                    <option value="ihzari">İhzari</option>
+                                                    <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
+                                                    <option value="tekamul_alti">Tekamul Altı</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div className="row">
-                                        <div className="col-md-6 mb-3">
-                                            <label>Doğum Tarihi</label>
-                                            <input type="date" className="form-control" value={birth_date} onChange={(e) => setBirthDate(e.target.value)} />
+                                    <div className="modal-footer">
+                                        <button type="submit" className="btn btn-success" disabled={adding}>
+                                            {adding ? 'Ekleniyor...' : 'Ekle'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
+                                            onClick={() => setShowAddModal(false)}
+                                        >
+                                            Vazgeç
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+                {showEditModal && editingStudent && (
+                    <motion.div
+                        className="modal show fade d-block"
+                        tabIndex={-1}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+                                <form onSubmit={(e) => { e.preventDefault(); setShowEditModal(false); confirmAlert({ title: 'Düzenleme Onayı', message: 'Talebe bilgilerini güncellemek istiyor musunuz?', buttons: [{ label: 'Evet', onClick: async () => { try { const res = await fetch('http://localhost:3001/student', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingStudent), }); if (!res.ok) throw new Error(); toast.success("Talebe bilgileri güncellendi"); setEditingStudent(null); loadStudents(); } catch { toast.error("Güncelleme başarısız"); } }, }, { label: 'Hayır', onClick: () => setShowEditModal(true) }] }); }}>
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Talebe Bilgilerini Güncelle</h5>
+                                        <button
+                                            type="button"
+                                            className="btn-close"
+                                            onClick={() => {
+                                                setShowEditModal(false);
+                                                setEditingStudent(null);
+                                            }}
+                                        ></button>
+                                    </div>
+                                    <div className="modal-body">
+                                        {/* Form fields for editing */}
+                                        <div className="mb-3">
+                                            <label>İsim</label>
+                                            <input className="form-control" value={editingStudent.first_name} onChange={(e) => setEditingStudent({ ...editingStudent, first_name: e.target.value })} />
                                         </div>
-                                        <div className="col-md-6 mb-3">
+                                        <div className="mb-3">
+                                            <label>Soyisim</label>
+                                            <input className="form-control" value={editingStudent.last_name} onChange={(e) => setEditingStudent({ ...editingStudent, last_name: e.target.value })} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label>Doğum Tarihi</label>
+                                            <input type="date" className="form-control" value={editingStudent.birth_date} onChange={(e) => setEditingStudent({ ...editingStudent, birth_date: e.target.value })} />
+                                        </div>
+                                        <div className="mb-3">
                                             <label>Sezon</label>
-                                            <select className="form-select" value={season_year} onChange={(e) => setSeason(e.target.value)}>
+                                            <select className="form-select" value={editingStudent.season_year} onChange={(e) => setEditingStudent({ ...editingStudent, season_year: e.target.value })}>
                                                 <option value="">Sezon Seç</option>
                                                 {Array.from({ length: 33 }).map((_, i) => {
                                                     const year = 2018 + i;
@@ -361,12 +477,9 @@ const Settings = () => {
                                                 })}
                                             </select>
                                         </div>
-                                    </div>
-
-                                    <div className="row">
-                                        <div className="col-md-6 mb-3">
-                                            <label>Sınıf Adı</label>
-                                            <select className="form-select" value={class_name} onChange={(e) => setClassName(e.target.value)}>
+                                        <div className="mb-3">
+                                            <label>Sınıf</label>
+                                            <select className="form-select" value={editingStudent.class_name} onChange={(e) => setEditingStudent({ ...editingStudent, class_name: e.target.value })}>
                                                 <option value="">Sınıf Seç</option>
                                                 <option value="kuranikerim">Kuran-ı Kerim</option>
                                                 <option value="hazirlik">Hazırlık</option>
@@ -377,26 +490,35 @@ const Settings = () => {
                                             </select>
                                         </div>
                                     </div>
-                                </div>
-
-
-                                <div className="modal-footer">
-                                    <button type="submit" className="btn btn-success" disabled={adding}>
-                                        {adding ? 'Ekleniyor...' : 'Ekle'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="btn btn-secondary"
-                                        onClick={() => setShowAddModal(false)}
-                                    >
-                                        Vazgeç
-                                    </button>
-                                </div>
-                            </form>
+                                    <div className="modal-footer">
+                                        <button type="submit" className="btn btn-success">Güncelle</button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
+                                            onClick={() => {
+                                                setShowEditModal(false);
+                                                setEditingStudent(null);
+                                            }}
+                                        >
+                                            Vazgeç
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </motion.div>
+                )}
+                {(showAddModal || showEditModal) && (
+                    <motion.div
+                        className="modal-backdrop fade show"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.5 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    />
+                )}
+            </AnimatePresence>
+
 
             {loading ? (
                 <div className="text-center my-4">
@@ -405,10 +527,11 @@ const Settings = () => {
                     </div>
                 </div>
             ) : (
+
                 <table className="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>#</th>
                             <th>İsim</th>
                             <th>Soyisim</th>
                             <th>Sınıf</th>
@@ -417,34 +540,51 @@ const Settings = () => {
                             <th>İşlem</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {currentStudents.map((s) => (
-                            <tr key={s.studentid}>
-                                <td>{s.studentid}</td>
+                    <motion.tbody
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            visible: {
+                                transition: {
+                                    staggerChildren: 0.05,
+                                },
+                            },
+                        }}
+                    >
+                        {currentStudents.map((s, index) => (
+                            <motion.tr
+                                key={s.studentid}
+                                variants={{
+                                    hidden: { opacity: 0, y: 10 },
+                                    visible: { opacity: 1, y: 0 },
+                                }}
+                            >
+                                <td>{indexOfFirst + index + 1}</td>
                                 <td>{s.first_name}</td>
                                 <td>{s.last_name}</td>
                                 <td>{s.class_name}</td>
                                 <td>{s.season_year}</td>
                                 <td>{s.birth_date}</td>
                                 <td>
-                                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>
-                                        Sil
-                                    </button>
+                                    <button className="btn btn-warning btn-sm me-2" onClick={() => { setEditingStudent(s); setShowEditModal(true); }}>Düzenle</button>
+                                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>Sil</button>
                                 </td>
-                            </tr>
+                            </motion.tr>
                         ))}
-                        {filteredStudents.length === 0 && (
-                            <tr>
-                                <td colSpan={7} className="text-center">Kayıtlı talebe bulunamadı.</td>
-                            </tr>
-                        )}
-                    </tbody>
+                    </motion.tbody>
+
 
                 </table>
 
             )}
             {totalPages > 1 && (
-                <div className="d-flex justify-content-center align-items-center my-3 gap-3">
+                <motion.div
+                    className="d-flex justify-content-center align-items-center my-3 gap-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
                     <button
                         className="btn btn-outline-secondary btn-sm"
                         onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -460,16 +600,19 @@ const Settings = () => {
                     >
                         İleri →
                     </button>
-                </div>
+                </motion.div>
             )}
 
             <div className="d-flex justify-content-end mb-3">
-                <button
+                <motion.button
                     className="btn btn-primary"
                     onClick={() => setShowAddModal(true)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300 }}
                 >
                     Yeni Talebe Ekle
-                </button>
+                </motion.button>
             </div>
 
         </div>
