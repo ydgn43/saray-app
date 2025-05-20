@@ -1,111 +1,216 @@
 import { useState, useEffect } from 'react';
 import AttendanceTable from '../components/AttendanceTable';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { motion, AnimatePresence } from 'framer-motion';
+
+type Student = {
+  studentid: number;
+  first_name: string;
+  last_name: string;
+  class_name: string;
+  // Add more fields if needed
+};
+
+type Attendance = {
+  studentid: number;
+  date: string;
+  program_name: string;
+  attendance_type_name: string;
+};
+
+const PROGRAM_OPTIONS = [
+  'sabah namazi',
+  'ögle namazi',
+  'ikindi namazi',
+  'aksam namazi',
+  'yatsi namazi',
+  'hatim',
+];
+
+const fetchJson = async (url: string, options = {}) => {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+};
 
 const Attendance = () => {
-  const [date, setDate] = useState('');
-  const [program, setProgram] = useState('');
-  const [attendanceData, setAttendanceData] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [attendanceData, setAttendanceData] = useState<Attendance[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [showCreateButton, setShowCreateButton] = useState(false);
+  const [showTable, setShowTable] = useState(false); // ✅ NEW
+  const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState<string>('');
+  const [program, setProgram] = useState<string>('');
 
-  // Fetch students on load
   useEffect(() => {
-    fetch('http://localhost:3001/student')
-      .then((res) => res.json())
-      .then(setStudents)
-      .catch(console.error);
+    const savedDate = localStorage.getItem('attendance-date');
+    const savedProgram = localStorage.getItem('attendance-program');
+    if (savedDate) setDate(savedDate);
+    if (savedProgram) setProgram(savedProgram);
   }, []);
 
-  // Fetch attendance data
+  useEffect(() => {
+    fetchJson('http://localhost:3001/student')
+      .then(setStudents)
+      .catch(() => toast.error('Öğrenciler alınamadı'));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('attendance-date', date);
+  }, [date]);
+
+  useEffect(() => {
+    localStorage.setItem('attendance-program', program);
+  }, [program]);
+
   const loadAttendanceData = async () => {
-  if (!date || !program) return;
-  const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
-  const data = await res.json();
-  setAttendanceData(data);
-  setShowCreateButton(data.length === 0);
-};
+    if (!date || !program) {
+      toast.warning("Tarih ve program seçiniz.");
+      return;
+    }
+
+    setLoading(true);
+    setShowCreateButton(false);
+    setShowTable(false);
+
+    try {
+      const res = await fetch(
+        `http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`
+      );
+      const data = await res.json();
+
+      setAttendanceData(data);
+
+      if (data.length === 0) {
+        setShowCreateButton(true); // ✅ show button
+        setShowTable(false);       // ❌ no table yet
+      } else {
+        setShowCreateButton(false);
+        setShowTable(true);        // ✅ show table if records exist
+      }
+    } catch {
+      toast.error("Yoklama verisi alınamadı.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const handleCreateAttendance = async () => {
-  if (!date || !program) {
-    alert('Lütfen tarih ve program seçiniz.');
-    return;
-  }
+    if (!date || !program) {
+      toast.error("Tarih ve program seçiniz.");
+      return;
+    }
 
-  const payload = students.map((s: any) => ({
-    studentid: s.studentid,
-    date,
-    program_name: program,
-    attendance_type_name: '', // initially no status
-  }));
+    const payload = students.map((s) => ({
+      studentid: s.studentid,
+      date,
+      program_name: program,
+      attendance_type_name: 'yok',
+    }));
 
-  try {
-    await fetch('http://localhost:3001/attendance/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      await fetch('http://localhost:3001/attendance/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    console.log('Yeni yoklama başarıyla oluşturuldu');
-    setShowCreateButton(false);
-    loadAttendanceData(); // refresh the list
-  } catch (err) {
-    console.error('Yeni yoklama oluşturulurken hata:', err);
-    alert('Oluşturma başarısız oldu');
-  }
-};
+      toast.success("Yeni yoklama oluşturuldu");
+      setShowCreateButton(false);
+      setShowTable(true);      // ✅ now show table
+      loadAttendanceData();    // ✅ refresh actual table with fresh data
+    } catch {
+      toast.error("Yoklama oluşturulamadı");
+    }
+  };
+
+
 
   return (
     <div className="container mt-4">
-      <h1>Günlük Yoklama</h1>
+      <ToastContainer />
+      <h1 className="mb-4">Günlük Yoklama</h1>
 
-      {/* Form */}
-      <div className="row">
-        <div className="col-md-4">
-          <label>Tarih:</label>
-          <input
-            type="date"
-            className="form-control"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-        <div className="col-md-4">
-          <label>Program:</label>
-          <select
-            className="form-select"
-            value={program}
-            onChange={(e) => setProgram(e.target.value)}
-          >
-            <option value="">Program Seçin</option>
-            <option value="sabah namazi">Sabah Namazı</option>
-            <option value="Ögle Namazi">Öğle Namazı</option>
-            <option value="Ikindi Namazi">İkindi Namazı</option>
-            <option value="Aksam Namazi">Akşam Namazı</option>
-            <option value="Yatsi Namazi">Yatsı Namazı</option>
-            <option value="Hatim">Hatim</option>
-          </select>
-        </div>
-        <div className="col-md-4 d-flex align-items-end">
-          <button onClick={loadAttendanceData}>Göster</button>
+      <div className="card p-4 shadow-sm mb-4">
+        <div className="row g-3">
+          <div className="col-md-4">
+            <label className="form-label">Tarih</label>
+            <input
+              type="date"
+              className="form-control"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">Program</label>
+            <select
+              className="form-select"
+              value={program}
+              onChange={(e) => setProgram(e.target.value)}
+            >
+              <option value="">Program Seçin</option>
+              {PROGRAM_OPTIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p[0].toUpperCase() + p.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-4 d-flex align-items-end">
+            <button
+              className="btn btn-primary w-100"
+              onClick={loadAttendanceData}
+              disabled={!date || !program || loading}
+            >
+              {loading ? 'Yükleniyor...' : 'Göster'}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Create Button */}
-      {showCreateButton && (
-        <button className="btn btn-success mt-3" onClick={handleCreateAttendance}>
-          Yeni Yoklama Oluştur
-        </button>
+      <AnimatePresence>
+        {showCreateButton && (
+          <div className="mb-3">
+            <button className="btn btn-success" onClick={handleCreateAttendance}>
+              Yeni Yoklama Oluştur
+            </button>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {loading && (
+        <div className="text-center my-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
+          </div>
+        </div>
       )}
 
-      {/* Table */}
-      <AttendanceTable
-        students={students}
-        attendanceData={attendanceData}
-        date={date}
-        program={program}
-        onChange={loadAttendanceData}
-        />
+      {showTable && (
+        <>
+          <AttendanceTable
+            students={students}
+            attendanceData={attendanceData}
+            date={date}
+            program={program}
+            onChange={loadAttendanceData}
+          />
+
+          <div className="text-end mt-3">
+            <button className="btn btn-outline-secondary" onClick={loadAttendanceData}>
+              Yenile
+            </button>
+          </div>
+        </>
+      )}
+
+
+      {!loading && !showTable && !showCreateButton && (
+        <div className="alert alert-info text-center">Veri bulunamadı.</div>
+      )}
     </div>
   );
 };
