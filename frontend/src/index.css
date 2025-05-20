@@ -11,6 +11,11 @@ tr:hover {
   background-color: blue;
 }
 
+.table-group-header {
+  background-color: #f0f8ff;
+  border-top: 2px solid #007bff;
+}
+
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',

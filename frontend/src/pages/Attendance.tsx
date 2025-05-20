@@ -9,7 +9,6 @@ type Student = {
   first_name: string;
   last_name: string;
   class_name: string;
-  // Add more fields if needed
 };
 
 type Attendance = {
@@ -17,6 +16,7 @@ type Attendance = {
   date: string;
   program_name: string;
   attendance_type_name: string;
+  sebep?: string;
 };
 
 const PROGRAM_OPTIONS = [
@@ -38,7 +38,7 @@ const Attendance = () => {
   const [attendanceData, setAttendanceData] = useState<Attendance[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [showCreateButton, setShowCreateButton] = useState(false);
-  const [showTable, setShowTable] = useState(false); // ✅ NEW
+  const [showTable, setShowTable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState<string>('');
   const [program, setProgram] = useState<string>('');
@@ -75,19 +75,23 @@ const Attendance = () => {
     setShowTable(false);
 
     try {
-      const res = await fetch(
-        `http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`
-      );
+      const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const data = await res.json();
+
+      if (!Array.isArray(data)) {
+        setAttendanceData([]);
+        toast.error("Beklenmeyen yanıt: yoklama verisi alınamadı.");
+        return;
+      }
 
       setAttendanceData(data);
 
       if (data.length === 0) {
-        setShowCreateButton(true); // ✅ show button
-        setShowTable(false);       // ❌ no table yet
+        setShowCreateButton(true);
+        setShowTable(false);
       } else {
         setShowCreateButton(false);
-        setShowTable(true);        // ✅ show table if records exist
+        setShowTable(true);
       }
     } catch {
       toast.error("Yoklama verisi alınamadı.");
@@ -95,7 +99,6 @@ const Attendance = () => {
       setLoading(false);
     }
   };
-
 
   const handleCreateAttendance = async () => {
     if (!date || !program) {
@@ -119,14 +122,12 @@ const Attendance = () => {
 
       toast.success("Yeni yoklama oluşturuldu");
       setShowCreateButton(false);
-      setShowTable(true);      // ✅ now show table
-      loadAttendanceData();    // ✅ refresh actual table with fresh data
+      setShowTable(true);
+      loadAttendanceData();
     } catch {
       toast.error("Yoklama oluşturulamadı");
     }
   };
-
-
 
   return (
     <div className="container mt-4">
@@ -206,7 +207,6 @@ const Attendance = () => {
           </div>
         </>
       )}
-
 
       {!loading && !showTable && !showCreateButton && (
         <div className="alert alert-info text-center">Veri bulunamadı.</div>

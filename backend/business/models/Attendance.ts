@@ -3,6 +3,7 @@ export class Attendance {
     private _date!: Date;
     private _attendanceTypeName: string | undefined;
     private _programName!: string;
+    private _sebep: string | null = null;
 
     constructor(studentId: number, date: Date, attendanceTypeName: string | undefined, programName: string) {
         this.studentId = studentId; // Use setter
@@ -45,9 +46,20 @@ export class Attendance {
 
     public set programName(value: string) {
         const MAXCHAR: number = 45;
+        if (!value) {
+            throw new Error('Program adı boş olamaz.');
+        }
         if (value.length > MAXCHAR) {
-            throw new Error('Too many characters.');
+            throw new Error('Program adı çok uzun.');
         }
         this._programName = value;
+    }
+
+    public get sebep(): string | null {
+        return this._sebep;
+    }
+
+    public set sebep(value: string | null) {
+        this._sebep = value;
     }
 }

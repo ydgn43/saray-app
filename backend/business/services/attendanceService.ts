@@ -1,4 +1,4 @@
-import { AttendanceData } from "../../data/attendanceData";
+import AttendanceData from "../../data/attendanceData";
 import AttendanceSequelize from "../../data/models/Attendance";
 import { Attendance } from "../models/Attendance";
 

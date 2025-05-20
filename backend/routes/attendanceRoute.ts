@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import { AttendanceController } from '../controller/attendanceController';
 import { AttendanceService } from '../business/services/attendanceService';
-import { AttendanceData } from '../data/attendanceData';
+import AttendanceData from '../data/attendanceData';
+
 
 export const attendanceRoute = express.Router();
 

@@ -38,6 +38,12 @@ export default class AttendanceSequelize extends Model {
     })
     declare program_name: string;
 
+    @Column({
+        type: DataType.STRING(255),
+        allowNull: true,
+    })
+    declare sebep: string | null;
+
     @BelongsTo(() => Student)
     student!: Student;
 

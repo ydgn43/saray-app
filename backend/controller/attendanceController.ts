@@ -92,7 +92,7 @@ export class AttendanceController {
 
     public async updateAttendance(req: Request, res: Response) {
         try {
-            const { studentid, date, attendance_type_name, program_name } = req.body;
+            const { studentid, date, attendance_type_name, program_name, sebep } = req.body;
 
             if (!studentid || !date || !program_name) {
                 return res.status(400).json({ message: 'Missing required fields' });
@@ -105,6 +105,8 @@ export class AttendanceController {
                 program_name
             );
 
+            attendanceData.sebep = sebep || null; // ✅ set the sebep
+
             await this.attendanceService.updateAttendance(attendanceData);
 
             res.status(202).json({ message: 'Attendance successfully updated' });
@@ -113,4 +115,5 @@ export class AttendanceController {
             res.status(500).json({ message: 'Failed to update attendance' });
         }
     }
+
 }
