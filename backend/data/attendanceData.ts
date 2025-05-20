@@ -35,14 +35,17 @@ export class AttendanceData {
 
     public async createAttendance(attendance: Attendance){
         try {
+            console.log("Trying to create attendance with:", attendance);
+
             await AttendanceSequelize.create({ 
                 studentid: attendance.studentId, 
                 date: attendance.date,
                 attendance_type_name: attendance.attendanceTypeName,
                 program_name: attendance.programName
             });
-        } catch {
-            throw new Error("Could not create new attendance")
+        } catch (error) {
+            console.error("Insert failed:", error); // 🔍 log the real cause
+            throw new Error("Could not create new attendance");
         }
     }
 

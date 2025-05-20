@@ -1,9 +1,21 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Attendance from './pages/Attendance';
+import Statistics from './pages/Statistics';
+import Settings from './pages/Settings';
+
 const App = () => {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
-      <h1>Student Dorm Absence Tracker</h1>
-      <p>Welcome! This will be your new React frontend.</p>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/statistics" element={<Statistics />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </Router>
   );
 };
 
