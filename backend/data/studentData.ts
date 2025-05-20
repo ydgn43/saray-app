@@ -45,12 +45,13 @@ export class StudentData {
             } else {
                 return "Student already exists";
             }
-        } catch {
-            throw new Error("Could not create new student")
+        } catch (error) {
+            console.error('StudentSequelize findOrCreate failed:', error);
+            throw new Error("Could not create new student");
         }
     }
 
-    public async deleleteStudent(studentId: number): Promise<void> {
+    public async deleteStudent(studentId: number): Promise<void> {
         const test = await StudentSequelize.destroy({ where: { 
             studentid: studentId
         }});
