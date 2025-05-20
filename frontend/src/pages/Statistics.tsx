@@ -1,87 +1,111 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-type StatRow = {
-  first_name: string;
-  last_name: string;
-  present_percent: number;
-  izinli_percent: number;
-};
+interface StatisticEntry {
+  studentid: number;
+  student_name: string;
+  total: number;
+  percentages: {
+    var?: number;
+    gec?: number;
+    yok?: number;
+    izinli?: number;
+  };
+}
 
 const Statistics = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [results, setResults] = useState<StatRow[]>([]);
+  const [statistics, setStatistics] = useState<StatisticEntry[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleCalculate = async () => {
+  const fetchStatistics = async () => {
     if (!startDate || !endDate) {
-      alert('Lütfen başlangıç ve bitiş tarihlerini giriniz.');
+      toast.error("Lütfen tarih aralığı seçin.");
       return;
     }
 
+    setLoading(true);
     try {
-      const res = await fetch(
-        `http://localhost:3001/attendance/statistics?start=${startDate}&end=${endDate}`
-      );
+      const res = await fetch(`http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setResults(data);
-    } catch (err) {
-      console.error('İstatistik yüklenirken hata:', err);
+      setStatistics(data);
+    } catch {
+      toast.error("İstatistik verileri alınamadı.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container mt-4">
-      <h1>İstatistik</h1>
+      <ToastContainer />
+      <h1>Yoklama İstatistikleri</h1>
 
-      <div className="row mt-3">
-        <div className="col-md-6">
-          <label>Başlangıç Tarihi:</label>
-          <input
-            type="date"
-            className="form-control"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+      <div className="row my-4">
+        <div className="col-md-4">
+          <label>Başlangıç Tarihi</label>
+          <input type="date" className="form-control" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </div>
-        <div className="col-md-6">
-          <label>Bitiş Tarihi:</label>
-          <input
-            type="date"
-            className="form-control"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
+        <div className="col-md-4">
+          <label>Bitiş Tarihi</label>
+          <input type="date" className="form-control" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </div>
+        <div className="col-md-4 d-flex align-items-end">
+          <button className="btn btn-primary w-100" onClick={fetchStatistics}>Verileri Getir</button>
         </div>
       </div>
 
-      <button className="btn btn-primary mt-3" onClick={handleCalculate}>
-        Yoklama Yüzdeliklerini Hesapla
-      </button>
+      {loading ? (
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Yükleniyor...</span>
+          </div>
+        </div>
+      ) : (
+        statistics.length > 0 && (
+          <div className="table-responsive">
+            <table className="table table-bordered table-striped align-middle text-center">
+              <thead className="table-light">
+                <tr>
+                  <th>Talebe</th>
+                  <th className="text">Var (%)</th>
+                  <th className="text">Geç (%)</th>
+                  <th className="text">Yok (%)</th>
+                  <th className="text">İzinli (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {statistics.map((s) => {
+                  const varPercentage = s.percentages.var ?? 0;
 
-      <div className="mt-4">
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>İsim</th>
-              <th>Soyisim</th>
-              <th>Var (%)</th>
-              <th>İzinli (%)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((row, index) => (
-              <tr key={index}>
-                <td>{index + 1}</td>
-                <td>{row.first_name}</td>
-                <td>{row.last_name}</td>
-                <td>{row.present_percent.toFixed(2)}</td>
-                <td>{row.izinli_percent.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  let rowClass = '';
+                  if (varPercentage >= 80) {
+                    rowClass = 'table-success';
+                  } else if (varPercentage >= 60) {
+                    rowClass = 'table-warning';
+                  } else {
+                    rowClass = 'table-danger';
+                  }
+
+                  return (
+                    <tr key={s.studentid} className={rowClass}>
+                      <td className="text-start">{s.student_name}</td>
+                      <td>{varPercentage}%</td>
+                      <td>{s.percentages.gec ?? 0}%</td>
+                      <td>{s.percentages.yok ?? 0}%</td>
+                      <td>{s.percentages.izinli ?? 0}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+
+            </table>
+          </div>
+        )
+      )}
     </div>
   );
 };

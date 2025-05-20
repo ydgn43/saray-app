@@ -1,5 +1,6 @@
 import AttendanceSequelize from './models/Attendance';
 import { Attendance } from '../business/models/Attendance';
+import StudentSequelize from './models/Student';
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
 
@@ -30,8 +31,15 @@ export class AttendanceData {
                 date: {
                     [Op.between]: [start, end]
                 }
-            }
+            },
+            include: [
+                {
+                    model: StudentSequelize,
+                    attributes: ['first_name', 'last_name']
+                }
+            ]
         });
+
 
         const grouped: Record<number, Record<string, number>> = {};
         const totalCounts: Record<number, number> = {};
@@ -47,8 +55,12 @@ export class AttendanceData {
             totalCounts[id]++;
         }
 
+
+
         const result = Object.entries(grouped).map(([studentId, types]) => {
             const total = totalCounts[+studentId];
+            const studentRecord = records.find((r) => r.studentid === +studentId);
+
             const percentages = Object.entries(types).reduce((acc, [type, count]) => {
                 acc[type] = Number(((count / total) * 100).toFixed(2));
                 return acc;
@@ -56,10 +68,14 @@ export class AttendanceData {
 
             return {
                 studentid: +studentId,
+                student_name: studentRecord?.student
+                    ? `${studentRecord.student.first_name} ${studentRecord.student.last_name}`
+                    : 'Bilinmiyor',
                 total,
-                percentages,
+                percentages
             };
         });
+
 
         return result;
     }
