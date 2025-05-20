@@ -57,24 +57,26 @@ export class AttendanceData {
 
 
 
-        const result = Object.entries(grouped).map(([studentId, types]) => {
-            const total = totalCounts[+studentId];
-            const studentRecord = records.find((r) => r.studentid === +studentId);
+        const result = await Promise.all(
+            Object.entries(grouped).map(async ([studentId, types]) => {
+                const total = totalCounts[+studentId];
+                const percentages = Object.entries(types).reduce((acc, [type, count]) => {
+                    acc[type] = Number(((count / total) * 100).toFixed(2));
+                    return acc;
+                }, {} as Record<string, number>);
 
-            const percentages = Object.entries(types).reduce((acc, [type, count]) => {
-                acc[type] = Number(((count / total) * 100).toFixed(2));
-                return acc;
-            }, {} as Record<string, number>);
+                const student = await StudentSequelize.findByPk(+studentId);
 
-            return {
-                studentid: +studentId,
-                student_name: studentRecord?.student
-                    ? `${studentRecord.student.first_name} ${studentRecord.student.last_name}`
-                    : 'Bilinmiyor',
-                total,
-                percentages
-            };
-        });
+                return {
+                    studentid: +studentId,
+                    name: student ? `${student.first_name} ${student.last_name}` : 'Bilinmeyen',
+                    class_name: student?.class_name || '',
+                    total,
+                    percentages,
+                };
+            })
+        );
+
 
 
         return result;
