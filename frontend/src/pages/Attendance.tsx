@@ -3,22 +3,12 @@ import { useState, useEffect } from 'react';
 import AttendanceResponsiveView from '../components/AttendanceResponsiveView';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import FilterToolbar from '../components/FilterToolbar';
 
-type Student = {
-  studentid: number;
-  first_name: string;
-  last_name: string;
-  class_name: string;
-};
+import Navbar from '../components/Navbar';
 
-type Attendance = {
-  studentid: number;
-  date: string;
-  program_name: string;
-  attendance_type_name: string;
-  sebep?: string;
-};
+// Define types
 
 const PROGRAM_OPTIONS = [
   'sabah namazi', 'ögle namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim',
@@ -31,13 +21,14 @@ const fetchJson = async (url: string, options = {}) => {
 };
 
 const Attendance = () => {
-  const [attendanceData, setAttendanceData] = useState<Attendance[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
   const [showCreateButton, setShowCreateButton] = useState(false);
   const [showTable, setShowTable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState<string>('');
   const [program, setProgram] = useState<string>('');
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
 
   useEffect(() => {
     const savedDate = localStorage.getItem('attendance-date');
@@ -121,94 +112,102 @@ const Attendance = () => {
     }
   };
 
-  return (
-    <div className="container mt-4">
-      <ToastContainer />
-      <h1 className="mb-4">Günlük Yoklama</h1>
+  const filteredStudents = selectedClasses.length > 0
+    ? students.filter(s => selectedClasses.includes(s.class_name))
+    : students;
 
-      <div className="card p-4 shadow-sm mb-4">
-        <div className="row g-3">
-          <div className="col-md-4">
-            <label className="form-label">Tarih</label>
-            <input
-              type="date"
-              className="form-control"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-          <div className="col-md-4">
-            <label className="form-label">Program</label>
-            <select
-              className="form-select"
-              value={program}
-              onChange={(e) => setProgram(e.target.value)}
-            >
-              <option value="">Program Seçin</option>
-              {PROGRAM_OPTIONS.map((p) => (
-                <option key={p} value={p}>
-                  {p[0].toUpperCase() + p.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4 d-flex align-items-end">
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => loadAttendanceData()}
-              disabled={!date || !program || loading}
-            >
-              {loading ? 'Yükleniyor...' : 'Göster'}
-            </button>
+  return (
+    <>
+      <Navbar />
+      <div className="container pt-5 mt-5">
+        <ToastContainer />
+        <h1 className="mb-4">Günlük Yoklama</h1>
+
+        <div className="card p-4 shadow-sm mb-4">
+          <div className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label">Tarih</label>
+              <input
+                type="date"
+                className="form-control"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label">Program</label>
+              <select
+                className="form-select"
+                value={program}
+                onChange={(e) => setProgram(e.target.value)}
+              >
+                <option value="">Program Seçin</option>
+                {PROGRAM_OPTIONS.map((p) => (
+                  <option key={p} value={p}>
+                    {p[0].toUpperCase() + p.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-4 d-flex align-items-end">
+              <button
+                className="btn btn-primary w-100"
+                onClick={() => loadAttendanceData()}
+                disabled={!date || !program || loading}
+              >
+                {loading ? 'Yükleniyor...' : 'Göster'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <AnimatePresence>
-        {showCreateButton && (
-          <div className="mb-3">
-            <button className="btn btn-success" onClick={handleCreateAttendance}>
-              Yeni Yoklama Oluştur
-            </button>
+        <AnimatePresence>
+          {showCreateButton && (
+            <div className="mb-3">
+              <button className="btn btn-success" onClick={handleCreateAttendance}>
+                Yeni Yoklama Oluştur
+              </button>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {loading && (
+          <div className="text-center my-4">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Yükleniyor...</span>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
-      {loading && (
-        <div className="text-center my-4">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Yükleniyor...</span>
-          </div>
-        </div>
-      )}
-
-      {showTable && (
-        <>
+        {showTable && (
           <AttendanceResponsiveView
-            students={students}
+            students={filteredStudents}
             attendanceData={attendanceData}
             date={date}
             program={program}
-            onChange={() => loadAttendanceData(true)} // with scroll preservation
+            onChange={() => loadAttendanceData(true)}
             showCreateButton={showCreateButton}
             onCreate={handleCreateAttendance}
           />
+        )}
 
-          <div className="text-end mt-3">
-            <button
-              className="btn btn-outline-secondary"
-              onClick={() => loadAttendanceData(true)}
-            >
-              Yenile
-            </button>
-          </div>
-        </>
-      )}
+        {!loading && !showTable && !showCreateButton && (
+          <div className="alert alert-info text-center">Veri bulunamadı.</div>
+        )}
 
-      {!loading && !showTable && !showCreateButton && (
-        <div className="alert alert-info text-center">Veri bulunamadı.</div>
-      )}
-    </div>
+        <FilterToolbar
+          onFilterChange={(className) =>
+            setSelectedClasses(prev =>
+              prev.includes(className)
+                ? prev.filter(c => c !== className)
+                : [...prev, className]
+            )
+          }
+          selectedFilters={selectedClasses}
+          classNames={[...new Set(students.map(s => s.class_name))]}
+        />
+      </div>
+    </>
   );
 };
 

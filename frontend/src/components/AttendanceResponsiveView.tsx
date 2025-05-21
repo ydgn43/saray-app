@@ -6,7 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { Attendance, Student } from '../types';
 
 interface Props {
-    students: Student[];
+    students: Student[]; // already filtered upstream
     attendanceData: Attendance[];
     date: string;
     program: string;
@@ -46,7 +46,6 @@ const AttendanceResponsiveView: React.FC<Props> = ({
                         program={program}
                         onChange={async () => await onChange()}
                     />
-
                 ) : (
                     <AttendanceTable
                         students={students}

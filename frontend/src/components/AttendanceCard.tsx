@@ -66,6 +66,14 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
     const backgroundColor =
         classGroupColors[student.class_name.toLowerCase()] || '#f5f5f5';
 
+    function darkenColor(hex: string, amount: number = 20): string {
+        return '#' + hex.replace(/^#/, '').replace(/../g, color =>
+            ('0' + Math.max(0, parseInt(color, 16) - amount).toString(16)).slice(-2)
+        );
+    }
+
+
+
     const updateAttendance = async (type: AttendanceType, sebepValue: string) => {
         setAttendanceType(type);
         setSaving(true);
@@ -109,7 +117,8 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
             style={{
                 backgroundColor,
                 transition: 'background-color 0.3s ease',
-                borderLeft: '4px solid #007bff',
+                borderLeft: `4px solid ${darkenColor(backgroundColor, 20)}`,
+
             }}
         >
             <div className="card-body py-3 px-4">
@@ -156,3 +165,14 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
 };
 
 export default AttendanceCard;
+
+export const classGroupedColors: { [key: string]: string } = {
+    kuranikerim: '#dcedc8',
+    hazirlik: '#ffe0b2',
+    ibtidai: '#e1bee7',
+    ihzari: '#b2dfdb',
+    'mezun tekamulalti': '#f0f4c3',
+    'tekamul alti': '#cfd8dc',
+};
+
+
