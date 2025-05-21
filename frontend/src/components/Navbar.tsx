@@ -1,6 +1,7 @@
 // src/components/Navbar.tsx
 import { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 declare global {
   interface Window {
@@ -9,6 +10,7 @@ declare global {
 }
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
   useEffect(() => {
     const collapse = document.getElementById('navbarNavDropdown');
     const links = document.querySelectorAll('.navbar-collapse .nav-link');
@@ -39,6 +41,17 @@ const Navbar = () => {
         >
           <span className="navbar-toggler-icon" />
         </button>
+        <ul>
+          {user && (
+            <>
+              <li>Welcome, {user.username} ({user.role})</li>
+              <li><button onClick={logout}>Logout</button></li>
+            </>
+          )}
+          {!user && (
+            <li><a href="/login">Login</a></li>
+          )}
+        </ul>
 
         <div className="collapse navbar-collapse" id="navbarNavDropdown">
           <ul className="navbar-nav ms-auto">

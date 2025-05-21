@@ -3,6 +3,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { unparse } from 'papaparse';
 import Layout from '../components/Layout';
+import { authFetch } from '../utils/authFetch';
 
 
 interface StatisticEntry {
@@ -38,7 +39,7 @@ const Statistics = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
       );
       if (!res.ok) throw new Error();

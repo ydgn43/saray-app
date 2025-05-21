@@ -7,6 +7,8 @@ import { AnimatePresence } from 'framer-motion';
 import FilterToolbar from '../components/FilterToolbar';
 import Layout from '../components/Layout';
 import { LayoutTextSidebar } from 'react-bootstrap-icons';
+import { authFetch } from '../utils/authFetch';
+import { a } from 'framer-motion/dist/types.d-CtuPurYT';
 
 // Define types
 
@@ -15,7 +17,7 @@ const PROGRAM_OPTIONS = [
 ];
 
 const fetchJson = async (url: string, options = {}) => {
-  const res = await fetch(url, options);
+  const res = await authFetch(url, options);
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 };
@@ -59,7 +61,7 @@ const Attendance = () => {
     setShowTable(false);
 
     try {
-      const res = await fetch(`http://192.168.50.120:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+      const res = await authFetch(`http://192.168.50.120:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -98,7 +100,7 @@ const Attendance = () => {
     }));
 
     try {
-      await fetch('http://192.168.50.120:3001/attendance/create', {
+      await authFetch('http://192.168.50.120:3001/attendance/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
