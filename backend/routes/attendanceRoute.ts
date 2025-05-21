@@ -11,30 +11,32 @@ const attendanceData = new AttendanceData();
 const attendanceService = new AttendanceService(attendanceData);
 const attendanceController = new AttendanceController(attendanceService);
 
-attendanceRoute.get('/all', authenticateJWT, (req: Request, res: Response) => {
+attendanceRoute.use(authenticateJWT);
+
+attendanceRoute.get('/all', (req: Request, res: Response) => {
     attendanceController.getAllAttendance(req, res);
 });
 
-attendanceRoute.get('/', authenticateJWT, (req: Request, res: Response) => {
+attendanceRoute.get('/', (req: Request, res: Response) => {
     attendanceController.getAttendance(req, res);
 });
 
-attendanceRoute.get('/statistics', authenticateJWT, (req: Request, res: Response) => {
+attendanceRoute.get('/statistics', (req: Request, res: Response) => {
     attendanceController.getAttendanceStatistics(req, res);
 });
 
-attendanceRoute.get('/dailyprogram', authenticateJWT, (req: Request, res: Response) => {
+attendanceRoute.get('/dailyprogram', (req: Request, res: Response) => {
     attendanceController.getAttendanceByDateAndProgram(req, res);
 });
 
-attendanceRoute.post('/create', authenticateJWT, requireRoles(['admin', 'yoklamaci']), (req: Request, res: Response) => {
+attendanceRoute.post('/create', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
     attendanceController.createAttendance(req, res);
 });
 
-attendanceRoute.put('/put', authenticateJWT, requireRoles(['admin', 'yoklamaci']), (req: Request, res: Response) => {
+attendanceRoute.put('/put', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
     attendanceController.updateAttendance(req, res);
 });
 
-attendanceRoute.delete('/', authenticateJWT, requireRoles(['admin', 'yoklamaci']), (req: Request, res: Response) => {
+attendanceRoute.delete('/', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
     res.status(501).json({ message: 'DELETE not implemented yet' });
 });
