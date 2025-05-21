@@ -15,11 +15,15 @@ import { authRouter } from './routes/authRoute';
 
 const app = express() // Create express applicaiton
 const port = process.env.PORT_HTTP
+app.options('*', cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true })); // Enable CORS for all routes
+
 app.use(express.json()); // parsing JSON
 
 app.use('/auth', authRouter); // Authentication route
 
-app.use(cors()); // Enable CORS
+//app.use(cors()); // Enable CORS
+
 
 // Routes
 app.use("/student", studentRouter);
