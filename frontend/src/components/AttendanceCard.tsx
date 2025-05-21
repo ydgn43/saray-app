@@ -1,6 +1,7 @@
 // src/components/AttendanceCard.tsx
 import React from 'react';
 import { Student, Attendance } from '../types';
+import { authFetch } from '../utils/authFetch';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 
@@ -86,16 +87,16 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
             sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null,
         };
 
-        const url = `http://192.168.50.120/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
-        const checkRes = await fetch(url);
+        const url = `http://localhost:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
+        const checkRes = await authFetch(url);
         const exists = checkRes.ok && (await checkRes.json());
 
         const method = exists ? 'PUT' : 'POST';
         const saveUrl = exists
-            ? 'http://192.168.50.120/attendance/put'
-            : 'http://192.168.50.120/attendance/create';
+            ? 'http://localhost:3001/attendance/put'
+            : 'http://localhost:3001/attendance/create';
 
-        await fetch(saveUrl, {
+        await authFetch(saveUrl, {
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
