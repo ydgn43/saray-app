@@ -4,7 +4,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     return (
         <>
             <Navbar />
-            <div className="container pt-4">
+            <div className="container" style={{ paddingTop: '5rem' }}>
                 {children}
             </div>
         </>

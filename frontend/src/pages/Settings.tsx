@@ -226,7 +226,7 @@ const Settings = () => {
     return (
 
         <Layout>
-            <div className="container" style={{ marginTop: '2rem' }}>
+            <div className="container">
                 <h1 className="mb-4">Talebe Ayarları</h1>
                 <ToastContainer position="top-right" autoClose={3000} />
 
@@ -283,9 +283,9 @@ const Settings = () => {
                                 <option value="">Tüm Sınıflar</option>
                                 <option value="kuranikerim">Kuran-ı Kerim</option>
                                 <option value="hazirlik">Hazırlık</option>
-                                <option value="ibtidati">İbtidati</option>
+                                <option value="ibtidai">İbtidai</option>
                                 <option value="ihzari">İhzari</option>
-                                <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
+                                <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
                                 <option value="tekamul_alti">Tekamul Altı</option>
                             </select>
                         </div>
@@ -400,9 +400,9 @@ const Settings = () => {
                                                         <option value="">Sınıf Seç</option>
                                                         <option value="kuranikerim">Kuran-ı Kerim</option>
                                                         <option value="hazirlik">Hazırlık</option>
-                                                        <option value="ibtidati">İbtidati</option>
+                                                        <option value="ibtidai">İbtidai</option>
                                                         <option value="ihzari">İhzari</option>
-                                                        <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
+                                                        <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
                                                         <option value="tekamul_alti">Tekamul Altı</option>
                                                     </select>
                                                 </div>
@@ -482,9 +482,9 @@ const Settings = () => {
                                                     <option value="">Sınıf Seç</option>
                                                     <option value="kuranikerim">Kuran-ı Kerim</option>
                                                     <option value="hazirlik">Hazırlık</option>
-                                                    <option value="ibtidati">İbtidati</option>
+                                                    <option value="ibtidai">İbtidai</option>
                                                     <option value="ihzari">İhzari</option>
-                                                    <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
+                                                    <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
                                                     <option value="tekamul_alti">Tekamul Altı</option>
                                                 </select>
                                             </div>
