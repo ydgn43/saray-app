@@ -70,8 +70,6 @@ const Statistics = () => {
 
   return (
     <Layout>
-
-
       <ToastContainer />
       <h1 className="mb-4">Yoklama İstatistikleri</h1>
 
