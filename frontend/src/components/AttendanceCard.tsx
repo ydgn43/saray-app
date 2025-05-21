@@ -1,6 +1,5 @@
 // src/components/AttendanceCard.tsx
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
 import { Student, Attendance } from '../types';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
@@ -10,37 +9,68 @@ interface Props {
     record?: Attendance;
     date: string;
     program: string;
-    onChange: () => void;
+    onChange: () => Promise<void>;
 }
 
-const typeColors: Record<AttendanceType, string> = {
-    var: '#d4edda',
-    yok: '#f8d7da',
-    gec: '#fff3cd',
-    izinli: '#d1ecf1',
+const typeLabels: Record<AttendanceType, string> = {
+    var: 'VAR',
+    yok: 'YOK',
+    gec: 'GEÇ',
+    izinli: 'İZİNLİ',
 };
 
-const buttonColors: Record<AttendanceType, string> = {
-    var: 'success',
-    yok: 'danger',
-    gec: 'warning',
-    izinli: 'info',
+const typeOptions: AttendanceType[] = ['var', 'gec', 'yok', 'izinli'];
+
+const activeClass = (type: AttendanceType) => {
+    switch (type) {
+        case 'var':
+            return 'btn-success text-white fw-bold';
+        case 'gec':
+            return 'btn-warning text-dark fw-bold';
+        case 'yok':
+            return 'btn-danger text-white fw-bold';
+        case 'izinli':
+            return 'btn-info text-white fw-bold';
+    }
+};
+
+const fadedClass = (type: AttendanceType) => {
+    switch (type) {
+        case 'var':
+            return 'btn-outline-success';
+        case 'gec':
+            return 'btn-outline-warning';
+        case 'yok':
+            return 'btn-outline-danger';
+        case 'izinli':
+            return 'btn-outline-info';
+    }
+};
+
+const classGroupColors: Record<string, string> = {
+    kuranikerim: '#dcedc8',
+    hazirlik: '#ffe0b2',
+    ibtidai: '#e1bee7',
+    ihzari: '#b2dfdb',
+    'mezun tekamulalti': '#f0f4c3',
+    'tekamul alti': '#cfd8dc',
 };
 
 const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onChange }) => {
-    const [attendanceType, setAttendanceType] = useState<AttendanceType>(
+    const [attendanceType, setAttendanceType] = React.useState<AttendanceType>(
         (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
     );
-    const [sebep, setSebep] = useState(record?.sebep || '');
-    const [saving, setSaving] = useState(false);
-    const [highlight, setHighlight] = useState(false);
+    const [sebep, setSebep] = React.useState(record?.sebep ?? '');
+    const [saving, setSaving] = React.useState(false);
 
-    const updateAttendance = async (type: AttendanceType, sebepValue?: string) => {
+    const backgroundColor =
+        classGroupColors[student.class_name.toLowerCase()] || '#f5f5f5';
+
+    const updateAttendance = async (type: AttendanceType, sebepValue: string) => {
         setAttendanceType(type);
-        setHighlight(true);
         setSaving(true);
 
-        const payload = {
+        const body = {
             studentid: student.studentid,
             date,
             program_name: program,
@@ -48,22 +78,23 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
             sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null,
         };
 
-        const checkUrl = `http://localhost:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
-        const checkRes = await fetch(checkUrl);
+        const url = `http://192.168.50.120/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
+        const checkRes = await fetch(url);
         const exists = checkRes.ok && (await checkRes.json());
 
         const method = exists ? 'PUT' : 'POST';
-        const saveUrl = exists ? 'http://localhost:3001/attendance/put' : 'http://localhost:3001/attendance/create';
+        const saveUrl = exists
+            ? 'http://192.168.50.120/attendance/put'
+            : 'http://192.168.50.120/attendance/create';
 
         await fetch(saveUrl, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(body),
         });
 
+        await onChange();
         setSaving(false);
-        onChange();
-        setTimeout(() => setHighlight(false), 300); // clear animation state
     };
 
     const handleSebepChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -73,57 +104,54 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
     };
 
     return (
-        <motion.div
+        <div
             className="card shadow-sm"
-            initial={{ scale: 0.98 }}
-            animate={{ scale: highlight ? 1.02 : 1, backgroundColor: typeColors[attendanceType] }}
-            transition={{ duration: 0.3 }}
             style={{
-                borderLeft: `5px solid ${typeColors[attendanceType]}`,
-                overflow: 'hidden',
+                backgroundColor,
+                transition: 'background-color 0.3s ease',
+                borderLeft: '4px solid #007bff',
             }}
         >
             <div className="card-body py-3 px-4">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <h5 className="mb-1">{student.first_name} {student.last_name}</h5>
-                        <p className="mb-0 text-muted small">{student.class_name}</p>
-                    </div>
-                </div>
+                <h5 className="mb-1">{student.first_name} {student.last_name}</h5>
+                <p className="mb-2 text-muted small">{student.class_name}</p>
 
-                <div className="d-flex gap-2 mb-2">
-                    {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
+                <div className="d-flex flex-wrap gap-2 mt-2">
+                    {typeOptions.map((type) => (
                         <button
                             key={type}
-                            className={`btn btn-sm btn-outline-${buttonColors[type]} ${attendanceType === type ? 'active' : 'opacity-50'}`}
+                            className={`btn btn-sm ${attendanceType === type ? activeClass(type) : fadedClass(type)}`}
+                            style={{ flex: '1 1 0', minWidth: 0 }}
                             onClick={() => updateAttendance(type, sebep)}
-                            style={{
-                                minWidth: 70,
-                                fontWeight: attendanceType === type ? 'bold' : 'normal',
-                            }}
                         >
-                            {type.toUpperCase()}
+                            {typeLabels[type]}
                         </button>
                     ))}
                 </div>
 
                 {['gec', 'izinli'].includes(attendanceType) && (
-                    <select
-                        className="form-select form-select-sm mb-2"
-                        value={sebep}
-                        onChange={handleSebepChange}
-                    >
-                        <option value="">Sebep Seçin</option>
-                        <option value="Banyo">Banyo</option>
-                        <option value="Hasta">Hasta</option>
-                        <option value="Rahatsiz">Rahatsız</option>
-                        <option value="Okul">Okul</option>
-                    </select>
+                    <div className="mt-3">
+                        <select
+                            className="form-select form-select-sm"
+                            value={sebep}
+                            onChange={handleSebepChange}
+                        >
+                            <option value="">Seçin</option>
+                            <option value="Banyo">Banyo</option>
+                            <option value="Hasta">Hasta</option>
+                            <option value="Rahatsiz">Rahatsız</option>
+                            <option value="Okul">Okul</option>
+                        </select>
+                    </div>
                 )}
 
-                {saving && <small className="text-success">✓ Kaydediliyor...</small>}
+                {saving && (
+                    <div className="text-end mt-2">
+                        <small className="text-success">✓ Kaydedildi</small>
+                    </div>
+                )}
             </div>
-        </motion.div>
+        </div>
     );
 };
 

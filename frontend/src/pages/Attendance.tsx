@@ -47,7 +47,7 @@ const Attendance = () => {
   }, []);
 
   useEffect(() => {
-    fetchJson('http://localhost:3001/student')
+    fetchJson('http://192.168.50.120:3001/student')
       .then(setStudents)
       .catch(() => toast.error('Öğrenciler alınamadı'));
   }, []);
@@ -68,7 +68,7 @@ const Attendance = () => {
     setShowTable(false);
 
     try {
-      const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+      const res = await fetch(`http://192.168.50.120:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -107,7 +107,7 @@ const Attendance = () => {
     }));
 
     try {
-      await fetch('http://localhost:3001/attendance/create', {
+      await fetch('http://192.168.50.120:3001/attendance/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
