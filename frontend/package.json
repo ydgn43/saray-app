@@ -19,6 +19,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
     "react-scripts": "^5.0.1",
+    "react-swipeable": "^7.0.2",
     "react-toastify": "^11.0.5",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.9",
-    "@types/papaparse": "^5.3.16"
+    "@types/papaparse": "^5.3.16",
+    "@types/react-swipeable": "^4.3.0"
   }
 }

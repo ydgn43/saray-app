@@ -2,19 +2,7 @@ import React from 'react';
 import { useIsMobile } from './useIsMobile';
 import AttendanceCardList from './AttendanceCardList';
 import AttendanceTable from './AttendanceTable';
-
-type Student = {
-    studentid: number;
-    first_name: string;
-    last_name: string;
-    class_name: string;
-};
-
-type Attendance = {
-    studentid: number;
-    attendance_type_name: string;
-    sebep?: string;
-};
+import { Student, Attendance } from '../types';
 
 type Props = {
     students: Student[];
@@ -26,7 +14,13 @@ type Props = {
 
 const AttendanceResponsiveView: React.FC<Props> = (props) => {
     const isMobile = useIsMobile();
-    return isMobile ? <AttendanceCardList {...props} /> : <AttendanceTable {...props} />;
+    return isMobile ? (
+        <div className="px-2">
+            <AttendanceCardList {...props} />
+        </div>
+    ) : (
+        <AttendanceTable {...props} />
+    );
 };
 
 export default AttendanceResponsiveView;
