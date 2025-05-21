@@ -5,8 +5,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
 import FilterToolbar from '../components/FilterToolbar';
-
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
+import { LayoutTextSidebar } from 'react-bootstrap-icons';
 
 // Define types
 
@@ -117,9 +117,9 @@ const Attendance = () => {
     : students;
 
   return (
-    <>
-      <Navbar />
-      <div className="container pt-5 mt-5">
+    <Layout>
+      <div className="container">
+
         <ToastContainer />
         <h1 className="mb-4">Günlük Yoklama</h1>
 
@@ -207,7 +207,7 @@ const Attendance = () => {
           classNames={[...new Set(students.map(s => s.class_name))]}
         />
       </div>
-    </>
+    </Layout>
   );
 };
 

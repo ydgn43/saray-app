@@ -23,7 +23,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm z-3">
       <div className="container-fluid">
         <Link className="navbar-brand fw-bold text-white" to="/">
           SarayApp

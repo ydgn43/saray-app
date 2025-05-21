@@ -1,12 +1,15 @@
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 
 const Home = () => (
-    <>
-        <Navbar />
-        <div className="container pt-5 mt-5">
-            <h1>Ana Sayfa</h1>
+
+    <Layout>
+        <div className="container">
+            <h1 className="text-center">Saray App</h1>
+            <p className="text-center">Hoş geldiniz!</p>
+            <p className="text-center">Bu uygulama, Saray Camii için geliştirilmiştir.</p>
+            <p className="text-center">Uygulama hakkında bilgi almak için lütfen yöneticinize başvurun.</p>
         </div>
-    </>
+    </Layout>
 );
 
 export default Home;

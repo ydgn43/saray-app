@@ -6,16 +6,7 @@ import 'react-confirm-alert/src/react-confirm-alert.css';
 import debounce from 'lodash.debounce';
 import { unparse } from 'papaparse';
 import { motion, AnimatePresence } from 'framer-motion';
-
-import Navbar from '../components/Navbar';
-
-
-<>
-    <Navbar />
-    <div className="container pt-5 mt-5">
-        {/* ... everything else as-is ... */}
-    </div>
-</>
+import Layout from '../components/Layout';
 
 
 type Student = {
@@ -233,9 +224,10 @@ const Settings = () => {
 
 
     return (
-        <>
-            <Navbar />
-            <div className="container mt-4">
+
+        <Layout>
+            <div className="container" style={{ marginTop: '2rem' }}>
+                <h1 className="mb-4">Talebe Ayarları</h1>
                 <ToastContainer position="top-right" autoClose={3000} />
 
                 <h1>Ayarlar</h1>
@@ -534,54 +526,55 @@ const Settings = () => {
                         </div>
                     </div>
                 ) : (
-
-                    <table className="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>İsim</th>
-                                <th>Soyisim</th>
-                                <th>Sınıf</th>
-                                <th>Sezon</th>
-                                <th>Doğum Tarihi</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <motion.tbody
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                visible: {
-                                    transition: {
-                                        staggerChildren: 0.05,
+                    <div className="table-responsive">
+                        <table className="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>İsim</th>
+                                    <th>Soyisim</th>
+                                    <th>Sınıf</th>
+                                    <th>Sezon</th>
+                                    <th>Doğum Tarihi</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <motion.tbody
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    visible: {
+                                        transition: {
+                                            staggerChildren: 0.05,
+                                        },
                                     },
-                                },
-                            }}
-                        >
-                            {currentStudents.map((s, index) => (
-                                <motion.tr
-                                    key={s.studentid}
-                                    variants={{
-                                        hidden: { opacity: 0, y: 10 },
-                                        visible: { opacity: 1, y: 0 },
-                                    }}
-                                >
-                                    <td>{indexOfFirst + index + 1}</td>
-                                    <td>{s.first_name}</td>
-                                    <td>{s.last_name}</td>
-                                    <td>{s.class_name}</td>
-                                    <td>{s.season_year}</td>
-                                    <td>{s.birth_date}</td>
-                                    <td>
-                                        <button className="btn btn-warning btn-sm me-2" onClick={() => { setEditingStudent(s); setShowEditModal(true); }}>Düzenle</button>
-                                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>Sil</button>
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </motion.tbody>
+                                }}
+                            >
+                                {currentStudents.map((s, index) => (
+                                    <motion.tr
+                                        key={s.studentid}
+                                        variants={{
+                                            hidden: { opacity: 0, y: 10 },
+                                            visible: { opacity: 1, y: 0 },
+                                        }}
+                                    >
+                                        <td>{indexOfFirst + index + 1}</td>
+                                        <td>{s.first_name}</td>
+                                        <td>{s.last_name}</td>
+                                        <td>{s.class_name}</td>
+                                        <td>{s.season_year}</td>
+                                        <td>{s.birth_date}</td>
+                                        <td>
+                                            <button className="btn btn-warning btn-sm me-2" onClick={() => { setEditingStudent(s); setShowEditModal(true); }}>Düzenle</button>
+                                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>Sil</button>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </motion.tbody>
 
 
-                    </table>
+                        </table>
+                    </div>
 
                 )}
                 {totalPages > 1 && (
@@ -621,9 +614,8 @@ const Settings = () => {
                         Yeni Talebe Ekle
                     </motion.button>
                 </div>
-
             </div>
-        </>
+        </Layout>
     );
 };
 

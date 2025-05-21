@@ -11,6 +11,11 @@ tr:hover {
   background-color: blue;
 }
 
+.with-navbar-padding {
+  padding-top: 4.5rem;
+}
+
+
 .table-group-header {
   background-color: #f0f8ff;
   border-top: 2px solid #007bff;
