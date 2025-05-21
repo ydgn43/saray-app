@@ -1,7 +1,27 @@
 // src/components/Navbar.tsx
+import { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
+declare global {
+  interface Window {
+    bootstrap: any;
+  }
+}
+
 const Navbar = () => {
+  useEffect(() => {
+    const collapse = document.getElementById('navbarNavDropdown');
+    const links = document.querySelectorAll('.navbar-collapse .nav-link');
+
+    links.forEach((link) => {
+      link.addEventListener('click', () => {
+        if (collapse?.classList.contains('show')) {
+          new window.bootstrap.Collapse(collapse).hide();
+        }
+      });
+    });
+  }, []);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top">
       <div className="container-fluid">
@@ -17,7 +37,7 @@ const Navbar = () => {
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon" />
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNavDropdown">
@@ -29,10 +49,8 @@ const Navbar = () => {
               <a
                 className="nav-link dropdown-toggle text-white"
                 href="#"
-                id="yoklamaDropdown"
                 role="button"
                 data-bs-toggle="dropdown"
-                aria-expanded="false"
               >
                 Yoklama
               </a>
