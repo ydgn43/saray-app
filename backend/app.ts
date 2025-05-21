@@ -5,13 +5,19 @@ dotenv.config({ path: './config.env' });
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { sequelize } from './data/sequelize';
-import { studentRouter } from './routes/studentRoute';'./routes/studentRoute';
-import { attendanceRoute } from './routes/attendanceRoute';'./routes/attendanceRoute';
-import { userRouter } from './routes/userRoute';'./routes/userRoute';
+import { studentRouter } from './routes/studentRoute'; './routes/studentRoute';
+import { attendanceRoute } from './routes/attendanceRoute'; './routes/attendanceRoute';
+import { userRouter } from './routes/userRoute'; './routes/userRoute';
+import { authRouter } from './routes/authRoute';
+
+
+
 
 const app = express() // Create express applicaiton
 const port = process.env.PORT_HTTP
 app.use(express.json()); // parsing JSON
+
+app.use('/auth', authRouter); // Authentication route
 
 app.use(cors()); // Enable CORS
 
@@ -21,11 +27,11 @@ app.use("/attendance", attendanceRoute);
 app.use("/user", userRouter);
 
 app.listen(port, () => { // Starting the server and listening on the defined port
-  console.log(`App listening on port ${port}`)
+    console.log(`App listening on port ${port}`)
 })
 
 // testing connection
-async function testSequelizeConnection(){
+async function testSequelizeConnection() {
     console.log(process.env.HOST_RELATIONAL_DB)
     try {
         await sequelize.authenticate();

@@ -16,17 +16,17 @@ async function createUsers() {
     // Example users
     const users = [
         {
-            username: 'admin_test',
+            username: 'admin1',
             password: 'adminpass',   // Plain password for seeding only
             role_name: 'admin'
         },
         {
-            username: 'hoca_test',
+            username: 'hoca1',
             password: 'hocapass',
             role_name: 'hoca'
         },
         {
-            username: 'yoklamaci_test',
+            username: 'yoklamaci1',
             password: 'yoklamacipass',
             role_name: 'yoklamaci'
         }

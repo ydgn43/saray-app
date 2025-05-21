@@ -20,7 +20,7 @@ export default class UserSequelize extends Model {
     declare username: string;
 
     @Column({
-        type: DataType.STRING(45),
+        type: DataType.STRING(255),
         allowNull: false
     })
     declare password: string;
