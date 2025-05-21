@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import AttendanceSequelize from '../data/models/Attendance';
+import StudentSequelize from '../data/models/Student';
 import { Attendance } from '../business/models/Attendance';
 import { AttendanceService } from '../business/services/attendanceService';
+import { Op } from 'sequelize';
 
 export default class AttendanceData {
     public async getAllAttendance(): Promise<AttendanceSequelize[]> {
@@ -23,9 +25,50 @@ export default class AttendanceData {
     }
 
     public async getAttendanceStatisticsByDateRange(start: string, end: string) {
-        // (same body you have — not changing here)
-    }
+        const records = await AttendanceSequelize.findAll({
+            where: {
+                date: {
+                    [Op.between]: [start, end],
+                },
+            },
+        });
 
+        const grouped: Record<number, Record<string, number>> = {};
+        const totalCounts: Record<number, number> = {};
+
+        for (const record of records) {
+            const id = record.studentid;
+            const type = record.attendance_type_name;
+
+            if (!grouped[id]) grouped[id] = {};
+            if (!totalCounts[id]) totalCounts[id] = 0;
+
+            grouped[id][type] = (grouped[id][type] || 0) + 1;
+            totalCounts[id]++;
+        }
+
+        const result = await Promise.all(
+            Object.entries(grouped).map(async ([studentId, types]) => {
+                const total = totalCounts[+studentId];
+                const percentages = Object.entries(types).reduce((acc, [type, count]) => {
+                    acc[type] = Number(((count / total) * 100).toFixed(2));
+                    return acc;
+                }, {} as Record<string, number>);
+
+                const student = await StudentSequelize.findByPk(+studentId);
+
+                return {
+                    studentid: +studentId,
+                    name: student ? `${student.first_name} ${student.last_name}` : 'Bilinmeyen',
+                    class_name: student?.class_name || '',
+                    total,
+                    percentages,
+                };
+            })
+        );
+
+        return result;
+    }
     public async getAttendanceByDateAndProgram(date: string, programName: string) {
         try {
             return await AttendanceSequelize.findAll({

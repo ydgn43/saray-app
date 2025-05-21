@@ -29,6 +29,8 @@ const Statistics = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchStatistics = async () => {
+    console.log('Button clicked', { startDate, endDate });
+
     if (!startDate || !endDate) {
       toast.error('Lütfen tarih aralığı seçin.');
       return;
