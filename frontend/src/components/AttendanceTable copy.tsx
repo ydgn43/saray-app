@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { authFetch } from '../utils/authFetch';
 
 // Type Definitions
 type Student = {
@@ -142,7 +143,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
         ? 'http://localhost:3001/attendance/put'
         : 'http://localhost:3001/attendance/create';
 
-    await fetch(url, {
+    await authFetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -167,7 +168,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
     if (debounceTimeout.current[studentId]) clearTimeout(debounceTimeout.current[studentId]);
 
     debounceTimeout.current[studentId] = setTimeout(async () => {
-      await fetch('http://localhost:3001/attendance/put', {
+      await authFetch('http://localhost:3001/attendance/put', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

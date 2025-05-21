@@ -105,7 +105,7 @@ export class AttendanceController {
                 program_name
             );
 
-            attendanceData.sebep = sebep || null; // ✅ set the sebep
+            attendanceData.sebep = sebep || null;
 
             await this.attendanceService.updateAttendance(attendanceData);
 

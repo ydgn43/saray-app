@@ -1,4 +1,3 @@
-// src/components/Navbar.tsx
 import { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -11,6 +10,7 @@ declare global {
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+
   useEffect(() => {
     const collapse = document.getElementById('navbarNavDropdown');
     const links = document.querySelectorAll('.navbar-collapse .nav-link');
@@ -41,17 +41,6 @@ const Navbar = () => {
         >
           <span className="navbar-toggler-icon" />
         </button>
-        <ul>
-          {user && (
-            <>
-              <li>Welcome, {user.username} ({user.role})</li>
-              <li><button onClick={logout}>Logout</button></li>
-            </>
-          )}
-          {!user && (
-            <li><a href="/login">Login</a></li>
-          )}
-        </ul>
 
         <div className="collapse navbar-collapse" id="navbarNavDropdown">
           <ul className="navbar-nav ms-auto">
@@ -73,6 +62,27 @@ const Navbar = () => {
                 <li><Link className="dropdown-item" to="/settings">Ayarlar</Link></li>
               </ul>
             </li>
+            {user && (
+              <>
+                <li className="nav-item d-flex align-items-center ms-2">
+                  <span className="text-white small me-2">
+                    Hoşgeldin, {user.username} ({user.role})
+                  </span>
+                  <button
+                    className="btn btn-sm btn-light"
+                    onClick={logout}
+                    style={{ marginLeft: '8px' }}
+                  >
+                    Çıkış
+                  </button>
+                </li>
+              </>
+            )}
+            {!user && (
+              <li className="nav-item">
+                <NavLink className="nav-link text-white" to="/login">Login</NavLink>
+              </li>
+            )}
           </ul>
         </div>
       </div>
