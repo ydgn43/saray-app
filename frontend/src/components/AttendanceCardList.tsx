@@ -11,11 +11,17 @@ interface Props {
     onChange: () => void;
 }
 
-const AttendanceCardList: React.FC<Props> = ({ students, attendanceData, date, program, onChange }) => {
+const AttendanceCardList: React.FC<Props> = ({
+    students,
+    attendanceData,
+    date,
+    program,
+    onChange
+}) => {
     return (
         <div className="d-flex flex-column gap-3 px-2">
             {students.map((student) => {
-                const record = attendanceData.find((a) => a.studentid === student.studentid);
+                const record = attendanceData.find(a => a.studentid === student.studentid);
                 return (
                     <AttendanceCard
                         key={student.studentid}

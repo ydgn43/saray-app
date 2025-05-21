@@ -1,10 +1,10 @@
-// src/components/AttendanceCard.tsx
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useSwipeable } from 'react-swipeable';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Student, Attendance } from '../types';
 
-interface AttendanceCardProps {
+type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
+
+interface Props {
     student: Student;
     record?: Attendance;
     date: string;
@@ -12,145 +12,114 @@ interface AttendanceCardProps {
     onChange: () => void;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-    var: '#C8E6C9',
-    gec: '#FFF9C4',
-    yok: '#FFCDD2',
-    izinli: '#B3E5FC',
+const typeLabels: Record<AttendanceType, string> = {
+    var: 'Var',
+    yok: 'Yok',
+    gec: 'Geç',
+    izinli: 'İzinli'
 };
 
-const AttendanceCard: React.FC<AttendanceCardProps> = ({ student, record, date, program, onChange }) => {
-    const current = record?.attendance_type_name?.toLowerCase() || 'yok';
-    const color = STATUS_COLORS[current] || '#f8f9fa';
-    const [swipeAction, setSwipeAction] = useState<'left' | 'right' | null>(null);
-    const [isHovered, setIsHovered] = useState(false);
+const buttonClasses: Record<AttendanceType, { solid: string; outline: string }> = {
+    var: { solid: 'btn-success', outline: 'btn-outline-success' },
+    gec: { solid: 'btn-warning', outline: 'btn-outline-warning' },
+    yok: { solid: 'btn-danger', outline: 'btn-outline-danger' },
+    izinli: { solid: 'btn-info', outline: 'btn-outline-info' }
+};
 
-    const swipeHandlers = useSwipeable({
-        onSwipedLeft: () => {
-            setSwipeAction('left');
-            updateAttendance('izinli');
-        },
-        onSwipedRight: () => {
-            setSwipeAction('right');
-            updateAttendance('var');
-        },
-        onSwiping: (e) => {
-            setSwipeAction(e.dir === 'Left' ? 'left' : e.dir === 'Right' ? 'right' : null);
-        },
-        onTouchEndOrOnMouseUp: () => {
-            setTimeout(() => setSwipeAction(null), 300);
-        },
-    });
+const classColors: Record<string, string> = {
+    kuranikerim: '#B3E5FC',
+    hazirlik: '#FFCDD2',
+    ibtidai: '#D1C4E9',
+    ihzari: '#C8E6C9',
+    'mezun tekamulalti': '#FFE082',
+    'tekamul alti': '#90CAF9',
+};
 
-    function updateAttendance(type: string) {
-        fetch('http://localhost:3001/attendance/put', {
-            method: 'PUT',
+const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onChange }) => {
+    const [attendanceType, setAttendanceType] = useState<AttendanceType>(
+        (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
+    );
+
+    const [sebep, setSebep] = useState(record?.sebep ?? '');
+    const [saving, setSaving] = useState(false);
+
+    const updateAttendance = async (type: AttendanceType, sebepValue: string) => {
+        setAttendanceType(type);
+        setSaving(true);
+
+        const body = {
+            studentid: student.studentid,
+            date,
+            program_name: program,
+            attendance_type_name: type,
+            sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null
+        };
+
+        const checkUrl = `http://localhost:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
+        const checkRes = await fetch(checkUrl);
+        const exists = checkRes.ok && await checkRes.json();
+
+        const method = exists ? 'PUT' : 'POST';
+        const saveUrl = exists ? 'http://localhost:3001/attendance/put' : 'http://localhost:3001/attendance/create';
+
+        await fetch(saveUrl, {
+            method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentid: student.studentid,
-                date,
-                program_name: program,
-                attendance_type_name: type,
-            }),
-        }).then(onChange);
-    }
+            body: JSON.stringify(body),
+        });
 
-    function updateSebep(sebep: string) {
-        fetch('http://localhost:3001/attendance/put', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentid: student.studentid,
-                date,
-                program_name: program,
-                attendance_type_name: current,
-                sebep,
-            }),
-        }).then(onChange);
-    }
+        onChange();
+        setSaving(false);
+    };
+
+    const handleTypeSelect = (type: AttendanceType) => {
+        updateAttendance(type, sebep);
+    };
+
+    const handleSebepChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newSebep = e.target.value;
+        setSebep(newSebep);
+        updateAttendance(attendanceType, newSebep);
+    };
+
+    const normalizedClass = student.class_name.trim().toLowerCase();
+    const cardColor = classColors[normalizedClass] || '#f8f9fa';
 
     return (
         <motion.div
-            layout
-            className="card position-relative px-3 py-3"
+            className="card shadow-sm"
             style={{
-                backgroundColor: color,
-                borderRadius: '1rem',
-                touchAction: 'pan-y',
-                boxShadow: isHovered ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 2px 6px rgba(0, 0, 0, 0.1)',
-                transition: 'box-shadow 0.3s ease',
+                backgroundColor: cardColor,
+                borderLeft: `5px solid ${cardColor}`,
+                transition: 'background-color 0.3s ease'
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-            {...swipeHandlers}
         >
-            {swipeAction === 'right' && (
-                <motion.div
-                    className="position-absolute top-50 start-0 translate-middle-y ps-3 text-success"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                >
-                    <strong style={{ fontSize: '1rem' }}>✓ Var</strong>
-                </motion.div>
-            )}
-            {swipeAction === 'left' && (
-                <motion.div
-                    className="position-absolute top-50 end-0 translate-middle-y pe-3 text-primary"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                >
-                    <strong style={{ fontSize: '1rem' }}>→ İzinli</strong>
-                </motion.div>
-            )}
+            <div className="card-body py-3 px-4">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <h5 className="mb-1">{student.first_name} {student.last_name}</h5>
+                        <p className="mb-0 text-muted small">{student.class_name}</p>
+                    </div>
+                </div>
 
-            <div
-                className="d-flex justify-content-between align-items-center mb-3 px-2"
-                style={{
-                    position: 'sticky',
-                    top: 0,
-                    backgroundColor: color,
-                    zIndex: 10,
-                    paddingTop: '0.5rem',
-                    paddingBottom: '0.5rem',
-                }}
-            >
-                <h5 className="mb-0 text-dark" style={{ fontSize: '1.2rem' }}>
-                    {student.first_name} {student.last_name}
-                </h5>
-                <small className="text-muted">{student.class_name}</small>
-            </div>
-
-            <div className="card-body p-0">
-                <div className="d-flex flex-wrap align-items-center gap-3 mb-3 px-2">
-                    {['var', 'gec', 'yok', 'izinli'].map((type) => (
-                        <label key={type} className="form-check form-check-inline" style={{ fontSize: '1.1rem' }}>
-                            <input
-                                className="form-check-input me-1"
-                                type="radio"
-                                name={`status-${student.studentid}`}
-                                checked={current === type}
-                                onChange={() => updateAttendance(type)}
-                                style={{ width: '1.2rem', height: '1.2rem' }}
-                            />
-                            <span className="text-capitalize">{type}</span>
-                        </label>
+                <div className="d-flex justify-content-between gap-2 flex-wrap mt-2">
+                    {(Object.keys(typeLabels) as AttendanceType[]).map((type) => (
+                        <button
+                            key={type}
+                            className={`btn btn-sm flex-grow-1 ${type === attendanceType ? buttonClasses[type].solid : buttonClasses[type].outline}`}
+                            onClick={() => handleTypeSelect(type)}
+                        >
+                            {typeLabels[type]}
+                        </button>
                     ))}
                 </div>
 
-                {(current === 'gec' || current === 'izinli') && (
-                    <div className="mt-3 px-2">
-                        <label className="form-label" style={{ fontSize: '1rem' }}>Sebep</label>
+                {['gec', 'izinli'].includes(attendanceType) && (
+                    <div className="mt-3">
                         <select
-                            className="form-select"
-                            defaultValue={record?.sebep ?? ''}
-                            onChange={(e) => updateSebep(e.target.value)}
-                            style={{ fontSize: '1.1rem', padding: '0.6rem' }}
+                            className="form-select form-select-sm"
+                            value={sebep}
+                            onChange={handleSebepChange}
                         >
                             <option value="">Seçin</option>
                             <option value="Banyo">Banyo</option>
@@ -160,15 +129,19 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ student, record, date, 
                         </select>
                     </div>
                 )}
-            </div>
 
-            {/* Floating Toolbar */}
-            <div
-                className="position-fixed bottom-0 start-0 end-0 d-flex justify-content-around py-2 bg-white border-top shadow-sm"
-                style={{ zIndex: 1050 }}
-            >
-                <button className="btn btn-outline-primary btn-sm px-4">Filtrele</button>
-                <button className="btn btn-outline-dark btn-sm px-4">Bugüne Git</button>
+                <AnimatePresence>
+                    {saving && (
+                        <motion.div
+                            className="text-success text-end mt-2"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <small>✓ Kaydedildi</small>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </motion.div>
     );

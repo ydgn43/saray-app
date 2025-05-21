@@ -65,18 +65,21 @@ const Attendance = () => {
     localStorage.setItem('attendance-program', program);
   }, [program]);
 
-  const loadAttendanceData = async () => {
-    if (!date || !program) {
+  const loadAttendanceData = async (newDate?: string) => {
+    const selectedDate = newDate || date;
+    if (!selectedDate || !program) {
       toast.warning("Tarih ve program seçiniz.");
       return;
     }
+
+    if (newDate) setDate(newDate);
 
     setLoading(true);
     setShowCreateButton(false);
     setShowTable(false);
 
     try {
-      const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+      const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${selectedDate}&program_name=${program}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -101,6 +104,7 @@ const Attendance = () => {
     }
   };
 
+
   const handleCreateAttendance = async () => {
     if (!date || !program) {
       toast.error("Tarih ve program seçiniz.");
@@ -122,13 +126,15 @@ const Attendance = () => {
       });
 
       toast.success("Yeni yoklama oluşturuldu");
+
+      // ✅ Instead of setting `showTable = true` directly, just load fresh data
       setShowCreateButton(false);
-      setShowTable(true);
-      loadAttendanceData();
+      await loadAttendanceData(); // reload real data including 'yok'
     } catch {
       toast.error("Yoklama oluşturulamadı");
     }
   };
+
 
   return (
     <div className="container mt-4">
@@ -164,7 +170,7 @@ const Attendance = () => {
           <div className="col-md-4 d-flex align-items-end">
             <button
               className="btn btn-primary w-100"
-              onClick={loadAttendanceData}
+              onClick={() => loadAttendanceData()}
               disabled={!date || !program || loading}
             >
               {loading ? 'Yükleniyor...' : 'Göster'}
@@ -199,10 +205,13 @@ const Attendance = () => {
             date={date}
             program={program}
             onChange={loadAttendanceData}
+            showCreateButton={showCreateButton}
+            onCreate={handleCreateAttendance}
           />
 
+
           <div className="text-end mt-3">
-            <button className="btn btn-outline-secondary" onClick={loadAttendanceData}>
+            <button className="btn btn-outline-secondary" onClick={() => loadAttendanceData()}>
               Yenile
             </button>
           </div>
