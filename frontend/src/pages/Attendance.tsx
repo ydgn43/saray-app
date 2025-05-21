@@ -1,6 +1,6 @@
+// pages/Attendance.tsx
 import { useState, useEffect } from 'react';
 import AttendanceResponsiveView from '../components/AttendanceResponsiveView';
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,12 +21,7 @@ type Attendance = {
 };
 
 const PROGRAM_OPTIONS = [
-  'sabah namazi',
-  'ögle namazi',
-  'ikindi namazi',
-  'aksam namazi',
-  'yatsi namazi',
-  'hatim',
+  'sabah namazi', 'ögle namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim',
 ];
 
 const fetchJson = async (url: string, options = {}) => {
@@ -57,29 +52,23 @@ const Attendance = () => {
       .catch(() => toast.error('Öğrenciler alınamadı'));
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('attendance-date', date);
-  }, [date]);
+  useEffect(() => localStorage.setItem('attendance-date', date), [date]);
+  useEffect(() => localStorage.setItem('attendance-program', program), [program]);
 
-  useEffect(() => {
-    localStorage.setItem('attendance-program', program);
-  }, [program]);
+  const loadAttendanceData = async (preserveScroll = false) => {
+    const scrollY = window.scrollY;
 
-  const loadAttendanceData = async (newDate?: string) => {
-    const selectedDate = newDate || date;
-    if (!selectedDate || !program) {
+    if (!date || !program) {
       toast.warning("Tarih ve program seçiniz.");
       return;
     }
-
-    if (newDate) setDate(newDate);
 
     setLoading(true);
     setShowCreateButton(false);
     setShowTable(false);
 
     try {
-      const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${selectedDate}&program_name=${program}`);
+      const res = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -89,13 +78,13 @@ const Attendance = () => {
       }
 
       setAttendanceData(data);
+      setShowCreateButton(data.length === 0);
+      setShowTable(data.length > 0);
 
-      if (data.length === 0) {
-        setShowCreateButton(true);
-        setShowTable(false);
-      } else {
-        setShowCreateButton(false);
-        setShowTable(true);
+      if (preserveScroll) {
+        setTimeout(() => {
+          window.scrollTo({ top: scrollY, behavior: 'auto' });
+        }, 0);
       }
     } catch {
       toast.error("Yoklama verisi alınamadı.");
@@ -104,14 +93,13 @@ const Attendance = () => {
     }
   };
 
-
   const handleCreateAttendance = async () => {
     if (!date || !program) {
       toast.error("Tarih ve program seçiniz.");
       return;
     }
 
-    const payload = students.map((s) => ({
+    const payload = students.map(s => ({
       studentid: s.studentid,
       date,
       program_name: program,
@@ -126,15 +114,12 @@ const Attendance = () => {
       });
 
       toast.success("Yeni yoklama oluşturuldu");
-
-      // ✅ Instead of setting `showTable = true` directly, just load fresh data
       setShowCreateButton(false);
-      await loadAttendanceData(); // reload real data including 'yok'
+      await loadAttendanceData();
     } catch {
       toast.error("Yoklama oluşturulamadı");
     }
   };
-
 
   return (
     <div className="container mt-4">
@@ -204,14 +189,16 @@ const Attendance = () => {
             attendanceData={attendanceData}
             date={date}
             program={program}
-            onChange={loadAttendanceData}
+            onChange={() => loadAttendanceData(true)} // with scroll preservation
             showCreateButton={showCreateButton}
             onCreate={handleCreateAttendance}
           />
 
-
           <div className="text-end mt-3">
-            <button className="btn btn-outline-secondary" onClick={() => loadAttendanceData()}>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => loadAttendanceData(true)}
+            >
               Yenile
             </button>
           </div>

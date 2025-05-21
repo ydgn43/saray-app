@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// src/components/AttendanceCard.tsx
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Student, Attendance } from '../types';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
@@ -12,52 +13,44 @@ interface Props {
     onChange: () => void;
 }
 
-const typeLabels: Record<AttendanceType, string> = {
-    var: 'Var',
-    yok: 'Yok',
-    gec: 'Geç',
-    izinli: 'İzinli'
+const typeColors: Record<AttendanceType, string> = {
+    var: '#d4edda',
+    yok: '#f8d7da',
+    gec: '#fff3cd',
+    izinli: '#d1ecf1',
 };
 
-const buttonClasses: Record<AttendanceType, { solid: string; outline: string }> = {
-    var: { solid: 'btn-success', outline: 'btn-outline-success' },
-    gec: { solid: 'btn-warning', outline: 'btn-outline-warning' },
-    yok: { solid: 'btn-danger', outline: 'btn-outline-danger' },
-    izinli: { solid: 'btn-info', outline: 'btn-outline-info' }
-};
-
-const classColors: Record<string, string> = {
-    kuranikerim: '#B3E5FC',
-    hazirlik: '#FFCDD2',
-    ibtidai: '#D1C4E9',
-    ihzari: '#C8E6C9',
-    'mezun tekamulalti': '#FFE082',
-    'tekamul alti': '#90CAF9',
+const buttonColors: Record<AttendanceType, string> = {
+    var: 'success',
+    yok: 'danger',
+    gec: 'warning',
+    izinli: 'info',
 };
 
 const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onChange }) => {
     const [attendanceType, setAttendanceType] = useState<AttendanceType>(
         (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
     );
-
-    const [sebep, setSebep] = useState(record?.sebep ?? '');
+    const [sebep, setSebep] = useState(record?.sebep || '');
     const [saving, setSaving] = useState(false);
+    const [highlight, setHighlight] = useState(false);
 
-    const updateAttendance = async (type: AttendanceType, sebepValue: string) => {
+    const updateAttendance = async (type: AttendanceType, sebepValue?: string) => {
         setAttendanceType(type);
+        setHighlight(true);
         setSaving(true);
 
-        const body = {
+        const payload = {
             studentid: student.studentid,
             date,
             program_name: program,
             attendance_type_name: type,
-            sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null
+            sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null,
         };
 
         const checkUrl = `http://localhost:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
         const checkRes = await fetch(checkUrl);
-        const exists = checkRes.ok && await checkRes.json();
+        const exists = checkRes.ok && (await checkRes.json());
 
         const method = exists ? 'PUT' : 'POST';
         const saveUrl = exists ? 'http://localhost:3001/attendance/put' : 'http://localhost:3001/attendance/create';
@@ -65,15 +58,12 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
         await fetch(saveUrl, {
             method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
+            body: JSON.stringify(payload),
         });
 
-        onChange();
         setSaving(false);
-    };
-
-    const handleTypeSelect = (type: AttendanceType) => {
-        updateAttendance(type, sebep);
+        onChange();
+        setTimeout(() => setHighlight(false), 300); // clear animation state
     };
 
     const handleSebepChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -82,16 +72,15 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
         updateAttendance(attendanceType, newSebep);
     };
 
-    const normalizedClass = student.class_name.trim().toLowerCase();
-    const cardColor = classColors[normalizedClass] || '#f8f9fa';
-
     return (
         <motion.div
             className="card shadow-sm"
+            initial={{ scale: 0.98 }}
+            animate={{ scale: highlight ? 1.02 : 1, backgroundColor: typeColors[attendanceType] }}
+            transition={{ duration: 0.3 }}
             style={{
-                backgroundColor: cardColor,
-                borderLeft: `5px solid ${cardColor}`,
-                transition: 'background-color 0.3s ease'
+                borderLeft: `5px solid ${typeColors[attendanceType]}`,
+                overflow: 'hidden',
             }}
         >
             <div className="card-body py-3 px-4">
@@ -102,46 +91,37 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
                     </div>
                 </div>
 
-                <div className="d-flex justify-content-between gap-2 flex-wrap mt-2">
-                    {(Object.keys(typeLabels) as AttendanceType[]).map((type) => (
+                <div className="d-flex gap-2 mb-2">
+                    {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
                         <button
                             key={type}
-                            className={`btn btn-sm flex-grow-1 ${type === attendanceType ? buttonClasses[type].solid : buttonClasses[type].outline}`}
-                            onClick={() => handleTypeSelect(type)}
+                            className={`btn btn-sm btn-outline-${buttonColors[type]} ${attendanceType === type ? 'active' : 'opacity-50'}`}
+                            onClick={() => updateAttendance(type, sebep)}
+                            style={{
+                                minWidth: 70,
+                                fontWeight: attendanceType === type ? 'bold' : 'normal',
+                            }}
                         >
-                            {typeLabels[type]}
+                            {type.toUpperCase()}
                         </button>
                     ))}
                 </div>
 
                 {['gec', 'izinli'].includes(attendanceType) && (
-                    <div className="mt-3">
-                        <select
-                            className="form-select form-select-sm"
-                            value={sebep}
-                            onChange={handleSebepChange}
-                        >
-                            <option value="">Seçin</option>
-                            <option value="Banyo">Banyo</option>
-                            <option value="Hasta">Hasta</option>
-                            <option value="Rahatsiz">Rahatsız</option>
-                            <option value="Okul">Okul</option>
-                        </select>
-                    </div>
+                    <select
+                        className="form-select form-select-sm mb-2"
+                        value={sebep}
+                        onChange={handleSebepChange}
+                    >
+                        <option value="">Sebep Seçin</option>
+                        <option value="Banyo">Banyo</option>
+                        <option value="Hasta">Hasta</option>
+                        <option value="Rahatsiz">Rahatsız</option>
+                        <option value="Okul">Okul</option>
+                    </select>
                 )}
 
-                <AnimatePresence>
-                    {saving && (
-                        <motion.div
-                            className="text-success text-end mt-2"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                        >
-                            <small>✓ Kaydedildi</small>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {saving && <small className="text-success">✓ Kaydediliyor...</small>}
             </div>
         </motion.div>
     );

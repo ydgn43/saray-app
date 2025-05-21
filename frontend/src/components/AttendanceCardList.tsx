@@ -8,7 +8,7 @@ interface Props {
     attendanceData: Attendance[];
     date: string;
     program: string;
-    onChange: () => void;
+    onChange: () => Promise<void>; // async
 }
 
 const AttendanceCardList: React.FC<Props> = ({
@@ -18,6 +18,14 @@ const AttendanceCardList: React.FC<Props> = ({
     program,
     onChange
 }) => {
+    const handlePreserveScrollOnChange = async () => {
+        const scrollY = window.scrollY;
+        await onChange();
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+        });
+    };
+
     return (
         <div className="d-flex flex-column gap-3 px-2">
             {students.map((student) => {
@@ -29,7 +37,7 @@ const AttendanceCardList: React.FC<Props> = ({
                         record={record}
                         date={date}
                         program={program}
-                        onChange={onChange}
+                        onChange={handlePreserveScrollOnChange}
                     />
                 );
             })}

@@ -25,7 +25,6 @@ const AttendanceResponsiveView: React.FC<Props> = ({
     onCreate,
 }) => {
     const isMobile = useIsMobile();
-
     const showTable = attendanceData.length > 0;
 
     return (
@@ -45,8 +44,9 @@ const AttendanceResponsiveView: React.FC<Props> = ({
                         attendanceData={attendanceData}
                         date={date}
                         program={program}
-                        onChange={onChange}
+                        onChange={async () => await onChange()}
                     />
+
                 ) : (
                     <AttendanceTable
                         students={students}
