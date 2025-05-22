@@ -59,7 +59,7 @@ const Navbar = () => {
               <ul className="dropdown-menu dropdown-menu-end">
                 <li><Link className="dropdown-item" to="/attendance">Günlük</Link></li>
                 <li><Link className="dropdown-item" to="/statistics">İstatistik</Link></li>
-                <li><Link className="dropdown-item" to="/settings">Ayarlar</Link></li>
+                <li><Link className="dropdown-item" to="/talebeler">Talebeler</Link></li>
               </ul>
             </li>
             {user && (

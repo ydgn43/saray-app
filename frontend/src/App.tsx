@@ -1,11 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import PrivateRoute from './auth/PrivateRoute';
 import Login from './pages/Login';
 import Attendance from './pages/Attendance';
 import Statistics from './pages/Statistics';
-import Settings from './pages/Settings';
+import Talebeler from './pages/Talebeler';
 import Layout from './components/Layout';
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -43,12 +43,12 @@ function App() {
             }
           />
           <Route
-            path="/settings"
+            path="/talebeler"
             element={
               <PrivateRoute>
                 <RequireRole roles={['admin']}>
                   <Layout>
-                    <Settings />
+                    <Talebeler />
                   </Layout>
                 </RequireRole>
               </PrivateRoute>
