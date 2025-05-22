@@ -204,17 +204,16 @@ const AttendanceTable: React.FC<Props> = ({
                             <select
                               className="form-select form-select-sm"
                               value={
-                                sebepIsOther
-                                  ? 'diger'
-                                  : sebepOptions.includes(sebepVal)
-                                    ? sebepVal
-                                    : ''
+                                (current === 'gec' || current === 'izinli')
+                                  ? (sebepOptions.includes(sebepVal) ? sebepVal : (sebepVal === '__diger__' ? 'diger' : sebepVal ? 'diger' : ''))
+                                  : ''
                               }
                               disabled={!(current === 'gec' || current === 'izinli')}
                               onChange={e => {
                                 const val = e.target.value;
                                 if (val === 'diger') {
-                                  handleSebepChange(student.studentid, '', current);
+                                  // Use special marker for "Diğer" selection
+                                  handleSebepChange(student.studentid, '__diger__', current);
                                 } else {
                                   handleSebepChange(student.studentid, val, current);
                                 }
@@ -237,10 +236,18 @@ const AttendanceTable: React.FC<Props> = ({
                               className="form-control form-control-sm"
                               style={{ minWidth: 80, maxWidth: 120 }}
                               placeholder="Sebep girin"
-                              value={sebepIsOther ? sebepVal : ''}
+                              value={
+                                (current === 'gec' || current === 'izinli')
+                                  ? (sebepVal === '__diger__' ? '' : (!sebepOptions.includes(sebepVal) && sebepVal !== '' ? sebepVal : ''))
+                                  : ''
+                              }
                               onChange={e => handleSebepChange(student.studentid, e.target.value, current)}
-                              disabled={!(current === 'gec' || current === 'izinli') || !sebepIsOther}
+                              disabled={
+                                !(current === 'gec' || current === 'izinli') ||
+                                (sebepOptions.includes(sebepVal) || sebepVal === '' || sebepVal !== '__diger__' && sebepVal.length === 0)
+                              }
                             />
+
                             <motion.span
                               animate={{ opacity: savedIndicators[student.studentid] ? 1 : 0 }}
                               transition={{ duration: 0.22 }}
@@ -257,6 +264,7 @@ const AttendanceTable: React.FC<Props> = ({
                             </motion.span>
                           </div>
                         </td>
+
                       </motion.tr>
                     );
                   })}
