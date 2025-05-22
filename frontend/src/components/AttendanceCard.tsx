@@ -1,7 +1,7 @@
-// src/components/AttendanceCard.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Student, Attendance } from '../types';
-import { authFetch } from '../utils/authFetch';
+import { classGroupedColors } from '../constants';
+
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 
@@ -10,7 +10,7 @@ interface Props {
     record?: Attendance;
     date: string;
     program: string;
-    onChange: () => Promise<void>;
+    onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
 }
 
 const typeLabels: Record<AttendanceType, string> = {
@@ -24,48 +24,29 @@ const typeOptions: AttendanceType[] = ['var', 'gec', 'yok', 'izinli'];
 
 const activeClass = (type: AttendanceType) => {
     switch (type) {
-        case 'var':
-            return 'btn-success text-white fw-bold';
-        case 'gec':
-            return 'btn-warning text-dark fw-bold';
-        case 'yok':
-            return 'btn-danger text-white fw-bold';
-        case 'izinli':
-            return 'btn-info text-white fw-bold';
+        case 'var': return 'btn-success text-white fw-bold';
+        case 'gec': return 'btn-warning text-dark fw-bold';
+        case 'yok': return 'btn-danger text-white fw-bold';
+        case 'izinli': return 'btn-info text-white fw-bold';
     }
 };
-
 const fadedClass = (type: AttendanceType) => {
     switch (type) {
-        case 'var':
-            return 'btn-outline-success';
-        case 'gec':
-            return 'btn-outline-warning';
-        case 'yok':
-            return 'btn-outline-danger';
-        case 'izinli':
-            return 'btn-outline-info';
+        case 'var': return 'btn-outline-success';
+        case 'gec': return 'btn-outline-warning';
+        case 'yok': return 'btn-outline-danger';
+        case 'izinli': return 'btn-outline-info';
     }
 };
 
-const classGroupColors: Record<string, string> = {
-    kuranikerim: '#dcedc8',
-    hazirlik: '#ffe0b2',
-    ibtidai: '#e1bee7',
-    ihzari: '#b2dfdb',
-    'mezun tekamulalti': '#f0f4c3',
-    'tekamul alti': '#cfd8dc',
-};
 
-const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onChange }) => {
-    const [attendanceType, setAttendanceType] = React.useState<AttendanceType>(
+const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onUpdateAttendance }) => {
+    const [attendanceType, setAttendanceType] = useState<AttendanceType>(
         (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
     );
-    const [sebep, setSebep] = React.useState(record?.sebep ?? '');
-    const [saving, setSaving] = React.useState(false);
+    const [sebep, setSebep] = useState(record?.sebep ?? '');
 
-    const backgroundColor =
-        classGroupColors[student.class_name.toLowerCase()] || '#f5f5f5';
+    const backgroundColor = classGroupedColors[student.class_name.toLowerCase()] || '#f5f5f5';
 
     function darkenColor(hex: string, amount: number = 20): string {
         return '#' + hex.replace(/^#/, '').replace(/../g, color =>
@@ -73,43 +54,18 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
         );
     }
 
-
-
-    const updateAttendance = async (type: AttendanceType, sebepValue: string) => {
+    const handleTypeChange = (type: AttendanceType) => {
         setAttendanceType(type);
-        setSaving(true);
-
-        const body = {
-            studentid: student.studentid,
-            date,
-            program_name: program,
-            attendance_type_name: type,
-            sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null,
-        };
-
-        const url = `http://192.168.50.120:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
-        const checkRes = await authFetch(url);
-        const exists = checkRes.ok && (await checkRes.json());
-
-        const method = exists ? 'PUT' : 'POST';
-        const saveUrl = exists
-            ? 'http://192.168.50.120:3001/attendance/put'
-            : 'http://192.168.50.120:3001/attendance/create';
-
-        await authFetch(saveUrl, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        });
-
-        await onChange();
-        setSaving(false);
+        // When changing away from gec/izinli, reset sebep
+        const newSebep = ['gec', 'izinli'].includes(type) ? sebep : '';
+        setSebep(newSebep);
+        onUpdateAttendance(student.studentid, type, newSebep);
     };
 
     const handleSebepChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newSebep = e.target.value;
         setSebep(newSebep);
-        updateAttendance(attendanceType, newSebep);
+        onUpdateAttendance(student.studentid, attendanceType, newSebep);
     };
 
     return (
@@ -119,7 +75,6 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
                 backgroundColor,
                 transition: 'background-color 0.3s ease',
                 borderLeft: `4px solid ${darkenColor(backgroundColor, 20)}`,
-
             }}
         >
             <div className="card-body py-3 px-4">
@@ -132,7 +87,8 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
                             key={type}
                             className={`btn btn-sm ${attendanceType === type ? activeClass(type) : fadedClass(type)}`}
                             style={{ flex: '1 1 0', minWidth: 0 }}
-                            onClick={() => updateAttendance(type, sebep)}
+                            onClick={() => handleTypeChange(type)}
+                            type="button"
                         >
                             {typeLabels[type]}
                         </button>
@@ -154,26 +110,9 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
                         </select>
                     </div>
                 )}
-
-                {saving && (
-                    <div className="text-end mt-2">
-                        <small className="text-success">✓ Kaydedildi</small>
-                    </div>
-                )}
             </div>
         </div>
     );
 };
 
 export default AttendanceCard;
-
-export const classGroupedColors: { [key: string]: string } = {
-    kuranikerim: '#dcedc8',
-    hazirlik: '#ffe0b2',
-    ibtidai: '#e1bee7',
-    ihzari: '#b2dfdb',
-    'mezun tekamulalti': '#f0f4c3',
-    'tekamul alti': '#cfd8dc',
-};
-
-

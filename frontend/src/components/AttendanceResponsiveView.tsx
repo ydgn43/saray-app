@@ -1,4 +1,3 @@
-// src/components/AttendanceResponsiveView.tsx
 import React from 'react';
 import AttendanceCardList from './AttendanceCardList';
 import AttendanceTable from './AttendanceTable';
@@ -6,21 +5,25 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { Attendance, Student } from '../types';
 
 interface Props {
-    students: Student[]; // already filtered upstream
+    students: Student[];
     attendanceData: Attendance[];
     date: string;
     program: string;
-    onChange: () => void;
+    onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
+    onUpdateSebep?: (studentId: number, type: string, sebep: string) => void;
     showCreateButton: boolean;
     onCreate: () => void;
 }
+
+
 
 const AttendanceResponsiveView: React.FC<Props> = ({
     students,
     attendanceData,
     date,
     program,
-    onChange,
+    onUpdateAttendance,
+    onUpdateSebep,
     showCreateButton,
     onCreate,
 }) => {
@@ -44,7 +47,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
                         attendanceData={attendanceData}
                         date={date}
                         program={program}
-                        onChange={async () => await onChange()}
+                        onUpdateAttendance={onUpdateAttendance}
                     />
                 ) : (
                     <AttendanceTable
@@ -52,7 +55,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
                         attendanceData={attendanceData}
                         date={date}
                         program={program}
-                        onChange={onChange}
+                        onUpdateAttendance={onUpdateAttendance}
                     />
                 )
             ) : (

@@ -1,4 +1,3 @@
-// pages/Attendance.tsx
 import { useState, useEffect } from 'react';
 import AttendanceResponsiveView from '../components/AttendanceResponsiveView';
 import { ToastContainer, toast } from 'react-toastify';
@@ -6,21 +5,28 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence } from 'framer-motion';
 import FilterToolbar from '../components/FilterToolbar';
 import Layout from '../components/Layout';
-import { LayoutTextSidebar } from 'react-bootstrap-icons';
+import { classOrder, groupHeaderTitles } from '../constants';
 import { authFetch } from '../utils/authFetch';
-import { a } from 'framer-motion/dist/types.d-CtuPurYT';
 
-// Define types
+// ---- Define types, options, helpers ----
 
 const PROGRAM_OPTIONS = [
   'sabah namazi', 'öglen namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim',
 ];
+
+const normalizeClassName = (str: string) => {
+  let out = str.trim().toLowerCase().replace(/ /g, '_');
+  if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
+  return out;
+};
 
 const fetchJson = async (url: string, options = {}) => {
   const res = await authFetch(url, options);
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 };
+
+// ---- Page Component ----
 
 const Attendance = () => {
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
@@ -31,6 +37,8 @@ const Attendance = () => {
   const [date, setDate] = useState<string>('');
   const [program, setProgram] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+
+  // --- Data load ---
 
   useEffect(() => {
     const savedDate = localStorage.getItem('attendance-date');
@@ -47,6 +55,8 @@ const Attendance = () => {
 
   useEffect(() => localStorage.setItem('attendance-date', date), [date]);
   useEffect(() => localStorage.setItem('attendance-program', program), [program]);
+
+  // --- Load full attendance list (only when really needed) ---
 
   const loadAttendanceData = async (preserveScroll = false) => {
     const scrollY = window.scrollY;
@@ -76,7 +86,7 @@ const Attendance = () => {
 
       if (preserveScroll) {
         setTimeout(() => {
-          window.scrollTo({ top: scrollY, behavior: "auto" });
+          window.scrollTo({ top: scrollY, behavior: 'auto' });
         }, 0);
       }
     } catch {
@@ -86,6 +96,7 @@ const Attendance = () => {
     }
   };
 
+  // --- Create new attendance (bulk, triggers full reload) ---
   const handleCreateAttendance = async () => {
     if (!date || !program) {
       toast.error("Tarih ve program seçiniz.");
@@ -114,35 +125,71 @@ const Attendance = () => {
     }
   };
 
+  // --- Optimistic row update ---
+  const handleUpdateAttendance = async (
+    studentid: number,
+    attendance_type_name: string,
+    sebep: string | null = null
+  ) => {
+    try {
+      // Determine POST vs PUT as in your API logic
+      const checkUrl = `http://192.168.50.120:3001/attendance?studentid=${studentid}&date=${date}&program_name=${program}`;
+      const checkRes = await authFetch(checkUrl);
+      const record = await checkRes.json();
+      const method = checkRes.ok && record ? 'PUT' : 'POST';
+      const url = method === 'PUT'
+        ? 'http://192.168.50.120:3001/attendance/put'
+        : 'http://192.168.50.120:3001/attendance/create';
+
+      const body = {
+        studentid,
+        date,
+        program_name: program,
+        attendance_type_name,
+        sebep,
+      };
+
+      await authFetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      // Optimistic local update
+      setAttendanceData(prev =>
+        prev.some(a => a.studentid === studentid)
+          ? prev.map(a =>
+            a.studentid === studentid
+              ? { ...a, attendance_type_name, sebep }
+              : a
+          )
+          : [...prev, { studentid, date, program_name: program, attendance_type_name, sebep }]
+      );
+
+      toast.success('Yoklama güncellendi');
+    } catch (err) {
+      toast.error('Yoklama güncellenemedi');
+    }
+  };
+
+  // --- Optimistic sebep update ---
+  const handleUpdateSebep = async (
+    studentid: number,
+    currentType: string,
+    sebep: string
+  ) => {
+    try {
+      await handleUpdateAttendance(studentid, currentType, sebep);
+    } catch {
+      toast.error('Sebep güncellenemedi');
+    }
+  };
+
+  // --- Filtered students by selected classes ---
   const filteredStudents = selectedClasses.length > 0
     ? students.filter(s => selectedClasses.includes(s.class_name))
     : students;
 
-
-
-  const classOrder = [
-    'kuranikerim',
-    'hazirlik',
-    'ibtidai',
-    'ihzari',
-    'mezun_tekamul_alti',
-    'tekamul_alti'
-  ];
-
-  const groupHeaderTitles: Record<string, string> = {
-    kuranikerim: "Kur'an-ı Kerim",
-    hazirlik: "Hazırlık",
-    ibtidai: "İbtidai",
-    ihzari: "İhzari",
-    mezun_tekamul_alti: "Mezun Tekamül Altı",
-    tekamul_alti: "Tekamül Altı",
-  };
-
-  const normalizeClassName = (str: string) => {
-    let out = str.trim().toLowerCase().replace(/ /g, '_');
-    if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
-    return out;
-  };
 
 
   const handleSendWhatsApp = () => {
@@ -353,10 +400,12 @@ const Attendance = () => {
               attendanceData={attendanceData}
               date={date}
               program={program}
-              onChange={() => loadAttendanceData(true)}
+              onUpdateAttendance={handleUpdateAttendance}
+              onUpdateSebep={handleUpdateSebep} // If your AttendanceTable uses it
               showCreateButton={showCreateButton}
               onCreate={handleCreateAttendance}
             />
+
           )}
 
 

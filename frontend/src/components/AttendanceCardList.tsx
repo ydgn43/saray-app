@@ -1,23 +1,14 @@
-// src/components/AttendanceCardList.tsx
 import React from 'react';
 import { Student, Attendance } from '../types';
 import AttendanceCard from './AttendanceCard';
-
-const classOrder = [
-    "kuranikerim",
-    "hazirlik",
-    "ibtidai",
-    "ihzari",
-    "mezun_tekamul_alti",
-    "tekamul_alti"
-];
+import { classOrder } from '../constants';
 
 interface Props {
     students: Student[];
     attendanceData: Attendance[];
     date: string;
     program: string;
-    onChange: () => Promise<void>; // async
+    onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
 }
 
 const AttendanceCardList: React.FC<Props> = ({
@@ -25,16 +16,8 @@ const AttendanceCardList: React.FC<Props> = ({
     attendanceData,
     date,
     program,
-    onChange
+    onUpdateAttendance
 }) => {
-    const handlePreserveScrollOnChange = async () => {
-        const scrollY = window.scrollY;
-        await onChange();
-        requestAnimationFrame(() => {
-            window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-        });
-    };
-
     const sortedStudents = [...students].sort((a, b) => {
         const aIndex = classOrder.indexOf(a.class_name);
         const bIndex = classOrder.indexOf(b.class_name);
@@ -52,7 +35,7 @@ const AttendanceCardList: React.FC<Props> = ({
                         record={record}
                         date={date}
                         program={program}
-                        onChange={handlePreserveScrollOnChange}
+                        onUpdateAttendance={onUpdateAttendance}
                     />
                 );
             })}

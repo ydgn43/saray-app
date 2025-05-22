@@ -1,8 +1,9 @@
 // src/components/FilterToolbar.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { classGroupedColors } from './AttendanceCard';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Funnel } from 'react-bootstrap-icons';
+import { classGroupedColors } from '../constants';
+
 
 interface Props {
     onFilterChange: (className: string) => void;

@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { authFetch } from '../utils/authFetch';
+import { classOrder, groupHeaderTitles } from '../constants';
 
 type Student = {
   studentid: number;
@@ -20,25 +20,7 @@ type Props = {
   attendanceData: Attendance[];
   date: string;
   program: string;
-  onChange: () => void;
-};
-
-const classOrder = [
-  'kuranikerim',
-  'hazirlik',
-  'ibtidai',
-  'ihzari',
-  'mezun_tekamul_alti',
-  'tekamul_alti'
-];
-
-const groupHeaderTitles: Record<string, string> = {
-  kuranikerim: "Kur'an-ı Kerim",
-  hazirlik: "Hazırlık",
-  ibtidai: "İbtidai",
-  ihzari: "İhzari",
-  mezun_tekamul_alti: "Mezun Tekamül Altı",
-  tekamul_alti: "Tekamül Altı",
+  onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
 };
 
 const groupColors: Record<string, string> = {
@@ -50,20 +32,23 @@ const groupColors: Record<string, string> = {
   tekamul_alti: '#90CAF9'         // soft blue
 };
 
-// Normalizes class name to match keys (lowercase, _)
 const normalizeClassName = (str: string) => {
   let out = str.trim().toLowerCase().replace(/ /g, '_');
   if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
   return out;
 };
 
-const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, program, onChange }) => {
-  const debounceTimeout = useRef<{ [key: number]: NodeJS.Timeout }>({});
+const AttendanceTable: React.FC<Props> = ({
+  students,
+  attendanceData,
+  date,
+  program,
+  onUpdateAttendance
+}) => {
   const [savedIndicators, setSavedIndicators] = useState<{ [studentId: number]: boolean }>({});
   const [sebepDrafts, setSebepDrafts] = useState<{ [studentId: number]: string }>({});
-  const [highlightedRows, setHighlightedRows] = useState<{ [studentId: number]: boolean }>({});
 
-  useEffect(() => {
+  React.useEffect(() => {
     const initial: { [key: number]: string } = {};
     attendanceData.forEach((a) => {
       if (a.sebep !== undefined && a.sebep !== null) {
@@ -73,71 +58,22 @@ const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, prog
     setSebepDrafts(initial);
   }, [attendanceData]);
 
-  const handleCheckboxChange = async (studentId: number, selectedType: string) => {
-    if (!date || !program) return;
-
-    const checkUrl = `http://192.168.50.120:3001/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
-
-    try {
-      const checkRes = await authFetch(checkUrl);
-      const record = await checkRes.json();
-
-      const method = checkRes.ok && record ? 'PUT' : 'POST';
-      const url = method === 'PUT'
-        ? 'http://192.168.50.120:3001/attendance/put'
-        : 'http://192.168.50.120:3001/attendance/create';
-
-      const body = {
-        studentid: studentId,
-        date,
-        program_name: program,
-        attendance_type_name: selectedType,
-        sebep: null,
-      };
-
-      await authFetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      setHighlightedRows((prev) => ({ ...prev, [studentId]: true }));
-      setTimeout(() => {
-        setHighlightedRows((prev) => ({ ...prev, [studentId]: false }));
-      }, 3000);
-
-      onChange();
-    } catch (err) {
-      console.error('Error handling attendance change:', err);
-    }
+  const handleCheckboxChange = (studentId: number, selectedType: string) => {
+    const sebep = sebepDrafts[studentId] ?? '';
+    onUpdateAttendance(studentId, selectedType, ['gec', 'izinli'].includes(selectedType) ? sebep : '');
+    setSavedIndicators(prev => ({ ...prev, [studentId]: true }));
+    setTimeout(() => {
+      setSavedIndicators(prev => ({ ...prev, [studentId]: false }));
+    }, 1200);
   };
 
   const handleSebepChange = (studentId: number, newSebep: string, current: string) => {
-    if (debounceTimeout.current[studentId]) {
-      clearTimeout(debounceTimeout.current[studentId]);
-    }
-
-    debounceTimeout.current[studentId] = setTimeout(async () => {
-      await authFetch('http://192.168.50.120:3001/attendance/put', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentid: studentId,
-          date,
-          program_name: program,
-          attendance_type_name: current,
-          sebep: newSebep,
-        }),
-      });
-
-      setSavedIndicators((prev) => ({ ...prev, [studentId]: true }));
-      setHighlightedRows((prev) => ({ ...prev, [studentId]: true }));
-      setTimeout(() => {
-        setSavedIndicators((prev) => ({ ...prev, [studentId]: false }));
-        setHighlightedRows((prev) => ({ ...prev, [studentId]: false }));
-        onChange();
-      }, 3000);
-    }, 800);
+    setSebepDrafts(prev => ({ ...prev, [studentId]: newSebep }));
+    onUpdateAttendance(studentId, current, newSebep);
+    setSavedIndicators(prev => ({ ...prev, [studentId]: true }));
+    setTimeout(() => {
+      setSavedIndicators(prev => ({ ...prev, [studentId]: false }));
+    }, 1200);
   };
 
   // Group students by normalized class name
@@ -179,13 +115,7 @@ const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, prog
                   const current = record?.attendance_type_name?.toLowerCase() || 'yok';
 
                   return (
-                    <tr
-                      key={student.studentid}
-                      style={{
-                        backgroundColor: highlightedRows[student.studentid] ? '#fff3cd' : color,
-                        transition: 'background-color 0.5s ease'
-                      }}
-                    >
+                    <tr key={student.studentid}>
                       <td>{index + 1}</td>
                       <td>{`${student.first_name} ${student.last_name}`}</td>
 
@@ -205,11 +135,7 @@ const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, prog
                             <select
                               className="form-select form-select-sm"
                               value={sebepDrafts[student.studentid] ?? ''}
-                              onChange={(e) => {
-                                const newSebep = e.target.value;
-                                setSebepDrafts(prev => ({ ...prev, [student.studentid]: newSebep }));
-                                handleSebepChange(student.studentid, newSebep, current);
-                              }}
+                              onChange={(e) => handleSebepChange(student.studentid, e.target.value, current)}
                             >
                               <option value="">Seçin</option>
                               <option value="Banyo">Banyo</option>
