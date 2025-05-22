@@ -20,7 +20,7 @@ type Student = {
     class_name: string;
 };
 
-const Settings = () => {
+const Talebeler = () => {
     const [students, setStudents] = useState<Student[]>([]);
 
     // Form fields
@@ -621,4 +621,4 @@ const Settings = () => {
     );
 };
 
-export default Settings;
+export default Talebeler;

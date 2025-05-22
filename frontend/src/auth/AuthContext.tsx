@@ -11,6 +11,7 @@ type AuthContextType = {
     token: string | null;
     login: (user: UserType, token: string) => void;
     logout: () => void;
+    loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,11 +19,13 @@ const AuthContext = createContext<AuthContextType>({
     token: null,
     login: () => { },
     logout: () => { },
+    loading: true,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<UserType | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -31,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(JSON.parse(storedUser));
             setToken(storedToken);
         }
+        setLoading(false);
     }, []);
 
     const login = (user: UserType, token: string) => {
@@ -49,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

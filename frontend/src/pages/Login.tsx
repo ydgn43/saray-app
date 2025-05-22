@@ -16,7 +16,7 @@ export default function Login() {
         e.preventDefault();
         setError('');
 
-        const res = await fetch('http://192.168.50.120:3001/auth/login', {
+        const res = await authFetch('http://192.168.50.120:3001/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),

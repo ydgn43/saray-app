@@ -18,10 +18,14 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Invalid username or password.' });
         }
         // 3. Create JWT
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            throw new Error('JWT_SECRET environment variable is not defined.');
+        }
         const token = jwt.sign(
             { accountid: user.accountid, username: user.username, role: user.role_name },
-            process.env.JWT_SECRET || 'supersecretkey', // Replace with your .env value!
-            { expiresIn: '1d' }
+            jwtSecret,
+            { expiresIn: '7d' }
         );
         // 4. Send token and user info
         res.json({
