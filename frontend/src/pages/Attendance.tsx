@@ -166,7 +166,6 @@ const Attendance = () => {
           : [...prev, { studentid, date, program_name: program, attendance_type_name, sebep }]
       );
 
-      toast.success('Yoklama güncellendi');
     } catch (err) {
       toast.error('Yoklama güncellenemedi');
     }
