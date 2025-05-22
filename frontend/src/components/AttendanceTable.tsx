@@ -2,6 +2,30 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { classOrder, groupHeaderTitles, classGroupedColors } from '../constants';
 
+type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
+const typeLabels: Record<AttendanceType, string> = {
+  var: 'VAR',
+  yok: 'YOK',
+  gec: 'GEÇ',
+  izinli: 'İZİNLİ',
+};
+const activeClass = (type: AttendanceType) => {
+  switch (type) {
+    case 'var': return 'btn-success text-white fw-bold';
+    case 'gec': return 'btn-warning text-dark fw-bold';
+    case 'yok': return 'btn-danger text-white fw-bold';
+    case 'izinli': return 'btn-info text-white fw-bold';
+  }
+};
+const fadedClass = (type: AttendanceType) => {
+  switch (type) {
+    case 'var': return 'btn-outline-success fw-bold';
+    case 'gec': return 'btn-outline-warning fw-bold';
+    case 'yok': return 'btn-outline-danger fw-bold';
+    case 'izinli': return 'btn-outline-info fw-bold';
+  }
+};
+
 type Student = {
   studentid: number;
   first_name: string;
@@ -55,6 +79,8 @@ const rowVariants = {
   exit: { opacity: 0, y: 18, scale: 0.97, transition: { duration: 0.15 } }
 };
 
+const sebepOptions = ['Banyo', 'Hasta', 'Rahatsiz', 'Okul'];
+
 const AttendanceTable: React.FC<Props> = ({
   students,
   attendanceData,
@@ -76,7 +102,7 @@ const AttendanceTable: React.FC<Props> = ({
     setSebepDrafts(initial);
   }, [attendanceData]);
 
-  const handleCheckboxChange = (studentId: number, selectedType: string) => {
+  const handleButtonChange = (studentId: number, selectedType: AttendanceType) => {
     const sebep = sebepDrafts[studentId] ?? '';
     onUpdateAttendance(studentId, selectedType, ['gec', 'izinli'].includes(selectedType) ? sebep : '');
     setSavedIndicators(prev => ({ ...prev, [studentId]: true }));
@@ -136,10 +162,15 @@ const AttendanceTable: React.FC<Props> = ({
                 <AnimatePresence>
                   {groupStudents.map((student, index) => {
                     const record = attendanceData.find((a) => a.studentid === student.studentid);
-                    const current = record?.attendance_type_name?.toLowerCase() || 'yok';
+                    const current = (record?.attendance_type_name?.toLowerCase() || 'yok') as AttendanceType;
                     const rowHighlight = recentlyUpdated[student.studentid]
                       ? hexToRgba(borderColor, 0.20)
                       : color;
+
+                    const sebepVal = sebepDrafts[student.studentid] ?? '';
+                    const sebepIsOther =
+                      (current === 'gec' || current === 'izinli') &&
+                      !(sebepOptions.includes(sebepVal) || sebepVal === '');
 
                     return (
                       <motion.tr
@@ -156,96 +187,75 @@ const AttendanceTable: React.FC<Props> = ({
                       >
                         <td>{index + 1}</td>
                         <td>{`${student.first_name} ${student.last_name}`}</td>
-                        {['var', 'gec', 'yok', 'izinli'].map((type) => (
+                        {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
                           <td key={type}>
-                            <input
-                              type="checkbox"
-                              checked={current === type}
-                              onChange={() => handleCheckboxChange(student.studentid, type)}
-                            />
+                            <button
+                              className={`btn btn-sm ${current === type ? activeClass(type) : fadedClass(type)}`}
+                              style={{ minWidth: 38 }}
+                              onClick={() => handleButtonChange(student.studentid, type)}
+                              type="button"
+                            >
+                              {typeLabels[type]}
+                            </button>
                           </td>
                         ))}
                         <td>
-                          <td>
-                            <div className="d-flex align-items-center" style={{ gap: '0.5rem', minWidth: '180px' }}>
-                              <select
-                                className="form-select form-select-sm"
-                                value={
-                                  ['Banyo', 'Hasta', 'Rahatsiz', 'Okul', ''].includes(sebepDrafts[student.studentid] ?? '')
-                                    ? sebepDrafts[student.studentid] ?? ''
-                                    : 'diger'
-                                }
-                                disabled={!(current === 'gec' || current === 'izinli')}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  if (val === 'diger') {
-                                    // If switching to Diğer, clear field to allow typing
-                                    handleSebepChange(student.studentid, '', current);
-                                  } else {
-                                    handleSebepChange(student.studentid, val, current);
-                                  }
-                                }}
-                                style={{
-                                  backgroundColor: !(current === 'gec' || current === 'izinli') ? '#f5f5f5' : undefined,
-                                  cursor: !(current === 'gec' || current === 'izinli') ? 'not-allowed' : undefined,
-                                  opacity: !(current === 'gec' || current === 'izinli') ? 0.7 : 1
-                                }}
-                              >
-                                <option value="">Seçin</option>
-                                <option value="Banyo">Banyo</option>
-                                <option value="Hasta">Hasta</option>
-                                <option value="Rahatsiz">Rahatsız</option>
-                                <option value="Okul">Okul</option>
-                                <option value="diger">Diğer</option>
-                              </select>
-                              {/* Always render input, but only enabled when Diğer + gec/izinli */}
-                              <input
-                                className="form-control form-control-sm"
-                                style={{ minWidth: 80, maxWidth: 130 }}
-                                placeholder="Sebep girin"
-                                value={
-                                  // If Diğer is selected, allow custom text
-                                  (
-                                    (current === 'gec' || current === 'izinli') &&
-                                    (
-                                      !['Banyo', 'Hasta', 'Rahatsiz', 'Okul', ''].includes(sebepDrafts[student.studentid] ?? '')
-                                      || sebepDrafts[student.studentid] === ''
-                                    )
-                                  )
-                                    ? sebepDrafts[student.studentid] || ''
+                          <div className="d-flex align-items-center" style={{ gap: '0.5rem', minWidth: '180px' }}>
+                            <select
+                              className="form-select form-select-sm"
+                              value={
+                                sebepIsOther
+                                  ? 'diger'
+                                  : sebepOptions.includes(sebepVal)
+                                    ? sebepVal
                                     : ''
+                              }
+                              disabled={!(current === 'gec' || current === 'izinli')}
+                              onChange={e => {
+                                const val = e.target.value;
+                                if (val === 'diger') {
+                                  handleSebepChange(student.studentid, '', current);
+                                } else {
+                                  handleSebepChange(student.studentid, val, current);
                                 }
-                                onChange={e => handleSebepChange(student.studentid, e.target.value, current)}
-                                disabled={
-                                  !(
-                                    (current === 'gec' || current === 'izinli') &&
-                                    (
-                                      !['Banyo', 'Hasta', 'Rahatsiz', 'Okul', ''].includes(sebepDrafts[student.studentid] ?? '')
-                                      || sebepDrafts[student.studentid] === ''
-                                    )
-                                  )
-                                }
-                              />
-                              <motion.span
-                                animate={{ opacity: savedIndicators[student.studentid] ? 1 : 0 }}
-                                transition={{ duration: 0.22 }}
-                                style={{
-                                  minWidth: 24,
-                                  minHeight: 24,
-                                  display: 'inline-flex',
-                                  justifyContent: 'center',
-                                  alignItems: 'center',
-                                  marginLeft: 4,
-                                }}
-                              >
-                                ✓
-                              </motion.span>
-
-                            </div>
-                          </td>
-
-
-
+                              }}
+                              style={{
+                                backgroundColor: !(current === 'gec' || current === 'izinli') ? '#f5f5f5' : undefined,
+                                cursor: !(current === 'gec' || current === 'izinli') ? 'not-allowed' : undefined,
+                                opacity: !(current === 'gec' || current === 'izinli') ? 0.7 : 1,
+                                maxWidth: 100
+                              }}
+                            >
+                              <option value="">Seçin</option>
+                              <option value="Banyo">Banyo</option>
+                              <option value="Hasta">Hasta</option>
+                              <option value="Rahatsiz">Rahatsız</option>
+                              <option value="Okul">Okul</option>
+                              <option value="diger">Diğer</option>
+                            </select>
+                            <input
+                              className="form-control form-control-sm"
+                              style={{ minWidth: 80, maxWidth: 120 }}
+                              placeholder="Sebep girin"
+                              value={sebepIsOther ? sebepVal : ''}
+                              onChange={e => handleSebepChange(student.studentid, e.target.value, current)}
+                              disabled={!(current === 'gec' || current === 'izinli') || !sebepIsOther}
+                            />
+                            <motion.span
+                              animate={{ opacity: savedIndicators[student.studentid] ? 1 : 0 }}
+                              transition={{ duration: 0.22 }}
+                              style={{
+                                minWidth: 24,
+                                minHeight: 24,
+                                display: 'inline-flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginLeft: 4,
+                              }}
+                            >
+                              ✓
+                            </motion.span>
+                          </div>
                         </td>
                       </motion.tr>
                     );
