@@ -40,7 +40,7 @@ const Statistics = () => {
     setLoading(true);
     try {
       const res = await authFetch(
-        `http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
+        `http://192.168.50.120:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
       );
       if (!res.ok) throw new Error();
       const data = await res.json();

@@ -76,7 +76,7 @@ const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, prog
   const handleCheckboxChange = async (studentId: number, selectedType: string) => {
     if (!date || !program) return;
 
-    const checkUrl = `http://localhost:3001/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
+    const checkUrl = `http://192.168.50.120:3001/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
 
     try {
       const checkRes = await authFetch(checkUrl);
@@ -84,8 +84,8 @@ const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, prog
 
       const method = checkRes.ok && record ? 'PUT' : 'POST';
       const url = method === 'PUT'
-        ? 'http://localhost:3001/attendance/put'
-        : 'http://localhost:3001/attendance/create';
+        ? 'http://192.168.50.120:3001/attendance/put'
+        : 'http://192.168.50.120:3001/attendance/create';
 
       const body = {
         studentid: studentId,
@@ -118,7 +118,7 @@ const AttendanceTable: React.FC<Props> = ({ students, attendanceData, date, prog
     }
 
     debounceTimeout.current[studentId] = setTimeout(async () => {
-      await authFetch('http://localhost:3001/attendance/put', {
+      await authFetch('http://192.168.50.120:3001/attendance/put', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

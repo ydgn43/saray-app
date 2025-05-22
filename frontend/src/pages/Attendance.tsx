@@ -13,7 +13,7 @@ import { a } from 'framer-motion/dist/types.d-CtuPurYT';
 // Define types
 
 const PROGRAM_OPTIONS = [
-  'sabah namazi', 'ögle namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim',
+  'sabah namazi', 'öglen namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim',
 ];
 
 const fetchJson = async (url: string, options = {}) => {
@@ -42,7 +42,7 @@ const Attendance = () => {
   useEffect(() => {
     fetchJson('http://192.168.50.120:3001/student')
       .then(setStudents)
-      .catch(() => toast.error('Öğrenciler alınamadı'));
+      .catch(() => toast.error('Talebeler alınamadı'));
   }, []);
 
   useEffect(() => localStorage.setItem('attendance-date', date), [date]);
@@ -76,7 +76,7 @@ const Attendance = () => {
 
       if (preserveScroll) {
         setTimeout(() => {
-          window.scrollTo({ top: scrollY, behavior: 'auto' });
+          window.scrollTo({ top: scrollY, behavior: "auto" });
         }, 0);
       }
     } catch {
@@ -117,6 +117,160 @@ const Attendance = () => {
   const filteredStudents = selectedClasses.length > 0
     ? students.filter(s => selectedClasses.includes(s.class_name))
     : students;
+
+
+
+  const classOrder = [
+    'kuranikerim',
+    'hazirlik',
+    'ibtidai',
+    'ihzari',
+    'mezun_tekamul_alti',
+    'tekamul_alti'
+  ];
+
+  const groupHeaderTitles: Record<string, string> = {
+    kuranikerim: "Kur'an-ı Kerim",
+    hazirlik: "Hazırlık",
+    ibtidai: "İbtidai",
+    ihzari: "İhzari",
+    mezun_tekamul_alti: "Mezun Tekamül Altı",
+    tekamul_alti: "Tekamül Altı",
+  };
+
+  const normalizeClassName = (str: string) => {
+    let out = str.trim().toLowerCase().replace(/ /g, '_');
+    if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
+    return out;
+  };
+
+
+  const handleSendWhatsApp = () => {
+    // First, group students by class for yok and izinli separately
+    const yoklarByClass: Record<string, string[]> = {};
+    const izinlilerByClass: Record<string, string[]> = {};
+
+    students.forEach(student => {
+      const record = attendanceData.find(a => a.studentid === student.studentid);
+      if (!record) return;
+      const normClass = normalizeClassName(student.class_name);
+      const label = `${student.first_name} ${student.last_name}`;
+      if (record.attendance_type_name?.toLowerCase() === 'yok') {
+        if (!yoklarByClass[normClass]) yoklarByClass[normClass] = [];
+        yoklarByClass[normClass].push(label);
+      }
+      if (record.attendance_type_name?.toLowerCase() === 'izinli') {
+        if (!izinlilerByClass[normClass]) izinlilerByClass[normClass] = [];
+        izinlilerByClass[normClass].push(label);
+      }
+    });
+
+    // Format message
+    let msg = '';
+
+    // "Yoklar" section
+    msg += '--Yoklar:\n';
+    let yokAny = false;
+    classOrder.forEach(classKey => {
+      if (yoklarByClass[classKey]?.length) {
+        yokAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        yoklarByClass[classKey].forEach(name => {
+          msg += `• ${name}\n`;
+        });
+      }
+    });
+    if (!yokAny) msg += 'Olmayan talebe yok!\n';
+
+    // "İzinliler" section
+    msg += '\n--İzinliler:\n';
+    let izinliAny = false;
+    classOrder.forEach(classKey => {
+      if (izinlilerByClass[classKey]?.length) {
+        izinliAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        izinlilerByClass[classKey].forEach(name => {
+          msg += `• ${name}\n`;
+        });
+      }
+    });
+    if (!izinliAny) msg += 'İzinli talebe yok!\n';
+
+    // WhatsApp's send link format
+    const url = `https://wa.me/?text=${encodeURIComponent(msg.trim())}`;
+    window.open(url, '_blank');
+  };
+
+  const handleNativeShare = () => {
+    // Construct your formatted message (e.g. absents list)
+    // Use your existing WhatsApp formatting logic:
+    // (Example: message only for absents)
+    const yoklarByClass: Record<string, string[]> = {};
+    const izinlilerByClass: Record<string, string[]> = {};
+
+    students.forEach(student => {
+      const record = attendanceData.find(a => a.studentid === student.studentid);
+      if (!record) return;
+      const normClass = normalizeClassName(student.class_name);
+      const label = `${student.first_name} ${student.last_name}`;
+      if (record.attendance_type_name?.toLowerCase() === 'yok') {
+        if (!yoklarByClass[normClass]) yoklarByClass[normClass] = [];
+        yoklarByClass[normClass].push(label);
+      }
+      if (record.attendance_type_name?.toLowerCase() === 'izinli') {
+        if (!izinlilerByClass[normClass]) izinlilerByClass[normClass] = [];
+        izinlilerByClass[normClass].push(label);
+      }
+    });
+
+    let msg = '';
+
+    // "Yoklar" section
+    msg += '🟥 Yoklar:\n';
+    let yokAny = false;
+    classOrder.forEach(classKey => {
+      if (yoklarByClass[classKey]?.length) {
+        yokAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        yoklarByClass[classKey].forEach(name => {
+          msg += `• ${name}\n`;
+        });
+      }
+    });
+    if (!yokAny) msg += 'Olmayan Talebe yok!\n';
+
+    // "İzinliler" section
+    msg += '\n🟦 İzinliler:\n';
+    let izinliAny = false;
+    classOrder.forEach(classKey => {
+      if (izinlilerByClass[classKey]?.length) {
+        izinliAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        izinlilerByClass[classKey].forEach(name => {
+          msg += `• ${name}\n`;
+        });
+      }
+    });
+    if (!izinliAny) msg += 'İzinli talebe yok!\n';
+
+    // Native sharing (mobile)
+    if (navigator.share) {
+      navigator.share({
+        text: msg.trim(),
+        title: "Günlük Yoklama",
+      }).catch((err) => {
+        // User cancelled or sharing failed
+        // Optionally fallback to WhatsApp web share:
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg.trim())}`, '_blank');
+      });
+    } else {
+      // Fallback for desktop/unsupported
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg.trim())}`, '_blank');
+    }
+  };
+
+
+
 
   return (
     <Layout>
@@ -181,33 +335,47 @@ const Attendance = () => {
           </div>
         )}
 
-        {showTable && (
-          <AttendanceResponsiveView
-            students={filteredStudents}
-            attendanceData={attendanceData}
-            date={date}
-            program={program}
-            onChange={() => loadAttendanceData(true)}
-            showCreateButton={showCreateButton}
-            onCreate={handleCreateAttendance}
+        <button
+          className="btn btn-success mb-3"
+          onClick={handleSendWhatsApp}
+        >
+          Yok & İzinlileri WhatsApp'ta Paylaş
+        </button>
+        <button className="btn btn-success mb-3" onClick={handleNativeShare}>
+          Yok & İzinlileri Paylaş (WhatsApp / Diğer)
+        </button>
+
+        <div className="mb-3">
+          <h5>Talebe Sayısı: {filteredStudents.length}</h5>
+          {showTable && (
+            <AttendanceResponsiveView
+              students={filteredStudents}
+              attendanceData={attendanceData}
+              date={date}
+              program={program}
+              onChange={() => loadAttendanceData(true)}
+              showCreateButton={showCreateButton}
+              onCreate={handleCreateAttendance}
+            />
+          )}
+
+
+          {!loading && !showTable && !showCreateButton && (
+            <div className="alert alert-info text-center">Veri bulunamadı.</div>
+          )}
+
+          <FilterToolbar
+            onFilterChange={(className) =>
+              setSelectedClasses(prev =>
+                prev.includes(className)
+                  ? prev.filter(c => c !== className)
+                  : [...prev, className]
+              )
+            }
+            selectedFilters={selectedClasses}
+            classNames={[...new Set(students.map(s => s.class_name))]}
           />
-        )}
-
-        {!loading && !showTable && !showCreateButton && (
-          <div className="alert alert-info text-center">Veri bulunamadı.</div>
-        )}
-
-        <FilterToolbar
-          onFilterChange={(className) =>
-            setSelectedClasses(prev =>
-              prev.includes(className)
-                ? prev.filter(c => c !== className)
-                : [...prev, className]
-            )
-          }
-          selectedFilters={selectedClasses}
-          classNames={[...new Set(students.map(s => s.class_name))]}
-        />
+        </div>
       </div>
     </Layout>
   );

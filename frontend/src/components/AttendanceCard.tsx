@@ -87,14 +87,14 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onCha
             sebep: ['gec', 'izinli'].includes(type) ? sebepValue : null,
         };
 
-        const url = `http://localhost:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
+        const url = `http://192.168.50.120:3001/attendance?studentid=${student.studentid}&date=${date}&program_name=${program}`;
         const checkRes = await authFetch(url);
         const exists = checkRes.ok && (await checkRes.json());
 
         const method = exists ? 'PUT' : 'POST';
         const saveUrl = exists
-            ? 'http://localhost:3001/attendance/put'
-            : 'http://localhost:3001/attendance/create';
+            ? 'http://192.168.50.120:3001/attendance/put'
+            : 'http://192.168.50.120:3001/attendance/create';
 
         await authFetch(saveUrl, {
             method,

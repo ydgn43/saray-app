@@ -15,8 +15,21 @@ import { authRouter } from './routes/authRoute';
 
 const app = express() // Create express applicaiton
 const port = process.env.PORT_HTTP
-app.options('*', cors({ origin: "http://localhost:3000", credentials: true }));
-app.use(cors({ origin: "http://localhost:3000", credentials: true })); // Enable CORS for all routes
+
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://192.168.50.120:3000" // your PC's IP and React port
+];
+
+app.options('*', cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true); // Allow REST tools like Postman/cURL
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error('CORS not allowed for ' + origin), false);
+    },
+    credentials: true
+}));
 
 app.use(express.json()); // parsing JSON
 

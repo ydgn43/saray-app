@@ -52,7 +52,7 @@ const Settings = () => {
     const loadStudents = async () => {
         setLoading(true);
         try {
-            const res = await authFetch('http://localhost:3001/student');
+            const res = await authFetch('http://192.168.50.120:3001/student');
             const data = await res.json();
             setStudents(data);
         } catch (err) {
@@ -83,7 +83,7 @@ const Settings = () => {
 
         const performDelete = async (id: number) => {
             try {
-                const res = await authFetch(`http://localhost:3001/student/delete?studentid=${id}`, {
+                const res = await authFetch(`http://192.168.50.120:3001/student/delete?studentid=${id}`, {
                     method: 'DELETE',
                 });
 
@@ -109,7 +109,7 @@ const Settings = () => {
     const performAddStudent = async () => {
         setAdding(true);
         try {
-            const res = await authFetch('http://localhost:3001/student/create', {
+            const res = await authFetch('http://192.168.50.120:3001/student/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
