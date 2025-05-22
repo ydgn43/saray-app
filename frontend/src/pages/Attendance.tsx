@@ -178,9 +178,97 @@ const Attendance = () => {
     ? students.filter(s => selectedClasses.includes(s.class_name))
     : students;
 
-  // --- WhatsApp/Share logic is unchanged ---
-  const handleSendWhatsApp = () => { /* ... (same as before) ... */ };
-  const handleNativeShare = () => { /* ... (same as before) ... */ };
+  const handleShareAbsentees = () => {
+    // Grouping by type and class
+    const yoklarByClass: Record<string, string[]> = {};
+    const gecByClass: Record<string, { name: string; sebep?: string }[]> = {};
+    const izinlilerByClass: Record<string, { name: string; sebep?: string }[]> = {};
+
+    students.forEach(student => {
+      const record = attendanceData.find(a => a.studentid === student.studentid);
+      if (!record) return;
+      const normClass = normalizeClassName(student.class_name);
+      const label = `${student.first_name} ${student.last_name}`;
+      if (record.attendance_type_name?.toLowerCase() === 'yok') {
+        if (!yoklarByClass[normClass]) yoklarByClass[normClass] = [];
+        yoklarByClass[normClass].push(label);
+      }
+      if (record.attendance_type_name?.toLowerCase() === 'gec') {
+        if (!gecByClass[normClass]) gecByClass[normClass] = [];
+        gecByClass[normClass].push({ name: label, sebep: record.sebep });
+      }
+      if (record.attendance_type_name?.toLowerCase() === 'izinli') {
+        if (!izinlilerByClass[normClass]) izinlilerByClass[normClass] = [];
+        izinlilerByClass[normClass].push({ name: label, sebep: record.sebep });
+      }
+    });
+
+    // Format message
+    let msg = '';
+    msg += '🟥 Olmayanlar:\n';
+    let yokAny = false;
+    classOrder.forEach(classKey => {
+      if (yoklarByClass[classKey]?.length) {
+        yokAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        yoklarByClass[classKey].forEach(name => {
+          msg += `• ${name}\n`;
+        });
+      }
+    });
+    if (!yokAny) msg += 'Olmayan talebe yok!\n';
+
+    msg += '\n🟧 Geç Kalanlar:\n';
+    let gecAny = false;
+    classOrder.forEach(classKey => {
+      if (gecByClass[classKey]?.length) {
+        gecAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        gecByClass[classKey].forEach(({ name, sebep }) => {
+          msg += `• ${name}`;
+          if (sebep) msg += ` (${sebep})`;
+          msg += '\n';
+        });
+      }
+    });
+    if (!gecAny) msg += 'Geç kalan yok!\n';
+
+    msg += '\n🟦 İzinliler:\n';
+    let izinliAny = false;
+    classOrder.forEach(classKey => {
+      if (izinlilerByClass[classKey]?.length) {
+        izinliAny = true;
+        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        izinlilerByClass[classKey].forEach(({ name, sebep }) => {
+          msg += `• ${name}`;
+          if (sebep) msg += ` (${sebep})`;
+          msg += '\n';
+        });
+      }
+    });
+    if (!izinliAny) msg += 'İzinli talebe yok!\n';
+
+    // Add program and date at the top (optional, but nice)
+    let header = '';
+    if (date) header += `📅 Tarih: ${date}\n`;
+    if (program) header += `🕌 Program: ${program}\n`;
+    header += '\n';
+
+    const fullMsg = header + msg.trim();
+
+    // Native share if possible, fallback to WhatsApp
+    if (navigator.share) {
+      navigator.share({
+        title: "Günlük Yoklama",
+        text: fullMsg,
+      }).catch(() => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(fullMsg)}`, '_blank');
+      });
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(fullMsg)}`, '_blank');
+    }
+  };
+
 
   return (
     <Layout>
@@ -236,14 +324,8 @@ const Attendance = () => {
           )}
         </AnimatePresence>
 
-        <button
-          className="btn btn-success mb-3"
-          onClick={handleSendWhatsApp}
-        >
-          Yok & İzinlileri WhatsApp'ta Paylaş
-        </button>
-        <button className="btn btn-success mb-3" onClick={handleNativeShare}>
-          Yok & İzinlileri Paylaş (WhatsApp / Diğer)
+        <button className="btn btn-success mb-3" onClick={handleShareAbsentees}>
+          Yoklama Bilgisini Paylaş
         </button>
 
         <div className="mb-3" style={{ position: 'relative', minHeight: 240 }}>
