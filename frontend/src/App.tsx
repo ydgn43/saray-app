@@ -7,6 +7,7 @@ import Attendance from './pages/Attendance';
 import Statistics from './pages/Statistics';
 import Talebeler from './pages/Talebeler';
 import Layout from './components/Layout';
+import AccountSettings from './pages/AccountSettings';
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
   const { user } = useAuth();
@@ -64,6 +65,11 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/account" element={
+            <PrivateRoute>
+              <AccountSettings />
+            </PrivateRoute>
+          } />
         </Routes>
       </Router>
     </AuthProvider>
