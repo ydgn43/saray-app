@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { unparse } from 'papaparse';
@@ -28,6 +28,20 @@ const Statistics = () => {
   const [endDate, setEndDate] = useState('');
   const [statistics, setStatistics] = useState<StatisticEntry[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const savedStartDate = localStorage.getItem('statistics-startDate');
+    const savedEndDate = localStorage.getItem('statistics-endDate');
+    if (savedStartDate) setStartDate(savedStartDate);
+    if (savedEndDate) setEndDate(savedEndDate);
+  }, []);
+
+  useEffect(() => {
+    if (startDate) localStorage.setItem('statistics-startDate', startDate);
+  }, [startDate]);
+  useEffect(() => {
+    if (endDate) localStorage.setItem('statistics-endDate', endDate);
+  }, [endDate]);
 
   const fetchStatistics = async () => {
     console.log('Button clicked', { startDate, endDate });
