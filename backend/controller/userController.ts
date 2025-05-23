@@ -32,16 +32,25 @@ async function updateMe(req: Request, res: Response) {
 }
 
 async function getAllUsers(req: Request, res: Response) {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
-    const users = await User.findAll({ attributes: ['accountid', 'username', 'role_name'] });
-    res.json(users);
+    try {
+        const users = await User.findAll({
+            attributes: ['accountid', 'username', 'role_name']
+        });
+        res.json(users); // This sends a JSON array!
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch users.' });
+    }
 }
 
 async function getUserById(req: Request, res: Response) {
     if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
-    const user = await User.findByPk(req.params.id, { attributes: ['accountid', 'username', 'role_name'] });
-    if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
-    res.json(user);
+    try {
+        const user = await User.findByPk(req.params.id, { attributes: ['accountid', 'username', 'role_name'] });
+        if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch user.' });
+    }
 }
 
 async function createUser(req: Request, res: Response) {
