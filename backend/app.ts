@@ -34,7 +34,7 @@ app.use(cors({
 
 app.use(express.json()); // parsing JSON
 
-app.use('/auth', authRouter); // Authentication route
+
 
 //app.use(cors()); // Enable CORS
 
@@ -43,7 +43,7 @@ app.use('/auth', authRouter); // Authentication route
 app.use("/student", studentRouter);
 app.use("/attendance", attendanceRoute);
 app.use("/user", userRouter);
-app.use('/user', userRouter);
+app.use("/auth", authRouter);
 
 app.listen(port, () => { // Starting the server and listening on the defined port
     console.log(`App listening on port ${port}`)

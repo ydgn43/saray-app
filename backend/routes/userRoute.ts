@@ -1,25 +1,16 @@
 import express, { Request, Response } from 'express';
-import { getMe, updateMe } from '../controller/userController';
+import { userController } from '../controller/userController';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 export const userRouter = express.Router();
 
-userRouter.get('/me', authMiddleware, getMe);
+// ...existing /me routes
+userRouter.get('/me', authMiddleware, userController.getMe);
+userRouter.put('/me', authMiddleware, userController.updateMe);
 
-userRouter.get('/', (_req: Request, res: Response) => {
-    res.send('user GET not yet implemented');
-});
-
-userRouter.post('/', (_req: Request, res: Response) => {
-    res.send('user POST not yet implemented');
-});
-
-userRouter.put('/', (_req: Request, res: Response) => {
-    res.send('user PUT not yet implemented');
-});
-
-userRouter.put('/me', authMiddleware, updateMe);
-
-userRouter.delete('/', (_req: Request, res: Response) => {
-    res.send('user DELETE not yet implemented');
-});
+// Admin-only user management
+userRouter.get('/', authMiddleware, userController.getAllUsers);
+userRouter.get('/:id', authMiddleware, userController.getUserById);
+userRouter.post('/', authMiddleware, userController.createUser);
+userRouter.put('/:id', authMiddleware, userController.updateUserById);
+userRouter.delete('/:id', authMiddleware, userController.deleteUserById);
