@@ -116,7 +116,7 @@ const UserManagement = () => {
         <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <h4>Kullanıcılar</h4>
-                <button className="btn btn-success" onClick={startAdd}>Yeni Kullanıcı</button>
+                <button className="btn btn-primary" onClick={startAdd}>Yeni Kullanıcı</button>
             </div>
             {loading ? <div>Yükleniyor...</div> : (
                 <table className="table">
@@ -135,7 +135,7 @@ const UserManagement = () => {
                                 <td>{u.username}</td>
                                 <td>{u.role_name}</td>
                                 <td>
-                                    <button className="btn btn-sm btn-primary me-2" onClick={() => startEdit(u)}>Düzenle</button>
+                                    <button className="btn btn-sm btn-warning me-2" onClick={() => startEdit(u)}>Düzenle</button>
                                     <button className="btn btn-sm btn-danger" onClick={() => handleDelete(u)}>Sil</button>
                                 </td>
                             </tr>
@@ -143,7 +143,6 @@ const UserManagement = () => {
                     </tbody>
                 </table>
             )}
-
             {/* Modal for Add/Edit */}
             {(modal === "add" || modal === "edit") && (
                 <div className="modal fade show" style={{ display: "block", background: "rgba(0,0,0,0.2)" }} tabIndex={-1}>
@@ -205,6 +204,7 @@ const UserManagement = () => {
                 </div>
             )}
         </div>
+
     );
 };
 
