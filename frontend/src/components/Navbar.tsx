@@ -13,9 +13,9 @@ const Navbar = () => {
   const { user, logout } = useAuth();
 
   useEffect(() => {
+    // Collapse menu on link click (for mobile UX)
     const collapse = document.getElementById('navbarNavDropdown');
-    const links = document.querySelectorAll('.navbar-collapse .nav-link');
-
+    const links = document.querySelectorAll('.navbar-collapse .nav-link, .navbar-collapse .dropdown-item');
     links.forEach((link) => {
       link.addEventListener('click', () => {
         if (collapse?.classList.contains('show')) {
@@ -30,7 +30,7 @@ const Navbar = () => {
       <div className="container-fluid">
         <Link className="navbar-brand fw-bold text-white" to="/">
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <img src={logo} alt="User Icon" style={{ width: 60, height: 60, color: "#1863ae" }} className="mb-1" />
+            <img src={logo} alt="User Icon" style={{ width: 60, height: 60 }} className="mb-1" />
           </div>
         </Link>
         <button
@@ -56,6 +56,7 @@ const Navbar = () => {
                 href="#"
                 role="button"
                 data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
                 Yoklama
               </a>
@@ -65,23 +66,36 @@ const Navbar = () => {
                 <li><Link className="dropdown-item" to="/talebeler">Talebeler</Link></li>
               </ul>
             </li>
-            {user && (
-              <>
-                <li className="nav-item d-flex align-items-center ms-2">
-                  <span className="text-white small me-2">
-                    Hoşgeldin, {user.username} ({user.role})
-                  </span>
-                  <button
-                    className="btn btn-sm btn-light"
-                    onClick={logout}
-                    style={{ marginLeft: '8px' }}
-                  >
-                    Çıkış
-                  </button>
-                </li>
-              </>
-            )}
-            {!user && (
+            {user ? (
+              <li className="nav-item dropdown">
+                <a
+                  className="nav-link dropdown-toggle d-flex align-items-center"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <span className="me-2">{user.username} ({user.role})</span>
+                  {/* You can put a user icon or avatar here if you want */}
+                  <i className="bi bi-person-circle" style={{ fontSize: 20 }}></i>
+                </a>
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <NavLink to="/account" className="dropdown-item">Hesabım</NavLink>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={logout}
+                      type="button"
+                    >
+                      Çıkış
+                    </button>
+                  </li>
+                </ul>
+              </li>
+            ) : (
               <li className="nav-item">
                 <NavLink className="nav-link text-white" to="/login">Login</NavLink>
               </li>
