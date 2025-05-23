@@ -69,9 +69,6 @@ export default function Login() {
                     <img src={logo} alt="User Icon" style={{ width: 60, height: 60, color: "#1863ae" }} className="mb-1" />
                 </div>
                 <h2 className="fw-bold mb-2 text-primary text-center">SarayApp Giriş</h2>
-                <span className="text-muted" style={{ fontSize: 15, display: 'block', textAlign: 'center' }}>
-                    Hoşgeldiniz! Devam etmek için giriş yapınız.
-                </span>
                 <form onSubmit={handleSubmit} autoComplete="on">
                     <motion.input
                         className="form-control mb-3"

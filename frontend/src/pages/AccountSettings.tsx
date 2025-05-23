@@ -5,20 +5,21 @@ import { useAuth } from '../auth/AuthContext';
 import Layout from '../components/Layout';
 
 const AccountSettings = () => {
-    const { user } = useAuth();
+    const { user } = useAuth(); // make sure your AuthContext supports setUser!
     const [edit, setEdit] = useState(false);
     const [username, setUsername] = useState(user?.username || '');
     const [password, setPassword] = useState('');
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setSuccess('');
-        // TODO: Call your backend API to update username/password
+        setLoading(true);
         try {
-            const res = await fetch('http://YOUR_BACKEND/account/update', {
+            const res = await fetch('http://192.168.50.120:3001/user/me', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -26,14 +27,21 @@ const AccountSettings = () => {
                 },
                 body: JSON.stringify({ username, password }),
             });
+
             if (res.ok) {
                 setSuccess('Bilgileriniz güncellendi.');
                 setEdit(false);
+                // Optionally refresh user info in context
+                const updatedUser = { ...user, username };
+                setPassword('');
             } else {
-                setError('Bir hata oluştu.');
+                const data = await res.json().catch(() => ({}));
+                setError(data.message || 'Bir hata oluştu.');
             }
         } catch {
             setError('Bir hata oluştu.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -50,7 +58,7 @@ const AccountSettings = () => {
                             type="text"
                             className="form-control"
                             value={username}
-                            disabled={!edit}
+                            disabled={!edit || loading}
                             onChange={e => setUsername(e.target.value)}
                         />
                     </div>
@@ -60,7 +68,7 @@ const AccountSettings = () => {
                             type="password"
                             className="form-control"
                             value={password}
-                            disabled={!edit}
+                            disabled={!edit || loading}
                             onChange={e => setPassword(e.target.value)}
                             placeholder="Değiştirmek istemiyorsanız boş bırakın"
                         />
@@ -71,8 +79,10 @@ const AccountSettings = () => {
                         </button>
                     ) : (
                         <>
-                            <button className="btn btn-success me-2" type="submit">Kaydet</button>
-                            <button className="btn btn-secondary" type="button" onClick={() => setEdit(false)}>
+                            <button className="btn btn-success me-2" type="submit" disabled={loading}>
+                                {loading ? 'Kaydediliyor...' : 'Kaydet'}
+                            </button>
+                            <button className="btn btn-secondary" type="button" onClick={() => { setEdit(false); setUsername(user?.username || ''); setPassword(''); }} disabled={loading}>
                                 İptal
                             </button>
                         </>

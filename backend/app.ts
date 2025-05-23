@@ -13,6 +13,7 @@ import { authRouter } from './routes/authRoute';
 
 
 
+
 const app = express() // Create express applicaiton
 const port = process.env.PORT_HTTP
 
@@ -42,6 +43,7 @@ app.use('/auth', authRouter); // Authentication route
 app.use("/student", studentRouter);
 app.use("/attendance", attendanceRoute);
 app.use("/user", userRouter);
+app.use('/user', userRouter);
 
 app.listen(port, () => { // Starting the server and listening on the defined port
     console.log(`App listening on port ${port}`)
