@@ -8,6 +8,8 @@ import Statistics from './pages/Statistics';
 import Talebeler from './pages/Talebeler';
 import Layout from './components/Layout';
 import AccountSettings from './pages/AccountSettings';
+import Settings from './pages/Settings';
+
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
   const { user } = useAuth();
@@ -70,7 +72,13 @@ function App() {
               <AccountSettings />
             </PrivateRoute>
           } />
+          <Route path="/settings" element={
+            <PrivateRoute>
+              <Settings />
+            </PrivateRoute>
+          } />
         </Routes>
+
       </Router>
     </AuthProvider>
   );

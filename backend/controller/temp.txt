@@ -1,0 +1,58 @@
+public async createAttendance(req: Request, res: Response) {
+        try {
+            // Support both bulk and single create
+            const entries = Array.isArray(req.body) ? req.body : [req.body];
+            const results: any[] = [];
+
+            for (const entry of entries) {
+                // Check for existing record for this student/date/program
+                const exists = await AttendanceSequelize.findOne({
+                    where: {
+                        studentid: entry.studentid,
+                        date: entry.date,
+                        program_name: entry.program_name,
+                    }
+                });
+                if (exists) {
+                    // If any entry exists, abort and return 409
+                    return res.status(409).json({
+                        success: false,
+                        message: `Attendance already exists for studentid ${entry.studentid}, date ${entry.date}, program ${entry.program_name}`
+                    });
+                }
+                // Otherwise, create
+                const created = await AttendanceSequelize.create({
+                    studentid: entry.studentid,
+                    date: entry.date,
+                    program_name: entry.program_name,
+                    attendance_type_name: entry.attendance_type_name,
+                    sebep: entry.sebep || null,
+                });
+                results.push(created);
+            }
+            return res.status(201).json({ success: true, data: results });
+        } catch (error) {
+            console.error("Create Attendance error:", error);
+            return res.status(500).json({ success: false, message: "Could not create new attendance" });
+        }
+    };
+
+    public async updateAttendance(req: Request, res: Response): Promise<void> {
+        try {
+            const { studentid, date, program_name, attendance_type_name, sebep } = req.body;
+            const record = await AttendanceSequelize.findOne({
+                where: { studentid, date, program_name }
+            });
+            if (!record) {
+                res.status(404).json({ success: false, message: "Attendance record not found" });
+                return;
+            }
+            record.attendance_type_name = attendance_type_name;
+            record.sebep = sebep || null;
+            await record.save();
+            res.status(200).json({ success: true, data: record });
+        } catch (error) {
+            console.error("Update Attendance error:", error);
+            res.status(500).json({ success: false, message: "Could not update attendance" });
+        }
+    }
