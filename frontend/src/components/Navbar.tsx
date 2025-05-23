@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import logo from '../images/logo.png';
 
 declare global {
   interface Window {
@@ -28,7 +29,9 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm z-3">
       <div className="container-fluid">
         <Link className="navbar-brand fw-bold text-white" to="/">
-          SarayApp
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <img src={logo} alt="User Icon" style={{ width: 60, height: 60, color: "#1863ae" }} className="mb-1" />
+          </div>
         </Link>
         <button
           className="navbar-toggler"
