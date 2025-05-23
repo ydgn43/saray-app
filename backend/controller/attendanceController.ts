@@ -60,13 +60,10 @@ export class AttendanceController {
 
     public async createAttendance(req: Request, res: Response) {
         try {
-            const payload = req.body;
+            // Accept single record or array of records
+            const payloads = Array.isArray(req.body) ? req.body : [req.body];
 
-            if (!Array.isArray(payload)) {
-                return res.status(400).json({ message: 'Expected an array of attendance records' });
-            }
-
-            for (const entry of payload) {
+            for (const entry of payloads) {
                 const { studentid, date, attendance_type_name, program_name } = entry;
 
                 if (!studentid || !date || !program_name) {
@@ -89,6 +86,7 @@ export class AttendanceController {
             res.status(500).json({ message: 'Failed to create attendance' });
         }
     }
+
 
     public async updateAttendance(req: Request, res: Response) {
         try {

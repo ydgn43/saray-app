@@ -6,6 +6,12 @@ import Program from './Program';
 @Table({
     tableName: 'Attendance',
     timestamps: false,
+    indexes: [
+        {
+            unique: true,
+            fields: ['studentid', 'date', 'program_name'],
+        },
+    ],
 })
 export default class AttendanceSequelize extends Model {
     @ForeignKey(() => Student)
