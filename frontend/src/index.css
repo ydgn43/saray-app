@@ -15,6 +15,33 @@ tr:hover {
   padding-top: 4.5rem;
 }
 
+.active-type {
+  font-weight: bold;
+  /* Remove background for outline look */
+  background-color: transparent !important;
+  /* Add a thicker border for pressed effect */
+  border-width: 2px;
+  /* Optional: add a subtle box-shadow */
+  box-shadow: 0 0 0 0.1rem rgba(0,0,0,0.05);
+}
+
+/* Color overrides for each type */
+.btn-outline-success.active-type, .btn-outline-success.active-type:focus {
+  color: #198754;
+  border-color: #198754;
+}
+.btn-outline-warning.active-type, .btn-outline-warning.active-type:focus {
+  color: #ffc107;
+  border-color: #ffc107;
+}
+.btn-outline-danger.active-type, .btn-outline-danger.active-type:focus {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+.btn-outline-info.active-type, .btn-outline-info.active-type:focus {
+  color: #0dcaf0;
+  border-color: #0dcaf0;
+}
 
 .table-group-header {
   background-color: #f0f8ff;
