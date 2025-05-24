@@ -5,10 +5,13 @@ dotenv.config({ path: './config.env' });
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { sequelize } from './data/sequelize';
-import { studentRouter } from './routes/studentRoute'; './routes/studentRoute';
-import { attendanceRoute } from './routes/attendanceRoute'; './routes/attendanceRoute';
-import { userRouter } from './routes/userRoute'; './routes/userRoute';
+import { studentRouter } from './routes/studentRoute';
+import { attendanceRouter } from './routes/attendanceRoute';
+import { userRouter } from './routes/userRoute';
 import { authRouter } from './routes/authRoute';
+import { seasonRouter } from './routes/seasonRoute';
+import { programRouter } from './routes/programRoute';
+import { classRouter } from './routes/classRoute';
 
 
 
@@ -19,7 +22,7 @@ const port = process.env.PORT_HTTP
 
 const allowedOrigins = [
     "http://localhost:3000",
-    "http://192.168.50.120:3000" // your PC's IP and React port
+    "http://localhost:3000" // your PC's IP and React port
 ];
 
 app.options('*', cors({ origin: allowedOrigins, credentials: true }));
@@ -41,9 +44,13 @@ app.use(express.json()); // parsing JSON
 
 // Routes
 app.use("/student", studentRouter);
-app.use("/attendance", attendanceRoute);
+app.use("/attendance", attendanceRouter);
 app.use("/user", userRouter);
 app.use("/auth", authRouter);
+app.use('/season', seasonRouter);
+app.use('/program', programRouter);
+app.use('/class', classRouter);
+
 
 app.listen(port, () => { // Starting the server and listening on the defined port
     console.log(`App listening on port ${port}`)

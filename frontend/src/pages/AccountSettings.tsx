@@ -19,7 +19,7 @@ const AccountSettings = () => {
         setSuccess('');
         setLoading(true);
         try {
-            const res = await fetch('http://192.168.50.120:3001/user/me', {
+            const res = await fetch('http://localhost:3001/user/me', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

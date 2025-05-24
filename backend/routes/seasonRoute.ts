@@ -1,16 +1,13 @@
+// backend/routes/seasonRoute.ts
 import express, { Request, Response } from 'express';
-import { authMiddleware } from '../middleware/authMiddleware';
-import { userController } from '../controller/userController';
+import { seasonController } from '../controller/seasonController';
+import { authenticateJWT, requireRoles } from '../middleware/authMiddleware';
 
 export const seasonRouter = express.Router();
 
-// ...existing /me routes
-seasonRouter.get('/me', authMiddleware, userController.getMe);
-seasonRouter.put('/me', authMiddleware, userController.updateMe);
+seasonRouter.use(authenticateJWT);
 
-// Admin-only user management
-seasonRouter.get('/', authMiddleware, userController.getAllUsers);
-seasonRouter.get('/:id', authMiddleware, userController.getUserById);
-seasonRouter.post('/', authMiddleware, userController.createUser);
-seasonRouter.put('/:id', authMiddleware, userController.updateUserById);
-seasonRouter.delete('/:id', authMiddleware, userController.deleteUserById);
+seasonRouter.get('/', requireRoles(['admin']), seasonController.getAll);
+seasonRouter.post('/create', requireRoles(['admin']), seasonController.create);
+seasonRouter.delete('/delete/:season_year', requireRoles(['admin']), seasonController.delete);
+

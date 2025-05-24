@@ -1,16 +1,13 @@
+// backend/routes/programRoute.ts
 import express, { Request, Response } from 'express';
-import { userController } from '../controller/userController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { programController } from '../controller/programController';
+import {authenticateJWT, requireRoles} from '../middleware/authMiddleware';
 
-export const userRouter = express.Router();
+export const programRouter = express.Router();
 
-// ...existing /me routes
-userRouter.get('/me', authMiddleware, userController.getMe);
-userRouter.put('/me', authMiddleware, userController.updateMe);
+programRouter.use(authenticateJWT);
 
-// Admin-only user management
-userRouter.get('/', authMiddleware, userController.getAllUsers);
-userRouter.get('/:id', authMiddleware, userController.getUserById);
-userRouter.post('/', authMiddleware, userController.createUser);
-userRouter.put('/:id', authMiddleware, userController.updateUserById);
-userRouter.delete('/:id', authMiddleware, userController.deleteUserById);
+programRouter.get('/', requireRoles(['admin']), programController.getAll);
+programRouter.post('/create', requireRoles(['admin']), programController.create);
+programRouter.delete('/delete/:program_name', requireRoles(['admin']), programController.delete);
+

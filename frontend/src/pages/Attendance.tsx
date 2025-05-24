@@ -10,7 +10,7 @@ import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 
 const PROGRAM_OPTIONS = [
-  'sabah namazi', 'öglen namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim'
+  'sabah_namazi', 'oglen_namazi', 'ikindi_namazi', 'aksam_namazi', 'yatsi_namazi', 'hatim'
 ];
 
 const normalizeClassName = (str: string) => {
@@ -38,17 +38,25 @@ const Attendance = () => {
     const savedDate = localStorage.getItem('attendance-date');
     const savedProgram = localStorage.getItem('attendance-program');
     if (savedDate) setDate(savedDate);
-    if (savedProgram) setProgram(savedProgram);
+    if (savedProgram) {
+      const normalizedProgram = savedProgram.trim().toLowerCase().replace(/ /g, '_');
+      setProgram(normalizedProgram);
+    }
   }, []);
 
   useEffect(() => {
-    fetchJson('http://192.168.50.120:3001/student')
+    fetchJson('http://localhost:3001/student')
       .then(setStudents)
       .catch(() => toast.error('Talebeler alınamadı'));
   }, []);
 
   useEffect(() => localStorage.setItem('attendance-date', date), [date]);
-  useEffect(() => localStorage.setItem('attendance-program', program), [program]);
+  useEffect(() => {
+    if (program) {
+      const normalizedProgram = program.trim().toLowerCase().replace(/ /g, '_');
+      localStorage.setItem('attendance-program', normalizedProgram);
+    }
+  }, [program]);
 
   // --- Load attendance data (with overlay spinner) ---
   const loadAttendanceData = async (preserveScroll = false) => {
@@ -61,7 +69,7 @@ const Attendance = () => {
     setShowCreateButton(false);
 
     try {
-      const res = await authFetch(`http://192.168.50.120:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+      const res = await authFetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -100,7 +108,7 @@ const Attendance = () => {
     }));
 
     try {
-      await authFetch('http://192.168.50.120:3001/attendance/create', {
+      await authFetch('http://localhost:3001/attendance/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -122,13 +130,13 @@ const Attendance = () => {
   ) => {
     try {
       // Determine POST vs PUT as in your API logic
-      const checkUrl = `http://192.168.50.120:3001/attendance?studentid=${studentid}&date=${date}&program_name=${program}`;
+      const checkUrl = `http://localhost:3001/attendance?studentid=${studentid}&date=${date}&program_name=${program}`;
       const checkRes = await authFetch(checkUrl);
       const record = await checkRes.json();
       const method = checkRes.ok && record ? 'PUT' : 'POST';
       const url = method === 'PUT'
-        ? 'http://192.168.50.120:3001/attendance/put'
-        : 'http://192.168.50.120:3001/attendance/create';
+        ? 'http://localhost:3001/attendance/put'
+        : 'http://localhost:3001/attendance/create';
 
       const body = {
         studentid,

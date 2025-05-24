@@ -1,16 +1,13 @@
+// backend/routes/classRoute.ts
 import express, { Request, Response } from 'express';
-import { userController } from '../controller/userController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { classController } from '../controller/classController';
+import {authenticateJWT, requireRoles} from '../middleware/authMiddleware';
 
-export const userRouter = express.Router();
+export const classRouter = express.Router();
 
-// ...existing /me routes
-userRouter.get('/me', authMiddleware, userController.getMe);
-userRouter.put('/me', authMiddleware, userController.updateMe);
+classRouter.use(authenticateJWT);
 
-// Admin-only user management
-userRouter.get('/', authMiddleware, userController.getAllUsers);
-userRouter.get('/:id', authMiddleware, userController.getUserById);
-userRouter.post('/', authMiddleware, userController.createUser);
-userRouter.put('/:id', authMiddleware, userController.updateUserById);
-userRouter.delete('/:id', authMiddleware, userController.deleteUserById);
+classRouter.get('/', requireRoles(['admin']), classController.getAll);
+classRouter.post('/create', requireRoles(['admin']), classController.create);
+classRouter.delete('/delete/:class_name', requireRoles(['admin']), classController.delete);
+

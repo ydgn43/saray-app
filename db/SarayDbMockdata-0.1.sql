@@ -49,11 +49,11 @@ INSERT INTO AttendanceType (attendance_type_name) VALUES
 
 -- Insert programs
 INSERT INTO Program (program_name) VALUES
-    ('sabah namazi'), 
-    ('oglen namazi'), 
-    ('ikindi namazi'), 
-    ('aksam namazi'), 
-    ('yatsi namazi'), 
+    ('sabah_namazi'), 
+    ('oglen_namazi'), 
+    ('ikindi_namazi'), 
+    ('aksam_namazi'), 
+    ('yatsi_namazi'), 
     ('hatim'), 
     ('other');
 

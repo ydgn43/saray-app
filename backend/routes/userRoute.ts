@@ -1,16 +1,18 @@
 import express, { Request, Response } from 'express';
 import { userController } from '../controller/userController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { authenticateJWT } from '../middleware/authMiddleware';
 
 export const userRouter = express.Router();
 
+userRouter.use(authenticateJWT);
+
 // ...existing /me routes
-userRouter.get('/me', authMiddleware, userController.getMe);
-userRouter.put('/me', authMiddleware, userController.updateMe);
+userRouter.get('/me', userController.getMe);
+userRouter.put('/me', userController.updateMe);
 
 // Admin-only user management
-userRouter.get('/', authMiddleware, userController.getAllUsers);
-userRouter.get('/:id', authMiddleware, userController.getUserById);
-userRouter.post('/', authMiddleware, userController.createUser);
-userRouter.put('/:id', authMiddleware, userController.updateUserById);
-userRouter.delete('/:id', authMiddleware, userController.deleteUserById);
+userRouter.get('/', userController.getAllUsers);
+userRouter.get('/:id', userController.getUserById);
+userRouter.post('/', userController.createUser);
+userRouter.put('/:id', userController.updateUserById);
+userRouter.delete('/:id', userController.deleteUserById);
