@@ -4,10 +4,12 @@ import { useAuth } from '../auth/AuthContext';
 import AccountSettings from './AccountSettings';
 import UserManagement from './UserManagement';
 import Layout from '../components/Layout';
+import CustomManagement from './CustomManagement';
 
 const TABS = [
     { key: 'profile', label: 'Profilim' },
     { key: 'users', label: 'Kullanıcı Yönetimi', adminOnly: true },
+    { key: 'custom', label: 'Sezon ve Program Yönetimi', adminOnly: true },
 ];
 
 const Settings = () => {
@@ -37,6 +39,7 @@ const Settings = () => {
                 <div>
                     {tab === 'profile' && <AccountSettings />}
                     {tab === 'users' && user?.role === 'admin' && <UserManagement />}
+                    {tab === 'custom' && user?.role === 'admin' && <CustomManagement />}
                 </div>
             </div>
         </Layout>
