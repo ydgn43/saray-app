@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+// @ts-ignore
+import autoTable from 'jspdf-autotable';
 import { unparse } from 'papaparse';
 import { authFetch } from '../utils/authFetch';
 
@@ -84,7 +88,6 @@ const Statistics = () => {
             toast.info('Dışa aktarılacak veri yok.');
             return;
         }
-
         try {
             const dataToExport = filteredStats.map((s) => ({
                 İsim: s.name,
@@ -94,22 +97,103 @@ const Statistics = () => {
                 'Yok (%)': s.percentages.yok ?? 0,
                 'İzinli (%)': s.percentages.izinli ?? 0,
             }));
-
             const csv = unparse(dataToExport);
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
-
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', `istatistikler_${startDate}_${endDate}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url); // Revoke the URL to free up memory
+            URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('CSV dışa aktarma hatası:', error);
             toast.error('CSV dışa aktarma sırasında bir hata oluştu.');
         }
+    };
+
+    const handleExportToExcel = () => {
+      if (filteredStats.length === 0) {
+          toast.info('Dışa aktarılacak veri yok.');
+          return;
+      }
+  
+      // Sort by class then name
+      const sorted = [...filteredStats].sort((a, b) =>
+          a.class_name.localeCompare(b.class_name) || a.name.localeCompare(b.name)
+      );
+  
+      const worksheetData = [
+          ['Ad Soyad', 'Sınıf', 'VAR', 'GEÇ', 'YOK', 'İZİNLİ']
+      ];
+  
+      sorted.forEach(s => {
+          worksheetData.push([
+              s.name,
+              s.class_name,
+              (s.percentages.var ?? 0) + '%',
+              (s.percentages.gec ?? 0) + '%',
+              (s.percentages.yok ?? 0) + '%',
+              (s.percentages.izinli ?? 0) + '%',
+          ]);
+      });
+  
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'İstatistik');
+  
+      // Style headers bold
+      const headerRef = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'];
+      headerRef.forEach(cell => {
+          if (!ws[cell]) return;
+          ws[cell].s = { font: { bold: true } };
+      });
+  
+      XLSX.writeFile(wb, `istatistikler_${startDate}_${endDate}.xlsx`);
+  };
+  
+
+    const handleExportToPDF = () => {
+        if (filteredStats.length === 0) {
+            toast.info('Dışa aktarılacak veri yok.');
+            return;
+        }
+        const doc = new jsPDF();
+        doc.setFontSize(14);
+        doc.text('Yoklama İstatistikleri', 14, 16);
+
+        // Table columns and rows
+        const columns = [
+            { header: '#', dataKey: 'index' },
+            { header: 'İsim', dataKey: 'name' },
+            { header: 'Sınıf', dataKey: 'class_name' },
+            { header: 'Var (%)', dataKey: 'var' },
+            { header: 'Geç (%)', dataKey: 'gec' },
+            { header: 'Yok (%)', dataKey: 'yok' },
+            { header: 'İzinli (%)', dataKey: 'izinli' },
+        ];
+        const rows = filteredStats.map((s, i) => ({
+            index: i + 1,
+            name: s.name,
+            class_name: s.class_name,
+            var: s.percentages.var ?? 0,
+            gec: s.percentages.gec ?? 0,
+            yok: s.percentages.yok ?? 0,
+            izinli: s.percentages.izinli ?? 0,
+        }));
+
+        // Use autoTable for better Excel-like look
+        autoTable(doc, {
+            columns,
+            body: rows,
+            startY: 22,
+            styles: { font: 'helvetica', fontSize: 10, cellPadding: 2 },
+            headStyles: { fillColor: [13, 110, 253] }, // Bootstrap primary
+            alternateRowStyles: { fillColor: [240, 248, 255] },
+            margin: { left: 8, right: 8 },
+        });
+
+        doc.save(`istatistikler_${startDate}_${endDate}.pdf`);
     };
 
     return (
@@ -225,12 +309,27 @@ const Statistics = () => {
                             >
                                 Temizle İsim
                             </span>
-                            <button
-                                className="btn btn-outline-success btn-sm"
-                                onClick={handleExportToCSV}
-                            >
-                                CSV olarak dışa aktar
-                            </button>
+                            <div className="btn-group">
+                                <button
+                                    className="btn btn-outline-success btn-sm dropdown-toggle"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    type="button"
+                                >
+                                    Farklı Kaydet
+                                </button>
+                                <ul className="dropdown-menu">
+                                    <li>
+                                        <button className="dropdown-item" onClick={handleExportToCSV}>CSV olarak indir</button>
+                                    </li>
+                                    <li>
+                                        <button className="dropdown-item" onClick={handleExportToExcel}>Excel olarak indir</button>
+                                    </li>
+                                    <li>
+                                        <button className="dropdown-item" onClick={handleExportToPDF}>PDF olarak indir</button>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
