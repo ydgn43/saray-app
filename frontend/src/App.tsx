@@ -9,6 +9,7 @@ import Talebeler from './pages/Talebeler';
 import Layout from './components/Layout';
 import AccountSettings from './pages/AccountSettings';
 import Settings from './pages/Settings';
+import PageTransition from './components/PageTransition';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -30,7 +31,9 @@ function App() {
             element={
               <PrivateRoute>
                 <Layout>
-                  <Attendance />
+                  <PageTransition>
+                    <Attendance />
+                  </PageTransition>
                 </Layout>
               </PrivateRoute>
             }
@@ -40,7 +43,9 @@ function App() {
             element={
               <PrivateRoute>
                 <Layout>
-                  <Statistics />
+                  <PageTransition>
+                    <Statistics />
+                  </PageTransition>
                 </Layout>
               </PrivateRoute>
             }
@@ -51,7 +56,9 @@ function App() {
               <PrivateRoute>
                 <RequireRole roles={['admin']}>
                   <Layout>
-                    <Talebeler />
+                    <PageTransition>
+                      <Talebeler />
+                    </PageTransition>
                   </Layout>
                 </RequireRole>
               </PrivateRoute>
@@ -62,23 +69,37 @@ function App() {
             element={
               <PrivateRoute>
                 <Layout>
-                  <Attendance />
+                  <PageTransition>
+                    <Attendance />
+                  </PageTransition>
                 </Layout>
               </PrivateRoute>
             }
           />
-          <Route path="/account" element={
-            <PrivateRoute>
-              <AccountSettings />
-            </PrivateRoute>
-          } />
-          <Route path="/settings" element={
-            <PrivateRoute>
-              <Layout>
-                <Settings />
-              </Layout>
-            </PrivateRoute>
-          } />
+          <Route
+            path="/account"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <PageTransition>
+                    <AccountSettings />
+                  </PageTransition>
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <PageTransition>
+                    <Settings />
+                  </PageTransition>
+                </Layout>
+              </PrivateRoute>
+            }
+          />
         </Routes>
 
       </Router>
