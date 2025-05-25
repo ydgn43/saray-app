@@ -61,13 +61,6 @@ const AttendanceRowList: React.FC<Props> = ({
 
   return (
     <div className="d-flex flex-column gap-3">
-      <div className="d-flex flex-wrap gap-2 mb-2">
-        {Object.entries(classGroupedColors).map(([key, color]) => (
-          <span key={key} className="badge" style={{ backgroundColor: color }}>
-            {key.replace(/_/g, ' ')}
-          </span>
-        ))}
-      </div>
 
       {students.map((student) => {
         const current = getAttendanceType(student.studentid);
@@ -77,11 +70,11 @@ const AttendanceRowList: React.FC<Props> = ({
         return (
           <div
             key={student.studentid}
-            className="border rounded p-2"
+            className="border-left"
             style={{ borderLeft: `6px solid ${getClassColor(student.class_name)}` }}
           >
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="fw-bold text-truncate pe-2">
+            <div className="d-flex align-items-center justify-content-between gap-2">
+              <div className="fw-bold flex-grow-1 text-truncate d-flex align-items-center gap-2 ms-2">
                 {student.first_name} {student.last_name}
               </div>
               <div className="d-flex gap-1 flex-shrink-0">
@@ -94,7 +87,7 @@ const AttendanceRowList: React.FC<Props> = ({
                         : `btn-outline-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} fw-bold`
                     }`}
                     onClick={() => handleTypeChange(student.studentid, type)}
-                    style={{ width: 36, height: 36, padding: 0 }}
+                    style={{ width: 26, height: 26, padding: 0 }}
                     title={type}
                   >
                     {attendanceLabels[type]}
@@ -137,11 +130,21 @@ const AttendanceRowList: React.FC<Props> = ({
                   <option value="__custom__">Diğer</option>
                 </select>
 
-                {(sebep === '__custom__' || (!sebepOptions.includes(sebep) && sebep !== '')) && (
+                {sebep === '__custom__' && (
                   <input
                     className="form-control form-control-sm"
                     placeholder="Sebep girin"
-                    value={sebep === '__custom__' ? '' : sebep}
+                    value=""
+                    onChange={(e) =>
+                      handleSebepChange(student.studentid, e.target.value, current)
+                    }
+                  />
+                )}
+                {!sebepOptions.includes(sebep) && sebep !== '' && sebep !== '__custom__' && (
+                  <input
+                    className="form-control form-control-sm"
+                    placeholder="Sebep girin"
+                    value={sebep}
                     onChange={(e) =>
                       handleSebepChange(student.studentid, e.target.value, current)
                     }
