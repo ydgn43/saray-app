@@ -19,10 +19,11 @@ const CustomManagement = () => {
 
     const fetchAll = async () => {
         try {
+            const token = localStorage.getItem('token');
             const [s, p, c] = await Promise.all([
-                authFetch(`${API}/season`).then(res => res.json()),
-                authFetch(`${API}/program`).then(res => res.json()),
-                authFetch(`${API}/class`).then(res => res.json()),
+                authFetch(`${API}/season`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json()),
+                authFetch(`${API}/program`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json()),
+                authFetch(`${API}/class`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json()),
             ]);
             setSeasons(s.map((x: any) => x.season_year));
             setPrograms(p.map((x: any) => x.program_name));
@@ -35,10 +36,19 @@ const CustomManagement = () => {
     const addEntry = async (type: 'season' | 'program' | 'class', value: string) => {
         if (!value) return;
         try {
-            const res = await fetch(`${API}/${type}/create`, {
+            const token = localStorage.getItem('token');
+            let body: any = {};
+            if (type === 'season') body = { season_year: value };
+            else if (type === 'program') body = { program_name: value };
+            else if (type === 'class') body = { class_name: value };
+
+            const res = await authFetch(`${API}/${type}/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ [`${type}_name`]: value, [`${type}_year`]: value }[`${type}_name`] ? { [`${type}_name`]: value } : { [`${type}_year`]: value }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(body),
             });
             if (!res.ok) throw new Error();
             toast.success(`${type} eklendi`);

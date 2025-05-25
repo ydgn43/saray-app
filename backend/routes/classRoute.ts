@@ -7,7 +7,7 @@ export const classRouter = express.Router();
 
 classRouter.use(authenticateJWT);
 
-classRouter.get('/', requireRoles(['admin']), classController.getAll);
+classRouter.get('/', classController.getAll); // Allow all authenticated users
 classRouter.post('/create', requireRoles(['admin']), classController.create);
 classRouter.delete('/delete/:class_name', requireRoles(['admin']), classController.delete);
 

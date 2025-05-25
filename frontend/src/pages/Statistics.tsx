@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-// @ts-ignore
 import autoTable from 'jspdf-autotable';
-import { unparse } from 'papaparse';
 import { authFetch } from '../utils/authFetch';
-
 
 interface StatisticEntry {
     studentid: number;
@@ -22,6 +19,21 @@ interface StatisticEntry {
     };
 }
 
+// Normalize program names for consistent matching
+function normalizeProgramName(name: string) {
+    return name.trim().toLowerCase().replace(/ /g, '_');
+}
+
+// Fixed program order
+const PROGRAM_ORDER = [
+    'sabah_namazi',
+    'oglen_namazi',
+    'ikindi_namazi',
+    'aksam_namazi',
+    'yatsi_namazi',
+    'hatim'
+];
+
 const Statistics = () => {
     const [selectedColor, setSelectedColor] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
@@ -29,7 +41,61 @@ const Statistics = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [statistics, setStatistics] = useState<StatisticEntry[]>([]);
+    const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [selectedProgram, setSelectedProgram] = useState('genel');
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+
+    // Get all unique normalized program names from attendanceRecords and statistics
+    const allPrograms = PROGRAM_ORDER.filter(p =>
+        statistics.length === 0 ||
+        statistics.some(stat => {
+            if (!attendanceRecords.length) return true;
+            return attendanceRecords.some(rec => normalizeProgramName(rec.program_name) === p);
+        })
+    );
+
+    // Compute program percentages for a statistic entry
+    function computeProgramPercentages(
+        stat: StatisticEntry,
+        attendanceRecords: any[]
+    ): Record<string, { var: number; izinli: number }> {
+        // If attendanceRecords is empty, return empty object (no per-program stats)
+        if (!attendanceRecords.length) {
+            return {};
+        }
+        const studentRecords = attendanceRecords.filter(
+            (rec) => rec.studentid === stat.studentid
+        );
+        const programMap: Record<string, { var: number; izinli: number; total: number }> = {};
+        studentRecords.forEach((rec) => {
+            const prog = normalizeProgramName(rec.program_name);
+            if (!programMap[prog]) programMap[prog] = { var: 0, izinli: 0, total: 0 };
+            if (rec.attendance_type_name === 'var') programMap[prog].var += 1;
+            if (rec.attendance_type_name === 'izinli') programMap[prog].izinli += 1;
+            programMap[prog].total += 1;
+        });
+        const result: Record<string, { var: number, izinli: number }> = {};
+        Object.entries(programMap).forEach(([prog, { var: v, izinli: i, total }]) => {
+            result[prog] = {
+                var: total ? Math.round((v / total) * 100) : 0,
+                izinli: total ? Math.round((i / total) * 100) : 0,
+            };
+        });
+        return result;
+    }
+
+    const getProgramSums = (stat: StatisticEntry) => {
+        const programPercentages = computeProgramPercentages(stat, attendanceRecords);
+        const programSums = allPrograms.map((program) => {
+            const prog = programPercentages[program] || { var: 0, izinli: 0 };
+            return prog.var + prog.izinli;
+        });
+        // Genel: average of all programSums (ignore zeros if you want, but here we include all)
+        const valid = programSums.filter(x => typeof x === 'number');
+        const genel = valid.length ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+        return { programSums, genel };
+    };
 
     useEffect(() => {
         const savedStartDate = localStorage.getItem('statistics-startDate');
@@ -46,12 +112,25 @@ const Statistics = () => {
         if (endDate) localStorage.setItem('statistics-endDate', endDate);
     }, [endDate]);
 
+    const fetchAttendanceRecords = async () => {
+        if (!startDate || !endDate) return;
+        try {
+            const res = await authFetch(
+                `http://localhost:3001/attendance/all?startDate=${startDate}&endDate=${endDate}`
+            );
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setAttendanceRecords(data);
+        } catch {
+            setAttendanceRecords([]);
+        }
+    };
+
     const fetchStatistics = async () => {
         if (!startDate || !endDate) {
             toast.error('Lütfen tarih aralığı seçin.');
             return;
         }
-
         setLoading(true);
         try {
             const res = await authFetch(
@@ -60,6 +139,7 @@ const Statistics = () => {
             if (!res.ok) throw new Error();
             const data = await res.json();
             setStatistics(data);
+            await fetchAttendanceRecords();
         } catch {
             toast.error('İstatistik verileri alınamadı.');
         } finally {
@@ -67,323 +147,442 @@ const Statistics = () => {
         }
     };
 
+    useEffect(() => {
+        if (localStorage.getItem('statistics-autofetch') === '1') {
+            localStorage.removeItem('statistics-autofetch');
+            fetchStatistics();
+        }
+        // eslint-disable-next-line
+    }, []);
+
+    // Filtering logic for color buttons (now uses "genel" or selected program)
     const filteredStats = statistics.filter((entry) => {
-        const varValue = entry.percentages.var || 0;
+        let value = 0;
+        if (selectedProgram === 'genel') {
+            value = getProgramSums(entry).genel;
+        } else {
+            const programPercentages = computeProgramPercentages(entry, attendanceRecords);
+            const prog = programPercentages[selectedProgram] || { var: 0, izinli: 0 };
+            value = prog.var + prog.izinli;
+        }
         const matchesColor =
             selectedColor === '' ||
-            (selectedColor === 'green' && varValue >= 80) ||
-            (selectedColor === 'yellow' && varValue >= 60 && varValue < 80) ||
-            (selectedColor === 'red' && varValue < 60);
+            (selectedColor === 'green' && value >= 80) ||
+            (selectedColor === 'yellow' && value >= 60 && value < 80) ||
+            (selectedColor === 'red' && value < 60);
 
         const matchesClass = selectedClass === '' || entry.class_name === selectedClass;
-
         const matchesSearch = entry.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-
         return matchesColor && matchesClass && matchesSearch;
     });
 
-    const handleExportToCSV = async () => {
-        if (filteredStats.length === 0) {
-            toast.info('Dışa aktarılacak veri yok.');
-            return;
-        }
-        try {
-            const dataToExport = filteredStats.map((s) => ({
-                İsim: s.name,
-                Sınıf: s.class_name,
-                'Var (%)': s.percentages.var ?? 0,
-                'Geç (%)': s.percentages.gec ?? 0,
-                'Yok (%)': s.percentages.yok ?? 0,
-                'İzinli (%)': s.percentages.izinli ?? 0,
-            }));
-            const csv = unparse(dataToExport);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `istatistikler_${startDate}_${endDate}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        } catch (error) {
-            toast.error('CSV dışa aktarma sırasında bir hata oluştu.');
-        }
+    // Sorting logic
+    const sortedStats = [...filteredStats];
+    if (sortConfig) {
+        sortedStats.sort((a, b) => {
+            let aValue: any, bValue: any;
+            if (sortConfig.key === 'name') {
+                aValue = a.name.toLowerCase();
+                bValue = b.name.toLowerCase();
+            } else if (sortConfig.key === 'class_name') {
+                aValue = a.class_name.toLowerCase();
+                bValue = b.class_name.toLowerCase();
+            } else if (sortConfig.key === 'genel') {
+                aValue = getProgramSums(a).genel;
+                bValue = getProgramSums(b).genel;
+            } else if (allPrograms.includes(sortConfig.key)) {
+                const idx = allPrograms.indexOf(sortConfig.key);
+                aValue = getProgramSums(a).programSums[idx] ?? 0;
+                bValue = getProgramSums(b).programSums[idx] ?? 0;
+            } else {
+                aValue = '';
+                bValue = '';
+            }
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+            return sortConfig.direction === 'asc'
+                ? String(aValue).localeCompare(String(bValue), 'tr')
+                : String(bValue).localeCompare(String(aValue), 'tr');
+        });
+    }
+
+    // Helper for header rendering
+    const getSortIcon = (key: string) => {
+        if (!sortConfig || sortConfig.key !== key) return <span style={{ opacity: 0.3 }}>↕</span>;
+        return sortConfig.direction === 'asc' ? <span>▲</span> : <span>▼</span>;
+    };
+
+    // Export functions
+    const handleExportToCSV = () => {
+        const csvRows: string[] = [];
+        const headers = ['#', 'İsim', 'Sınıf', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel'];
+        csvRows.push(headers.join(';'));
+        sortedStats.forEach((s, i) => {
+            const { programSums, genel } = getProgramSums(s);
+            const row = [
+                i + 1,
+                s.name,
+                s.class_name,
+                ...programSums,
+                genel
+            ];
+            csvRows.push(row.join(';'));
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'istatistikler.csv');
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     const handleExportToExcel = () => {
-      if (filteredStats.length === 0) {
-          toast.info('Dışa aktarılacak veri yok.');
-          return;
-      }
-  
-      // Sort by class then name
-      const sorted = [...filteredStats].sort((a, b) =>
-          a.class_name.localeCompare(b.class_name) || a.name.localeCompare(b.name)
-      );
-  
-      const worksheetData = [
-          ['Ad Soyad', 'Sınıf', 'VAR', 'GEÇ', 'YOK', 'İZİNLİ']
-      ];
-  
-      sorted.forEach(s => {
-          worksheetData.push([
-              s.name,
-              s.class_name,
-              (s.percentages.var ?? 0) + '%',
-              (s.percentages.gec ?? 0) + '%',
-              (s.percentages.yok ?? 0) + '%',
-              (s.percentages.izinli ?? 0) + '%',
-          ]);
-      });
-  
-      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'İstatistik');
-  
-      // Style headers bold
-      const headerRef = ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'];
-      headerRef.forEach(cell => {
-          if (!ws[cell]) return;
-          ws[cell].s = { font: { bold: true } };
-      });
-  
-      XLSX.writeFile(wb, `istatistikler_${startDate}_${endDate}.xlsx`);
-  };
-  
+        const ws = XLSX.utils.json_to_sheet(
+            sortedStats.map((s, i) => {
+                const { programSums, genel } = getProgramSums(s);
+                const row: any = {
+                    '#': i + 1,
+                    'İsim': s.name,
+                    'Sınıf': s.class_name,
+                };
+                allPrograms.forEach((p, idx) => {
+                    row[p.replace(/_/g, ' ')] = programSums[idx];
+                });
+                row['Genel'] = genel;
+                return row;
+            })
+        );
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'İstatistikler');
+        XLSX.writeFile(wb, 'istatistikler.xlsx');
+    };
 
     const handleExportToPDF = () => {
-        if (filteredStats.length === 0) {
-            toast.info('Dışa aktarılacak veri yok.');
-            return;
-        }
-        const doc = new jsPDF();
-        doc.setFontSize(14);
-        doc.text('Yoklama İstatistikleri', 14, 16);
+        const doc = new jsPDF('l', 'mm', 'a4');
+        doc.setFontSize(10);
 
-        // Table columns and rows
-        const columns = [
-            { header: '#', dataKey: 'index' },
-            { header: 'İsim', dataKey: 'name' },
-            { header: 'Sınıf', dataKey: 'class_name' },
-            { header: 'Var (%)', dataKey: 'var' },
-            { header: 'Geç (%)', dataKey: 'gec' },
-            { header: 'Yok (%)', dataKey: 'yok' },
-            { header: 'İzinli (%)', dataKey: 'izinli' },
-        ];
-        const rows = filteredStats.map((s, i) => ({
-            index: i + 1,
-            name: s.name,
-            class_name: s.class_name,
-            var: s.percentages.var ?? 0,
-            gec: s.percentages.gec ?? 0,
-            yok: s.percentages.yok ?? 0,
-            izinli: s.percentages.izinli ?? 0,
-        }));
-
-        // Use autoTable for better Excel-like look
-        autoTable(doc, {
-            columns,
-            body: rows,
-            startY: 22,
-            styles: { font: 'helvetica', fontSize: 10, cellPadding: 2 },
-            headStyles: { fillColor: [13, 110, 253] }, // Bootstrap primary
-            alternateRowStyles: { fillColor: [240, 248, 255] },
-            margin: { left: 8, right: 8 },
+        // Table
+        const tableData = sortedStats.map((s, i) => {
+            const { programSums, genel } = getProgramSums(s);
+            const row = [
+                String(i + 1),
+                s.name,
+                s.class_name,
+                ...programSums.map(String),
+                String(genel),
+            ];
+            return row;
         });
 
-        doc.save(`istatistikler_${startDate}_${endDate}.pdf`);
+        autoTable(doc, {
+            head: [
+                ['#', 'İsim', 'Sınıf', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel']
+            ],
+            body: tableData,
+            startY: 20,
+            theme: 'grid',
+            styles: {
+                cellPadding: 2,
+                fontSize: 10,
+            },
+            columnStyles: {
+                0: { cellWidth: 10 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 30 },
+            },
+        });
+
+        doc.save('istatistikler.pdf');
     };
 
     return (
         <>
             <ToastContainer />
-            <h1 className="mb-4">Yoklama İstatistikleri</h1>
+            <div className="container py-4" style={{ maxWidth: 1200 }}>
+                <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+                    <h1 className="mb-0" style={{ fontWeight: 700, color: '#0d6efd', letterSpacing: 1 }}>Yoklama İstatistikleri</h1>
+                    <div className="d-flex flex-wrap gap-2 align-items-center">
+                        <span className="badge bg-primary fs-6 px-3 py-2">
+                            Toplam Öğrenci: {filteredStats.length}
+                        </span>
+                        <button
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => {
+                                setSelectedColor('');
+                                setSelectedClass('');
+                                setSearchTerm('');
+                                setSelectedProgram('genel');
+                            }}
+                        >
+                            Temizle
+                        </button>
+                    </div>
+                </div>
 
-            <div className="row mb-3">
-                <div className="col-md-4">
-                    <label>Başlangıç Tarihi</label>
-                    <input
-                        type="date"
-                        className="form-control"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
-                </div>
-                <div className="col-md-4">
-                    <label>Bitiş Tarihi</label>
-                    <input
-                        type="date"
-                        className="form-control"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                    />
-                </div>
-                <div className="col-md-4 d-flex align-items-end">
-                    <button
-                        className="btn btn-primary w-100"
-                        onClick={fetchStatistics}
-                        style={{ transition: 'all 0.3s ease-in-out' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.03)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                    >
-                        Verileri Getir
-                    </button>
-                </div>
-            </div>
-
-            {statistics.length > 0 && (
-                <>
-                    <h5 className="mb-2">
-                        Toplam Öğrenci: <span className="badge bg-info">{filteredStats.length}</span>
-                    </h5>
-                    <div className="mb-3">
-                        <div className="mb-3 d-flex flex-wrap gap-2 align-items-center">
-                            {[
-                                { label: 'İyi', color: 'green', value: 'green', textColor: 'white' },
-                                { label: 'Orta', color: 'yellow', value: 'yellow', textColor: 'black' },
-                                { label: 'Kötü', color: 'red', value: 'red', textColor: 'white' },
-                            ].map(({ label, color, value, textColor }) => (
-                                <span
-                                    key={value}
-                                    className="badge"
-                                    style={{
-                                        backgroundColor: color,
-                                        color: textColor,
-                                        opacity: selectedColor === value ? 1 : 0.5,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease-in-out',
-                                        transform: selectedColor === value ? 'scale(1.05)' : 'scale(1)',
-                                    }}
-                                    onClick={() => setSelectedColor(value)}
-                                    onMouseEnter={(e) => {
-                                        if (selectedColor !== value) {
-                                            (e.currentTarget as HTMLElement).style.opacity = '0.8';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (selectedColor !== value) {
-                                            (e.currentTarget as HTMLElement).style.opacity = '0.4';
-                                        }
-                                    }}
-                                >
-                                    {label}
-                                </span>
+                <div className="row g-3 mb-3">
+                    <div className="col-md-3">
+                        <label className="form-label fw-semibold">Başlangıç Tarihi</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="col-md-3">
+                        <label className="form-label fw-semibold">Bitiş Tarihi</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="col-md-3">
+                        <label className="form-label fw-semibold">Program</label>
+                        <select
+                            className="form-select"
+                            value={selectedProgram}
+                            onChange={e => setSelectedProgram(e.target.value)}
+                        >
+                            <option value="genel">Genel</option>
+                            {allPrograms.map(p => (
+                                <option key={p} value={p}>
+                                    {p.replace(/_/g, ' ')}
+                                </option>
                             ))}
-
-                            <span
-                                className="badge bg-secondary text-white"
-                                role="button"
-                                style={{ cursor: 'pointer' }}
-                                onClick={() => setSelectedColor('')}
-                            >
-                                Temizle
-                            </span>
-                            <select
-                                className="form-select form-select-sm w-auto"
-                                value={selectedClass}
-                                onChange={(e) => setSelectedClass(e.target.value)}
-                            >
-                                <option value="">Tüm Sınıflar</option>
-                                <option value="kuranikerim">Kuran-ı Kerim</option>
-                                <option value="hazirlik">Hazırlık</option>
-                                <option value="ibtidai">İbtidai</option>
-                                <option value="ihzari">İhzari</option>
-                                <option value="tekamul_alti">Tekamul Altı</option>
-                                <option value="mevzun_tekamul_alti">Mezun Tekamul Altı</option>
-                            </select>
-
-                            <input
-                                className="form-control form-control-sm w-auto"
-                                type="text"
-                                placeholder="İsim ara..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <span
-                                className="badge bg-secondary text-white"
-                                role="button"
-                                style={{ cursor: 'pointer' }}
-                                onClick={() => setSearchTerm('')}
-                            >
-                                Temizle İsim
-                            </span>
-                            <div className="btn-group">
-                                <button
-                                    className="btn btn-outline-success btn-sm dropdown-toggle"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false"
-                                    type="button"
-                                >
-                                    Farklı Kaydet
-                                </button>
-                                <ul className="dropdown-menu">
-                                    <li>
-                                        <button className="dropdown-item" onClick={handleExportToCSV}>CSV olarak indir</button>
-                                    </li>
-                                    <li>
-                                        <button className="dropdown-item" onClick={handleExportToExcel}>Excel olarak indir</button>
-                                    </li>
-                                    <li>
-                                        <button className="dropdown-item" onClick={handleExportToPDF}>PDF olarak indir</button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                        </select>
                     </div>
-
-                </>
-            )}
-
-
-            {loading ? (
-                <div className="text-center my-4">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Yükleniyor...</span>
+                    <div className="col-md-3 d-flex align-items-end">
+                        <button
+                            className="btn btn-primary w-100"
+                            onClick={fetchStatistics}
+                            style={{ transition: 'all 0.3s ease-in-out', fontWeight: 600 }}
+                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
+                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                        >
+                            Verileri Getir
+                        </button>
                     </div>
                 </div>
-            ) : (
-                filteredStats.length > 0 && (
-                    <div className="table-responsive">
-                        <table className="table table-bordered table-striped align-middle text-center">
-                            <thead className="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Talebe</th>
-                                    <th>Sınıf</th>
-                                    <th>Var (%)</th>
-                                    <th>Geç (%)</th>
-                                    <th>Yok (%)</th>
-                                    <th>İzinli (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredStats.map((s, index) => {
-                                    const varVal = s.percentages.var ?? 0;
-                                    let rowClass = '';
-                                    if (varVal >= 80) rowClass = 'table-success';
-                                    else if (varVal >= 60) rowClass = 'table-warning';
-                                    else rowClass = 'table-danger';
 
+                <div className="mb-3 d-flex flex-wrap gap-2 align-items-center">
+                    {[
+                        { label: 'İyi', color: 'green', value: 'green', textColor: 'white' },
+                        { label: 'Orta', color: 'yellow', value: 'yellow', textColor: 'black' },
+                        { label: 'Kötü', color: 'red', value: 'red', textColor: 'white' },
+                    ].map(({ label, color, value, textColor }) => (
+                        <span
+                            key={value}
+                            className="badge"
+                            style={{
+                                backgroundColor: color,
+                                color: textColor,
+                                opacity: selectedColor === value ? 1 : 0.5,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                transform: selectedColor === value ? 'scale(1.05)' : 'scale(1)',
+                                fontSize: 16,
+                                padding: '0.7em 1.2em',
+                                border: selectedColor === value ? '2px solid #333' : undefined,
+                                boxShadow: selectedColor === value ? '0 2px 8px rgba(0,0,0,0.08)' : undefined,
+                            }}
+                            onClick={() => setSelectedColor(selectedColor === value ? '' : value)}
+                        >
+                            {label}
+                        </span>
+                    ))}
+
+                    <input
+                        className="form-control form-control-sm w-auto ms-2"
+                        type="text"
+                        placeholder="İsim ara..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ minWidth: 180 }}
+                    />
+                    <div className="btn-group ms-2">
+                        <button
+                            className="btn btn-outline-success btn-sm dropdown-toggle"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            type="button"
+                        >
+                            Farklı Kaydet
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li>
+                                <button className="dropdown-item" onClick={handleExportToCSV}>CSV olarak indir</button>
+                            </li>
+                            <li>
+                                <button className="dropdown-item" onClick={handleExportToExcel}>Excel olarak indir</button>
+                            </li>
+                            <li>
+                                <button className="dropdown-item" onClick={handleExportToPDF}>PDF olarak indir</button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="table-responsive shadow-sm rounded-3" style={{ background: '#fff' }}>
+                    <table className="table table-bordered table-striped align-middle text-center mb-0">
+                        <thead className="table-light">
+                            <tr>
+                                <th
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() =>
+                                        setSortConfig((prev) =>
+                                            prev?.key === 'rownum'
+                                                ? { key: 'rownum', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                : { key: 'rownum', direction: 'asc' }
+                                        )
+                                    }
+                                >
+                                    #
+                                </th>
+                                <th
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() =>
+                                        setSortConfig((prev) =>
+                                            prev?.key === 'name'
+                                                ? { key: 'name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                : { key: 'name', direction: 'asc' }
+                                        )
+                                    }
+                                >
+                                    İsim {getSortIcon('name')}
+                                </th>
+                                <th
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() =>
+                                        setSortConfig((prev) =>
+                                            prev?.key === 'class_name'
+                                                ? { key: 'class_name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                : { key: 'class_name', direction: 'asc' }
+                                        )
+                                    }
+                                >
+                                    Sınıf {getSortIcon('class_name')}
+                                </th>
+                                {selectedProgram === 'genel'
+                                    ? allPrograms.map((p) => (
+                                        <th
+                                            key={p}
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() =>
+                                                setSortConfig((prev) =>
+                                                    prev?.key === p
+                                                        ? { key: p, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                        : { key: p, direction: 'desc' }
+                                                )
+                                            }
+                                        >
+                                            {p.replace(/_/g, ' ')} {getSortIcon(p)}
+                                        </th>
+                                    ))
+                                    : (
+                                        <th
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() =>
+                                                setSortConfig((prev) =>
+                                                    prev?.key === selectedProgram
+                                                        ? { key: selectedProgram, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                        : { key: selectedProgram, direction: 'desc' }
+                                                )
+                                            }
+                                        >
+                                            {selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
+                                        </th>
+                                    )
+                                }
+                                <th
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() =>
+                                        setSortConfig((prev) =>
+                                            prev?.key === 'genel'
+                                                ? { key: 'genel', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                : { key: 'genel', direction: 'desc' }
+                                        )
+                                    }
+                                >
+                                    Genel {getSortIcon('genel')}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sortedStats.length === 0 ? (
+                                <tr>
+                                    <td colSpan={selectedProgram === 'genel' ? 4 + allPrograms.length : 5} className="text-center text-muted py-4">
+                                        Sonuç bulunamadı.
+                                    </td>
+                                </tr>
+                            ) : sortedStats.map((s, i) => {
+                                const { programSums, genel } = getProgramSums(s);
+                                if (selectedProgram === 'genel') {
                                     return (
-                                        <tr key={s.studentid} className={rowClass}>
-                                            <td>{index + 1}</td>
+                                        <tr key={s.studentid}>
+                                            <td>{i + 1}</td>
                                             <td className="text-start">{s.name}</td>
                                             <td>{s.class_name}</td>
-                                            <td>{varVal}%</td>
-                                            <td>{s.percentages.gec ?? 0}%</td>
-                                            <td>{s.percentages.yok ?? 0}%</td>
-                                            <td>{s.percentages.izinli ?? 0}%</td>
+                                            {programSums.map((val, idx) => {
+                                                let bg = '';
+                                                if (val < 60) bg = 'bg-danger text-white';
+                                                else if (val < 80) bg = 'bg-warning text-dark';
+                                                else bg = 'bg-success text-white';
+                                                return (
+                                                    <td key={idx} className={bg}>{val}%</td>
+                                                );
+                                            })}
+                                            <td className={
+                                                genel < 60
+                                                    ? 'bg-danger text-white'
+                                                    : genel < 80
+                                                    ? 'bg-warning text-dark'
+                                                    : 'bg-success text-white'
+                                            }>
+                                                {genel}%
+                                            </td>
                                         </tr>
                                     );
-                                })}
-
-                            </tbody>
-                        </table>
+                                } else {
+                                    const programIdx = allPrograms.indexOf(selectedProgram);
+                                    const val = programSums[programIdx] ?? 0;
+                                    let bg = '';
+                                    if (val < 60) bg = 'bg-danger text-white';
+                                    else if (val < 80) bg = 'bg-warning text-dark';
+                                    else bg = 'bg-success text-white';
+                                    return (
+                                        <tr key={s.studentid}>
+                                            <td>{i + 1}</td>
+                                            <td className="text-start">{s.name}</td>
+                                            <td>{s.class_name}</td>
+                                            <td className={bg}>{val}%</td>
+                                            <td className={
+                                                genel < 60
+                                                    ? 'bg-danger text-white'
+                                                    : genel < 80
+                                                    ? 'bg-warning text-dark'
+                                                    : 'bg-success text-white'
+                                            }>
+                                                {genel}%
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+                {loading && (
+                    <div className="text-center my-4">
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Yükleniyor...</span>
+                        </div>
                     </div>
-                )
-            )}
+                )}
+            </div>
         </>
     );
 };

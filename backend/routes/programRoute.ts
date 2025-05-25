@@ -7,7 +7,7 @@ export const programRouter = express.Router();
 
 programRouter.use(authenticateJWT);
 
-programRouter.get('/', requireRoles(['admin']), programController.getAll);
+programRouter.get('/', programController.getAll); // Allow all authenticated users
 programRouter.post('/create', requireRoles(['admin']), programController.create);
 programRouter.delete('/delete/:program_name', requireRoles(['admin']), programController.delete);
 

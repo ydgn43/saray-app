@@ -7,7 +7,7 @@ export const seasonRouter = express.Router();
 
 seasonRouter.use(authenticateJWT);
 
-seasonRouter.get('/', requireRoles(['admin']), seasonController.getAll);
+seasonRouter.get('/', seasonController.getAll); // Allow all authenticated users
 seasonRouter.post('/create', requireRoles(['admin']), seasonController.create);
 seasonRouter.delete('/delete/:season_year', requireRoles(['admin']), seasonController.delete);
 
