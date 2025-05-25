@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
@@ -64,6 +64,14 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
             {/* Menu */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
                 <Menu>
+                    <MenuItem
+                        active={location.pathname === '/'}
+                        icon={<IconComponent icon={FaHome} />}
+                        component={<Link to="/" />}
+                        onClick={onToggle}
+                    >
+                        Ana Sayfa
+                    </MenuItem>
                     <MenuItem
                         active={location.pathname === '/attendance'}
                         icon={<IconComponent icon={FaListAlt} />}

@@ -10,6 +10,7 @@ import Layout from './components/Layout';
 import AccountSettings from './pages/AccountSettings';
 import Settings from './pages/Settings';
 import PageTransition from './components/PageTransition';
+import Home from './pages/Home';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -70,7 +71,7 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <PageTransition>
-                    <Attendance />
+                    <Home />
                   </PageTransition>
                 </Layout>
               </PrivateRoute>
