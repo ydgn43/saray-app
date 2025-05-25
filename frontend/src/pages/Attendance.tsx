@@ -279,7 +279,7 @@ const Attendance = () => {
 
 
   return (
-    <Layout>
+    
       <div className="container">
         <ToastContainer />
         <h1 className="mb-4">Günlük Yoklama</h1>
@@ -392,7 +392,7 @@ const Attendance = () => {
           <BackToTopButton />
         </div>
       </div>
-    </Layout>
+
   );
 };
 

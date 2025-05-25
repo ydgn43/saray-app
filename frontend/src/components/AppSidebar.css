@@ -1,0 +1,5 @@
+/* src/components/AppSidebar.css */
+.ps-sidebar-root {
+    z-index: 1050 !important; /* Ensure it appears above modals */
+  }
+  

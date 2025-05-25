@@ -46,7 +46,6 @@ const AccountSettings = () => {
     };
 
     return (
-        <Layout>
             <div className="container" style={{ maxWidth: 400, marginTop: 40 }}>
                 <h2>Hesabım</h2>
                 {success && <div className="alert alert-success">{success}</div>}
@@ -89,7 +88,6 @@ const AccountSettings = () => {
                     )}
                 </form>
             </div>
-        </Layout>
     );
 };
 

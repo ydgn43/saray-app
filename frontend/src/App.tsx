@@ -74,7 +74,9 @@ function App() {
           } />
           <Route path="/settings" element={
             <PrivateRoute>
-              <Settings />
+              <Layout>
+                <Settings />
+              </Layout>
             </PrivateRoute>
           } />
         </Routes>

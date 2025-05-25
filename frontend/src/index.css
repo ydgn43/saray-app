@@ -43,6 +43,12 @@ tr:hover {
   border-color: #0dcaf0;
 }
 
+/* src/components/AppSidebar.css */
+.ps-sidebar-container {
+  background-color: #f8f9fa;
+}
+
+
 .table-group-header {
   background-color: #f0f8ff;
   border-top: 2px solid #007bff;

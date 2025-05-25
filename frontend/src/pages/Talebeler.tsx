@@ -227,7 +227,6 @@ const Talebeler = () => {
 
     return (
 
-        <Layout>
             <div className="container">
                 <h1 className="mb-4">Talebe Ayarları</h1>
                 <ToastContainer position="top-right" autoClose={3000} />
@@ -617,7 +616,6 @@ const Talebeler = () => {
                     </motion.button>
                 </div>
             </div>
-        </Layout>
     );
 };
 

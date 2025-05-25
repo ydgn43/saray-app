@@ -17,7 +17,6 @@ const Settings = () => {
     const [tab, setTab] = useState('profile');
 
     return (
-        <Layout>
             <div className="container py-4" style={{ maxWidth: 800 }}>
                 <h2 className="mb-4">Ayarlar</h2>
                 {/* Tabs */}
@@ -42,7 +41,6 @@ const Settings = () => {
                     {tab === 'custom' && user?.role === 'admin' && <CustomManagement />}
                 </div>
             </div>
-        </Layout>
     );
 };
 
