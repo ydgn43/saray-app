@@ -25,6 +25,7 @@ export class StudentService {
     }
 
     public async deleteStudent(studentId: number): Promise<void> {
+        await this.studentData.deleteAttendanceByStudentId(studentId);
         return await this.studentData.deleteStudent(studentId);
     }
 

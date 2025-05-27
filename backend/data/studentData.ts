@@ -1,6 +1,7 @@
 // test
 import { Student } from "../business/models/Student";
 import StudentSequelize from "./models/Student";
+import AttendanceSequelize from "./models/Attendance";
 import { Request, Response } from 'express';
 
 export class StudentData {
@@ -79,6 +80,15 @@ export class StudentData {
             }
         });
         console.log(test);
+    }
+
+    public async deleteAttendanceByStudentId(studentId: number): Promise<void> {
+        const deleted = await AttendanceSequelize.destroy({
+            where: {
+                studentid: studentId
+            }
+        });
+        console.log(`Deleted ${deleted} attendance records for studentid=${studentId}`);
     }
 
     public async getStudentById(id: number) {

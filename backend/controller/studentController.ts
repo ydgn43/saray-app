@@ -80,7 +80,7 @@ export class StudentController {
 
     public async deleteStudent(req: Request, res: Response) {
         try {
-            await this.studentService.deleteStudent(+(req.query.studentid as string))
+            await this.studentService.deleteStudent(+(req.query.studentid as string));
             res.status(202).json({ message: "Student succesfully deleted" });
         } catch (error) {
             console.error('Error deleting student:', error);
