@@ -23,7 +23,6 @@ interface Props {
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
-  fetchAttendanceData: () => void; // <-- add this
 }
 
 const attendanceLabels: Record<AttendanceType, string> = {
@@ -41,7 +40,6 @@ const AttendanceRowList: React.FC<Props> = ({
   date,
   program,
   onUpdateAttendance,
-  fetchAttendanceData, // <-- add this
 }) => {
   const [sebepDrafts, setSebepDrafts] = useState<Record<number, string>>({});
   const [recentlyUpdated, setRecentlyUpdated] = useState<Record<number, boolean>>({});
@@ -114,8 +112,6 @@ const AttendanceRowList: React.FC<Props> = ({
       )
     );
 
-    // Then refresh attendanceData from backend
-    fetchAttendanceData();
   };
 
   return (

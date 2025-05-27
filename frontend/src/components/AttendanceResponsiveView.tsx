@@ -72,8 +72,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               attendanceData={attendanceData}
               date={date}
               program={program}
-              onUpdateAttendance={onUpdateAttendance as any}
-              fetchAttendanceData={fetchAttendanceData} // <-- add this
+              onUpdateAttendance={onUpdateAttendance}
             />
           ) : (
             <AttendanceCardList
