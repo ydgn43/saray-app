@@ -3,6 +3,7 @@ import { AttendanceController } from '../controller/attendanceController';
 import { AttendanceService } from '../business/services/attendanceService';
 import AttendanceData from '../data/attendanceData';
 import { authenticateJWT, requireRoles } from '../middleware/authMiddleware';
+import Attendance from '../data/models/Attendance'; // Make sure this path is correct
 
 
 export const attendanceRouter = express.Router();
@@ -39,4 +40,42 @@ attendanceRouter.put('/put', requireRoles(['admin', 'hoca', 'yoklamaci']), (req:
 
 attendanceRouter.delete('/', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
     res.status(501).json({ message: 'DELETE not implemented yet' });
+});
+
+attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, res) => {
+    console.log("POST /attendance/izinli hit");
+    try {
+        const { studentid, date, program_name, sebep } = req.body;
+        if (!studentid || !date || !program_name) {
+            return res.status(400).json({ message: 'Eksik bilgi.' });
+        }
+        // Create attendance record as "izinli"
+        const attendanceEntity = {
+            _studentId: studentid,
+            _date: new Date(date),
+            _attendanceTypeName: 'izinli',
+            _programName: program_name,
+            _sebep: sebep || null,
+            // Add other required properties with default values if needed
+        } as any; // Replace 'any' with your Attendance entity type if imported
+
+        await attendanceService.createOrUpdateAttendance(attendanceEntity);
+        res.status(201).json({ message: 'İzinli kaydı eklendi.' });
+    } catch (err) {
+        res.status(500).json({ message: 'İzinli kaydı eklenemedi.' });
+    }
+});
+
+attendanceRouter.get('/izinli', requireRoles(['admin', 'hoca', 'yoklamaci']), async (req, res) => {
+    try {
+        const { date, program_name } = req.query;
+        if (!date || !program_name) {
+            return res.status(400).json({ message: 'Eksik bilgi.' });
+        }
+        const records = await attendanceService.getAttendanceByDateAndProgram(date as string, program_name as string);
+        const izinliler = records.filter(r => r.attendance_type_name === 'izinli');
+        res.json(izinliler);
+    } catch (err) {
+        res.status(500).json({ message: 'İzinli listesi alınamadı.' });
+    }
 });

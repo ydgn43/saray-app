@@ -64,7 +64,7 @@ export class AttendanceController {
             const payloads = Array.isArray(req.body) ? req.body : [req.body];
 
             for (const entry of payloads) {
-                const { studentid, date, attendance_type_name, program_name } = entry;
+                const { studentid, date, attendance_type_name, program_name, sebep } = entry;
 
                 if (!studentid || !date || !program_name) {
                     return res.status(400).json({ message: 'Missing required fields' });
@@ -76,14 +76,16 @@ export class AttendanceController {
                     attendance_type_name,
                     program_name
                 );
+                attendanceData.sebep = sebep || null;
 
-                await this.attendanceService.createAttendance(attendanceData);
+                // Use upsert logic
+                await this.attendanceService.createOrUpdateAttendance(attendanceData);
             }
 
-            res.status(202).json({ message: 'Attendance records created successfully' });
+            res.status(202).json({ message: 'Attendance records created/updated successfully' });
         } catch (error) {
             console.log('Create Attendance error:', error);
-            res.status(500).json({ message: 'Failed to create attendance' });
+            res.status(500).json({ message: 'Failed to create/update attendance' });
         }
     }
 

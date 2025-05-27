@@ -11,6 +11,7 @@ import AccountSettings from './pages/AccountSettings';
 import Settings from './pages/Settings';
 import PageTransition from './components/PageTransition';
 import Home from './pages/Home';
+import IzinliTalebeler from './pages/IzinliTalebeler';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -96,6 +97,18 @@ function App() {
                 <Layout>
                   <PageTransition>
                     <Settings />
+                  </PageTransition>
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/izinli-talebeler"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <PageTransition>
+                    <IzinliTalebeler />
                   </PageTransition>
                 </Layout>
               </PrivateRoute>

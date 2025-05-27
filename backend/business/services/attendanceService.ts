@@ -3,29 +3,33 @@ import AttendanceSequelize from "../../data/models/Attendance";
 import { Attendance } from "../models/Attendance";
 
 export class AttendanceService {
-    public constructor(private attendaceData: AttendanceData) { }
+    private attendanceData: AttendanceData;
+
+    constructor(attendanceData: AttendanceData) {
+        this.attendanceData = attendanceData;
+    }
 
     public async getAllAttendance(): Promise<AttendanceSequelize[]> {
-        return this.attendaceData.getAllAttendance();
+        return this.attendanceData.getAllAttendance();
     }
 
     public async getAttendance(attendance: Attendance): Promise<AttendanceSequelize | null> {
-        return this.attendaceData.getAttendance(attendance);
+        return this.attendanceData.getAttendance(attendance);
     }
 
     public async getAttendanceStatisticsByDateRange(start: string, end: string) {
-        return this.attendaceData.getAttendanceStatisticsByDateRange(start, end);
+        return this.attendanceData.getAttendanceStatisticsByDateRange(start, end);
     }
 
     public async getAttendanceByDateAndProgram(date: string, programName: string): Promise<AttendanceSequelize[]> {
-        return this.attendaceData.getAttendanceByDateAndProgram(date, programName);
+        return this.attendanceData.getAttendanceByDateAndProgram(date, programName);
     }
 
-    public async createAttendance(attendance: Attendance): Promise<void> {
-        return this.attendaceData.createAttendance(attendance);
+    public async createOrUpdateAttendance(attendance: Attendance): Promise<void> {
+        return this.attendanceData.createOrUpdateAttendance(attendance);
     }
 
     public async updateAttendance(attendance: Attendance): Promise<void> {
-        return this.attendaceData.updateAttendance(attendance);
+        return this.attendanceData.updateAttendance(attendance);
     }
 }

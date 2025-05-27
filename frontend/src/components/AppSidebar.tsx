@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
@@ -105,6 +105,12 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                         onClick={onToggle}
                     >
                         Ayarlar
+                    </MenuItem>
+                    <MenuItem
+                        icon={<IconComponent icon={FaUserCheck} />}
+                        component={<Link to="/izinli-talebeler" />}
+                    >
+                        İzinli Talebeler
                     </MenuItem>
                     {/* --- Logout Button --- */}
                     <MenuItem

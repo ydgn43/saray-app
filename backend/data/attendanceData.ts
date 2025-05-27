@@ -124,4 +124,24 @@ export default class AttendanceData {
             throw new Error('Could not update attendance');
         }
     }
+
+    public async createOrUpdateAttendance(attendance: Attendance): Promise<void> {
+        const [record, created] = await AttendanceSequelize.findOrCreate({
+            where: {
+                studentid: attendance.studentId,
+                date: attendance.date,
+                program_name: attendance.programName,
+            },
+            defaults: {
+                attendance_type_name: attendance.attendanceTypeName,
+                sebep: attendance.sebep || null,
+            }
+        });
+        if (!created) {
+            await record.update({
+                attendance_type_name: attendance.attendanceTypeName,
+                sebep: attendance.sebep || null,
+            });
+        }
+    }
 }
