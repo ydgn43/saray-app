@@ -10,17 +10,17 @@ import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 
 const PROGRAM_OPTIONS = [
-  'sabah namazi', 'oglen namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim'
+  'Sabah Namazı', 'Öğle Namazı', 'İkindi Namazı', 'Akşam Namazı', 'Yatsı Namazı', 'Hatim'
 ];
 
 // Map user-friendly names to DB values
 const PROGRAM_NAME_MAP: Record<string, string> = {
-  "sabah namazi": "sabah_namazi",
-  "oglen namazi": "oglen_namazi",
-  "ikindi namazi": "ikindi_namazi",
-  "aksam namazi": "aksam_namazi",
-  "yatsi namazi": "yatsi_namazi",
-  "hatim": "hatim"
+  "Sabah Namazı": "sabah_namazi",
+  "Öğle Namazı": "oglen_namazi",
+  "İkindi Namazı": "ikindi_namazi",
+  "Akşam Namazı": "aksam_namazi",
+  "Yatsı Namazı": "yatsi_namazi",
+  "Hatim": "hatim"
 };
 
 const normalizeClassName = (str: string) => {

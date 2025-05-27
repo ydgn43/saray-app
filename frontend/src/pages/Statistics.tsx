@@ -43,6 +43,27 @@ const PROGRAM_NAME_MAP: Record<string, string> = {
     "hatim": "hatim"
 };
 
+const PROGRAM_TURKISH_MAP: Record<string, string> = {
+    "sabah namazi": "Sabah Namazı",
+    "oglen namazi": "Öğle Namazı",
+    "ikindi namazi": "İkindi Namazı",
+    "aksam namazi": "Akşam Namazı",
+    "yatsi namazi": "Yatsı Namazı",
+    "hatim": "Hatim"
+};
+
+const CLASS_NAME_TURKISH_MAP: Record<string, string> = {
+    "kuranikerim": "Kur'an-ı Kerim",
+    "hazirlik": "Hazırlık",
+    "ibtidai": "İbtidai",
+    "ihzari": "İhzari",
+    "mezun_tekamul_alti": "Mezun Tekamul Altı",
+    "tekamul_alti": "Tekamul Altı"
+};
+function getTurkishClassName(className: string) {
+    return CLASS_NAME_TURKISH_MAP[className] || className;
+}
+
 const Statistics = () => {
     const [selectedColor, setSelectedColor] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
@@ -477,9 +498,7 @@ const Statistics = () => {
                                 </th>
                                 {selectedProgram === 'genel'
                                     ? allPrograms.map((p) => (
-                                        <th
-                                            key={p}
-                                            style={{ cursor: 'pointer' }}
+                                        <th key={p} style={{ cursor: 'pointer' }}
                                             onClick={() =>
                                                 setSortConfig((prev) =>
                                                     prev?.key === p
@@ -488,7 +507,7 @@ const Statistics = () => {
                                                 )
                                             }
                                         >
-                                            {p.replace(/_/g, ' ')} {getSortIcon(p)}
+                                            {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')} {getSortIcon(p)}
                                         </th>
                                     ))
                                     : (
@@ -502,7 +521,7 @@ const Statistics = () => {
                                                 )
                                             }
                                         >
-                                            {selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
+                                            {PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
                                         </th>
                                     )
                                 }
@@ -534,7 +553,7 @@ const Statistics = () => {
                                         <tr key={s.studentid}>
                                             <td>{i + 1}</td>
                                             <td className="text-start">{s.name}</td>
-                                            <td>{s.class_name}</td>
+                                            <td>{getTurkishClassName(s.class_name)}</td>
                                             {programSums.map((val, idx) => {
                                                 let bg = '';
                                                 if (val < 60) bg = 'bg-danger text-white';
@@ -566,7 +585,7 @@ const Statistics = () => {
                                         <tr key={s.studentid}>
                                             <td>{i + 1}</td>
                                             <td className="text-start">{s.name}</td>
-                                            <td>{s.class_name}</td>
+                                            <td>{getTurkishClassName(s.class_name)}</td>
                                             <td className={bg}>{val}%</td>
                                             <td className={
                                                 genel < 60

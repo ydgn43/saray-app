@@ -20,6 +20,19 @@ type Student = {
     class_name: string;
 };
 
+const CLASS_NAME_MAP: Record<string, string> = {
+    "kuranikerim": "Kur'an-ı Kerim",
+    "hazirlik": "Hazırlık",
+    "ibtidai": "İbtidai",
+    "ihzari": "İhzari",
+    "mezun_tekamul_alti": "Mezun Tekamul Altı",
+    "tekamul_alti": "Tekamul Altı"
+};
+
+function getTurkishClassName(className: string) {
+    return CLASS_NAME_MAP[className] || className;
+}
+
 const Talebeler = () => {
     const [students, setStudents] = useState<Student[]>([]);
 
@@ -252,7 +265,7 @@ const Talebeler = () => {
                     const count = filteredStudents.filter((s) => s.class_name === className).length;
                     return (
                         <span key={className} className="badge bg-primary">
-                            {className}: {count}
+                            {getTurkishClassName(className)}: {count}
                         </span>
                     );
                 })}
@@ -286,8 +299,8 @@ const Talebeler = () => {
                             <option value="hazirlik">Hazırlık</option>
                             <option value="ibtidai">İbtidai</option>
                             <option value="ihzari">İhzari</option>
-                            <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
                             <option value="tekamul_alti">Tekamul Altı</option>
+                            <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
                         </select>
                     </div>
 
@@ -562,7 +575,7 @@ const Talebeler = () => {
                                     <td>{indexOfFirst + index + 1}</td>
                                     <td>{s.first_name}</td>
                                     <td>{s.last_name}</td>
-                                    <td>{s.class_name}</td>
+                                    <td>{getTurkishClassName(s.class_name)}</td>
                                     <td>{s.season_year}</td>
                                     <td>{s.birth_date}</td>
                                     <td>
