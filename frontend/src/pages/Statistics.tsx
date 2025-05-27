@@ -19,36 +19,22 @@ interface StatisticEntry {
     };
 }
 
-// Normalize program names for consistent matching
-function normalizeProgramName(name: string) {
-    return name.trim().toLowerCase().replace(/ /g, '_');
-}
-
-// Fixed program order
+// 1. Use normalized program names everywhere for logic
 const PROGRAM_ORDER = [
-    'sabah namazi',
-    'oglen namazi',
-    'ikindi namazi',
-    'aksam namazi',
-    'yatsi namazi',
+    'sabah_namazi',
+    'oglen_namazi',
+    'ikindi_namazi',
+    'aksam_namazi',
+    'yatsi_namazi',
     'hatim'
 ];
 
-const PROGRAM_NAME_MAP: Record<string, string> = {
-    "sabah namazi": "sabah_namazi",
-    "oglen namazi": "oglen_namazi",
-    "ikindi namazi": "ikindi_namazi",
-    "aksam namazi": "aksam_namazi",
-    "yatsi namazi": "yatsi_namazi",
-    "hatim": "hatim"
-};
-
 const PROGRAM_TURKISH_MAP: Record<string, string> = {
-    "sabah namazi": "Sabah Namazı",
-    "oglen namazi": "Öğle Namazı",
-    "ikindi namazi": "İkindi Namazı",
-    "aksam namazi": "Akşam Namazı",
-    "yatsi namazi": "Yatsı Namazı",
+    "sabah_namazi": "Sabah Namazı",
+    "oglen_namazi": "Öğle Namazı",
+    "ikindi_namazi": "İkindi Namazı",
+    "aksam_namazi": "Akşam Namazı",
+    "yatsi_namazi": "Yatsı Namazı",
     "hatim": "Hatim"
 };
 
@@ -62,6 +48,11 @@ const CLASS_NAME_TURKISH_MAP: Record<string, string> = {
 };
 function getTurkishClassName(className: string) {
     return CLASS_NAME_TURKISH_MAP[className] || className;
+}
+
+// Helper to normalize program names
+function normalizeProgramName(name: string) {
+    return name.trim().toLowerCase().replace(/ /g, '_');
 }
 
 const Statistics = () => {
@@ -380,7 +371,7 @@ const Statistics = () => {
                             <option value="genel">Genel</option>
                             {allPrograms.map(p => (
                                 <option key={p} value={p}>
-                                    {p.replace(/_/g, ' ')}
+                                    {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')}
                                 </option>
                             ))}
                         </select>
