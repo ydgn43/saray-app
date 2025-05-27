@@ -4,7 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { authFetch } from '../utils/authFetch';
 
-const API = 'http://localhost:3001'; // Adjust to match your backend
+const API = 'http://192.168.50.76:3001'; // Adjust to match your backend
 
 type Entry = string;
 

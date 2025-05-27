@@ -21,7 +21,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const res = await authFetch('http://localhost:3001/auth/login', {
+            const res = await authFetch('http://192.168.50.76:3001/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
@@ -68,7 +68,7 @@ export default function Login() {
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <img src={logo} alt="User Icon" style={{ width: 60, height: 60, color: "#1863ae" }} className="mb-1" />
                 </div>
-                <h2 className="fw-bold mb-2 text-primary text-center">SarayApp Giriş</h2>
+                <h2 className="fw-bold mb-2 text-primary text-center">Efendim! Giriş</h2>
                 <form onSubmit={handleSubmit} autoComplete="on">
                     <motion.input
                         className="form-control mb-3"

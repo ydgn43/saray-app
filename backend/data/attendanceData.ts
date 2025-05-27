@@ -1,8 +1,6 @@
-import { Request, Response } from 'express';
 import AttendanceSequelize from '../data/models/Attendance';
 import StudentSequelize from '../data/models/Student';
 import { Attendance } from '../business/models/Attendance';
-import { AttendanceService } from '../business/services/attendanceService';
 import { Op } from 'sequelize';
 
 export default class AttendanceData {
@@ -69,6 +67,7 @@ export default class AttendanceData {
 
         return result;
     }
+
     public async getAttendanceByDateAndProgram(date: string, programName: string) {
         try {
             return await AttendanceSequelize.findAll({
@@ -76,10 +75,9 @@ export default class AttendanceData {
             });
         } catch (error) {
             console.error("Database error while fetching attendance:", error);
-            throw new Error("Database error"); // more accurate message
+            throw new Error("Database error");
         }
     }
-
 
     public async createAttendance(attendance: Attendance): Promise<void> {
         try {
@@ -91,6 +89,16 @@ export default class AttendanceData {
                 sebep: attendance.sebep || null,
             });
         } catch (error) {
+            // Add more specific error handling for foreign key constraint
+            if (
+                error &&
+                typeof error === 'object' &&
+                'name' in error &&
+                error.name === 'SequelizeForeignKeyConstraintError'
+            ) {
+                console.error('Foreign key constraint failed:', error);
+                throw new Error('Program adı veritabanında bulunamadı. Lütfen program adını kontrol edin.');
+            }
             console.error('Insert failed:', error);
             throw new Error('Could not create new attendance');
         }
@@ -111,8 +119,8 @@ export default class AttendanceData {
                     },
                 }
             );
-
-        } catch {
+        } catch (error) {
+            console.error('Update failed:', error);
             throw new Error('Could not update attendance');
         }
     }

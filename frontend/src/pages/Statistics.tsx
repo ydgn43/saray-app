@@ -26,13 +26,22 @@ function normalizeProgramName(name: string) {
 
 // Fixed program order
 const PROGRAM_ORDER = [
-    'sabah_namazi',
-    'oglen_namazi',
-    'ikindi_namazi',
-    'aksam_namazi',
-    'yatsi_namazi',
+    'sabah namazi',
+    'oglen namazi',
+    'ikindi namazi',
+    'aksam namazi',
+    'yatsi namazi',
     'hatim'
 ];
+
+const PROGRAM_NAME_MAP: Record<string, string> = {
+    "sabah namazi": "sabah_namazi",
+    "oglen namazi": "oglen_namazi",
+    "ikindi namazi": "ikindi_namazi",
+    "aksam namazi": "aksam_namazi",
+    "yatsi namazi": "yatsi_namazi",
+    "hatim": "hatim"
+};
 
 const Statistics = () => {
     const [selectedColor, setSelectedColor] = useState('');
@@ -116,7 +125,7 @@ const Statistics = () => {
         if (!startDate || !endDate) return;
         try {
             const res = await authFetch(
-                `http://localhost:3001/attendance/all?startDate=${startDate}&endDate=${endDate}`
+                `http://192.168.50.76:3001/attendance/all?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -134,7 +143,7 @@ const Statistics = () => {
         setLoading(true);
         try {
             const res = await authFetch(
-                `http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
+                `http://192.168.50.76:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -539,8 +548,8 @@ const Statistics = () => {
                                                 genel < 60
                                                     ? 'bg-danger text-white'
                                                     : genel < 80
-                                                    ? 'bg-warning text-dark'
-                                                    : 'bg-success text-white'
+                                                        ? 'bg-warning text-dark'
+                                                        : 'bg-success text-white'
                                             }>
                                                 {genel}%
                                             </td>
@@ -563,8 +572,8 @@ const Statistics = () => {
                                                 genel < 60
                                                     ? 'bg-danger text-white'
                                                     : genel < 80
-                                                    ? 'bg-warning text-dark'
-                                                    : 'bg-success text-white'
+                                                        ? 'bg-warning text-dark'
+                                                        : 'bg-success text-white'
                                             }>
                                                 {genel}%
                                             </td>

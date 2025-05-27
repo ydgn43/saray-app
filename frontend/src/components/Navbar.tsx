@@ -27,8 +27,8 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary flex-lg-column align-items-start px-3 py-3 position-lg-fixed top-0 bottom-0 start-0 shadow-sm z-3" style={{ width: '250px' }}>
       <Link className="navbar-brand d-flex align-items-center gap-2 mb-3" to="/">
-        <img src={logo} alt="SarayApp Logo" style={{ width: 40, height: 40 }} />
-        <span style={{ fontSize: 20 }}>SarayApp</span>
+        <img src={logo} alt="Efendim! Logo" style={{ width: 40, height: 40 }} />
+        <span style={{ fontSize: 20 }}>Efendim!</span>
       </Link>
 
       <button

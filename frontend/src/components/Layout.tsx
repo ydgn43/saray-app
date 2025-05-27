@@ -6,8 +6,8 @@ import { FaBars } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 
 const IconComponent = ({ icon: Icon }: { icon: IconType }) => {
-    const IconComponent = Icon as React.ComponentType<any>;
-    return <IconComponent size={20} />;
+  const IconComponent = Icon as React.ComponentType<any>;
+  return <IconComponent size={20} />;
 };
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -62,7 +62,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
           }}
         >
-          <span style={{ fontWeight: 600, fontSize: 20 }}>SarayApp</span>
+          <span style={{ fontWeight: 600, fontSize: 20 }}>Efendim!</span>
           <button
             className="btn btn-outline-light"
             style={{ border: 'none', boxShadow: 'none' }}

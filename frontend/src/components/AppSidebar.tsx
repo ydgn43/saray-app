@@ -2,10 +2,11 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
+import { useAuth } from '../auth/AuthContext'; // <-- Add this import
 
 const APP_VERSION = packageJson.version;
 
@@ -24,6 +25,7 @@ const IconComponent = ({ icon: Icon }: { icon: IconType }) => {
 
 const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode }) => {
     const location = useLocation();
+    const { logout } = useAuth(); // <-- Use the logout function
 
     return (
         <Sidebar
@@ -57,8 +59,8 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                 borderBottom: '1px solid #e5e5e5',
                 minHeight: 64,
             }}>
-                <img src={logo} alt="SarayApp Logo" style={{ width: 36, height: 36 }} />
-                <span style={{ fontWeight: 700, fontSize: 20, color: '#0d6efd' }}>SarayApp</span>
+                <img src={logo} alt="Efendim Logo" style={{ width: 36, height: 36 }} />
+                <span style={{ fontWeight: 700, fontSize: 20, color: '#0d6efd' }}>Efendim!</span>
             </div>
 
             {/* Menu */}
@@ -103,6 +105,17 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                         onClick={onToggle}
                     >
                         Ayarlar
+                    </MenuItem>
+                    {/* --- Logout Button --- */}
+                    <MenuItem
+                        icon={<IconComponent icon={FaSignOutAlt} />}
+                        onClick={() => {
+                            logout();
+                            onToggle();
+                        }}
+                        style={{ color: '#dc3545', marginTop: 16 }}
+                    >
+                        Çıkış Yap
                     </MenuItem>
                 </Menu>
             </div>

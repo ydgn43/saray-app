@@ -12,6 +12,7 @@ type AuthContextType = {
     login: (user: UserType, token: string) => void;
     logout: () => void;
     loading: boolean;
+    setUser: (user: UserType | null) => void; // <-- Add this
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
     login: () => { },
     logout: () => { },
     loading: true,
+    setUser: () => { }, // <-- Add this
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading, setUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,7 +1,7 @@
 // Load users from the database
 async function loadUsers() {
   try {
-    const response = await fetch('http://localhost:3001/student'); // Update with the correct endpoint
+    const response = await fetch('http://192.168.50.76:3001/student'); // Update with the correct endpoint
     const users = await response.json();
     return users;
   } catch (error) {
@@ -14,13 +14,13 @@ async function loadUsers() {
 async function createOrUpdateAttendance(studentId, date, programName, attendanceType, sebep = null) {
   try {
     // First, check if the attendance record already exists using GET request with query parameters
-    const checkResponse = await fetch(`http://localhost:3001/attendance?studentid=${studentId}&date=${date}&program_name=${programName}`);
+    const checkResponse = await fetch(`http://192.168.50.76:3001/attendance?studentid=${studentId}&date=${date}&program_name=${programName}`);
 
     if (checkResponse.ok) {
       const attendanceData = await checkResponse.json();
       if (attendanceData) {
         // If attendance record exists, update it
-        await fetch('http://localhost:3001/attendance/put', {
+        await fetch('http://192.168.50.76:3001/attendance/put', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ async function createOrUpdateAttendance(studentId, date, programName, attendance
         console.log('Attendance updated successfully');
       } else {
         // If attendance record does not exist, create it
-        await fetch('http://localhost:3001/attendance/create', {
+        await fetch('http://192.168.50.76:3001/attendance/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -209,7 +209,7 @@ document.getElementById('attendanceFilterForm').addEventListener('submit', async
     document.getElementById('createAttendanceButton').style.display = 'none';
 
     // Check if attendance data exists for the selected date and program
-    const response = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+    const response = await fetch(`http://192.168.50.76:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
     const attendanceData = await response.json();
 
     // If attendance data exists, update the existing user table
@@ -246,7 +246,7 @@ document.getElementById('createAttendanceButton').addEventListener('click', asyn
     }));
 
     // Send new attendance data to the server using the '/create' endpoint
-    await fetch('http://localhost:3001/attendance/create', {
+    await fetch('http://192.168.50.76:3001/attendance/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

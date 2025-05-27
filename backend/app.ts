@@ -22,7 +22,7 @@ const port = process.env.PORT_HTTP
 
 const allowedOrigins = [
     "http://localhost:3000",
-    "http://localhost:3000" // your PC's IP and React port
+    "http://192.168.50.76:3000" // your PC's IP and React port
 ];
 
 app.options('*', cors({ origin: allowedOrigins, credentials: true }));

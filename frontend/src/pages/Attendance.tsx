@@ -10,14 +10,37 @@ import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 
 const PROGRAM_OPTIONS = [
-  'sabah_namazi', 'oglen_namazi', 'ikindi_namazi', 'aksam_namazi', 'yatsi_namazi', 'hatim'
+  'sabah namazi', 'oglen namazi', 'ikindi namazi', 'aksam namazi', 'yatsi namazi', 'hatim'
 ];
+
+// Map user-friendly names to DB values
+const PROGRAM_NAME_MAP: Record<string, string> = {
+  "sabah namazi": "sabah_namazi",
+  "oglen namazi": "oglen_namazi",
+  "ikindi namazi": "ikindi_namazi",
+  "aksam namazi": "aksam_namazi",
+  "yatsi namazi": "yatsi_namazi",
+  "hatim": "hatim"
+};
 
 const normalizeClassName = (str: string) => {
   let out = str.trim().toLowerCase().replace(/ /g, '_');
   if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
   return out;
 };
+
+// Defensive normalization for Turkish chars
+function normalizeProgramName(str: string) {
+  return str
+    .toLowerCase()
+    .replace(/ /g, ' ')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ç/g, 'c');
+}
 
 const fetchJson = async (url: string, options = {}) => {
   const res = await authFetch(url, options);
@@ -39,13 +62,12 @@ const Attendance = () => {
     const savedProgram = localStorage.getItem('attendance-program');
     if (savedDate) setDate(savedDate);
     if (savedProgram) {
-      const normalizedProgram = savedProgram.trim().toLowerCase().replace(/ /g, '_');
-      setProgram(normalizedProgram);
+      setProgram(savedProgram);
     }
   }, []);
 
   useEffect(() => {
-    fetchJson('http://localhost:3001/student')
+    fetchJson('http://192.168.50.76:3001/student')
       .then(setStudents)
       .catch(() => toast.error('Talebeler alınamadı'));
   }, []);
@@ -53,8 +75,7 @@ const Attendance = () => {
   useEffect(() => localStorage.setItem('attendance-date', date), [date]);
   useEffect(() => {
     if (program) {
-      const normalizedProgram = program.trim().toLowerCase().replace(/ /g, '_');
-      localStorage.setItem('attendance-program', normalizedProgram);
+      localStorage.setItem('attendance-program', program);
     }
   }, [program]);
 
@@ -69,7 +90,8 @@ const Attendance = () => {
     setShowCreateButton(false);
 
     try {
-      const res = await authFetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
+      const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
+      const res = await authFetch(`http://192.168.50.76:3001/attendance/dailyprogram?date=${date}&program_name=${apiProgramName}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -100,15 +122,16 @@ const Attendance = () => {
       return;
     }
 
+    const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
     const payload = students.map(s => ({
       studentid: s.studentid,
       date,
-      program_name: program,
+      program_name: apiProgramName,
       attendance_type_name: 'yok',
     }));
 
     try {
-      await authFetch('http://localhost:3001/attendance/create', {
+      await authFetch('http://192.168.50.76:3001/attendance/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -129,19 +152,20 @@ const Attendance = () => {
     sebep: string | null = null
   ) => {
     try {
+      const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
       // Determine POST vs PUT as in your API logic
-      const checkUrl = `http://localhost:3001/attendance?studentid=${studentid}&date=${date}&program_name=${program}`;
+      const checkUrl = `http://192.168.50.76:3001/attendance?studentid=${studentid}&date=${date}&program_name=${apiProgramName}`;
       const checkRes = await authFetch(checkUrl);
       const record = await checkRes.json();
       const method = checkRes.ok && record ? 'PUT' : 'POST';
       const url = method === 'PUT'
-        ? 'http://localhost:3001/attendance/put'
-        : 'http://localhost:3001/attendance/create';
+        ? 'http://192.168.50.76:3001/attendance/put'
+        : 'http://192.168.50.76:3001/attendance/create';
 
       const body = {
         studentid,
         date,
-        program_name: program,
+        program_name: apiProgramName,
         attendance_type_name,
         sebep,
       };
@@ -160,7 +184,7 @@ const Attendance = () => {
               ? { ...a, attendance_type_name, sebep }
               : a
           )
-          : [...prev, { studentid, date, program_name: program, attendance_type_name, sebep }]
+          : [...prev, { studentid, date, program_name: apiProgramName, attendance_type_name, sebep }]
       );
 
     } catch (err) {
@@ -259,7 +283,7 @@ const Attendance = () => {
     // Add program and date at the top (optional, but nice)
     let header = '';
     if (date) header += `📅 Tarih: ${date}\n`;
-    if (program) header += `🕌 Program: ${program}\n`;
+    if (program) header += `🕌 Program: ${normalizeProgramName(PROGRAM_NAME_MAP[program] || program)}\n`;
     header += '\n';
 
     const fullMsg = header + msg.trim();
@@ -279,119 +303,119 @@ const Attendance = () => {
 
 
   return (
-    
-      <div className="container">
-        <ToastContainer />
-        <h1 className="mb-4">Günlük Yoklama</h1>
 
-        <div className="card p-4 shadow-sm mb-4">
-          <div className="row g-3">
-            <div className="col-md-4">
-              <label className="form-label">Tarih</label>
-              <input
-                type="date"
-                className="form-control"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Program</label>
-              <select
-                className="form-select"
-                value={program}
-                onChange={(e) => setProgram(e.target.value)}
-              >
-                <option value="">Program Seçin</option>
-                {PROGRAM_OPTIONS.map((p) => (
-                  <option key={p} value={p}>
-                    {p[0].toUpperCase() + p.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-4 d-flex align-items-end">
-              <button
-                className="btn btn-primary w-100"
-                onClick={() => loadAttendanceData()}
-                disabled={!date || !program || loading}
-              >
-                {loading ? 'Yükleniyor...' : 'Göster'}
-              </button>
-            </div>
+    <div className="container">
+      <ToastContainer />
+      <h1 className="mb-4">Günlük Yoklama</h1>
+
+      <div className="card p-4 shadow-sm mb-4">
+        <div className="row g-3">
+          <div className="col-md-4">
+            <label className="form-label">Tarih</label>
+            <input
+              type="date"
+              className="form-control"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">Program</label>
+            <select
+              className="form-select"
+              value={program}
+              onChange={(e) => setProgram(e.target.value)}
+            >
+              <option value="">Program Seçin</option>
+              {PROGRAM_OPTIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p[0].toUpperCase() + p.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-4 d-flex align-items-end">
+            <button
+              className="btn btn-primary w-100"
+              onClick={() => loadAttendanceData()}
+              disabled={!date || !program || loading}
+            >
+              {loading ? 'Yükleniyor...' : 'Göster'}
+            </button>
           </div>
         </div>
+      </div>
 
+      <AnimatePresence>
+        {showCreateButton && (
+          <div className="mb-3">
+            <button className="btn btn-success" onClick={handleCreateAttendance}>
+              Yeni Yoklama Oluştur
+            </button>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <button className="btn btn-success mb-3" onClick={handleShareAbsentees}>
+        Yoklama Bilgisini Paylaş
+      </button>
+
+      <div className="mb-3" style={{ position: 'relative', minHeight: 240 }}>
+        {/* Overlay Spinner with animation */}
         <AnimatePresence>
-          {showCreateButton && (
-            <div className="mb-3">
-              <button className="btn btn-success" onClick={handleCreateAttendance}>
-                Yeni Yoklama Oluştur
-              </button>
-            </div>
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(255,255,255,0.72)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 5,
+                borderRadius: '8px'
+              }}
+            >
+              <div className="spinner-border text-primary" role="status" style={{ width: 48, height: 48 }}>
+                <span className="visually-hidden">Yükleniyor...</span>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
 
-        <button className="btn btn-success mb-3" onClick={handleShareAbsentees}>
-          Yoklama Bilgisini Paylaş
-        </button>
-
-        <div className="mb-3" style={{ position: 'relative', minHeight: 240 }}>
-          {/* Overlay Spinner with animation */}
-          <AnimatePresence>
-            {loading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                style={{
-                  position: 'absolute',
-                  top: 0, left: 0, right: 0, bottom: 0,
-                  background: 'rgba(255,255,255,0.72)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  zIndex: 5,
-                  borderRadius: '8px'
-                }}
-              >
-                <div className="spinner-border text-primary" role="status" style={{ width: 48, height: 48 }}>
-                  <span className="visually-hidden">Yükleniyor...</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <h5>Talebe Sayısı: {filteredStudents.length}</h5>
-          {attendanceData.length > 0 ? (
-            <AttendanceResponsiveView
-              students={filteredStudents}
-              attendanceData={attendanceData}
-              date={date}
-              program={program}
-              onUpdateAttendance={handleUpdateAttendance}
-              onUpdateSebep={handleUpdateSebep}
-              showCreateButton={showCreateButton}
-              onCreate={handleCreateAttendance}
-            />
-          ) : (
-            !loading && !showCreateButton && (
-              <div className="alert alert-info text-center mt-3">Veri bulunamadı.</div>
-            )
-          )}
-
-          <FilterToolbar
-            onFilterChange={(className) =>
-              setSelectedClasses(prev =>
-                prev.includes(className)
-                  ? prev.filter(c => c !== className)
-                  : [...prev, className]
-              )
-            }
-            selectedFilters={selectedClasses}
-            classNames={[...new Set(students.map(s => s.class_name))]}
+        <h5>Talebe Sayısı: {filteredStudents.length}</h5>
+        {attendanceData.length > 0 ? (
+          <AttendanceResponsiveView
+            students={filteredStudents}
+            attendanceData={attendanceData}
+            date={date}
+            program={normalizeProgramName(PROGRAM_NAME_MAP[program] || program)}
+            onUpdateAttendance={handleUpdateAttendance}
+            onUpdateSebep={handleUpdateSebep}
+            showCreateButton={showCreateButton}
+            onCreate={handleCreateAttendance}
           />
-          <BackToTopButton />
-        </div>
+        ) : (
+          !loading && !showCreateButton && (
+            <div className="alert alert-info text-center mt-3">Veri bulunamadı.</div>
+          )
+        )}
+
+        <FilterToolbar
+          onFilterChange={(className) =>
+            setSelectedClasses(prev =>
+              prev.includes(className)
+                ? prev.filter(c => c !== className)
+                : [...prev, className]
+            )
+          }
+          selectedFilters={selectedClasses}
+          classNames={[...new Set(students.map(s => s.class_name))]}
+        />
+        <BackToTopButton />
       </div>
+    </div>
 
   );
 };
