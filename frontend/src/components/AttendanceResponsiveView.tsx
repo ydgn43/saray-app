@@ -14,6 +14,7 @@ interface Props {
   onUpdateSebep?: (studentId: number, type: string, sebep: string) => void;
   showCreateButton: boolean;
   onCreate: () => void;
+  fetchAttendanceData: () => void; // <-- add this
 }
 
 const AttendanceResponsiveView: React.FC<Props> = ({
@@ -25,6 +26,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
   onUpdateSebep,
   showCreateButton,
   onCreate,
+  fetchAttendanceData,
 }) => {
   const isMobile = useIsMobile();
   const [useRowView, setUseRowView] = useState(false);
@@ -71,6 +73,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               date={date}
               program={program}
               onUpdateAttendance={onUpdateAttendance as any}
+              fetchAttendanceData={fetchAttendanceData} // <-- add this
             />
           ) : (
             <AttendanceCardList

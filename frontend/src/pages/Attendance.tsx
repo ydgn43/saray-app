@@ -390,11 +390,11 @@ const Attendance = () => {
             students={filteredStudents}
             attendanceData={attendanceData}
             date={date}
-            program={normalizeProgramName(PROGRAM_NAME_MAP[program] || program)}
+            program={program}
             onUpdateAttendance={handleUpdateAttendance}
-            onUpdateSebep={handleUpdateSebep}
             showCreateButton={showCreateButton}
             onCreate={handleCreateAttendance}
+            fetchAttendanceData={loadAttendanceData}
           />
         ) : (
           !loading && !showCreateButton && (

@@ -23,6 +23,7 @@ interface Props {
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
+  fetchAttendanceData: () => void; // <-- add this
 }
 
 const attendanceLabels: Record<AttendanceType, string> = {
@@ -37,7 +38,10 @@ const sebepOptions = ['Banyo', 'Hasta', 'Rahatsiz', 'Okul'];
 const AttendanceRowList: React.FC<Props> = ({
   students,
   attendanceData,
+  date,
+  program,
   onUpdateAttendance,
+  fetchAttendanceData, // <-- add this
 }) => {
   const [sebepDrafts, setSebepDrafts] = useState<Record<number, string>>({});
   const [recentlyUpdated, setRecentlyUpdated] = useState<Record<number, boolean>>({});
@@ -89,6 +93,31 @@ const AttendanceRowList: React.FC<Props> = ({
     return a.last_name.localeCompare(b.last_name);
   });
 
+  // After creating new attendance date:
+  const handleCreateAttendance = async () => {
+    // ...your logic to create the attendance date...
+
+    // Now, for each student, send a "yok" record
+    await Promise.all(
+      students.map(student =>
+        fetch('/api/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentid: student.studentid,
+            date,
+            program,
+            attendance_type_name: 'yok',
+            sebep: ''
+          })
+        })
+      )
+    );
+
+    // Then refresh attendanceData from backend
+    fetchAttendanceData();
+  };
+
   return (
     <div className="d-flex flex-column gap-3">
       {sortedStudents.map((student) => {
@@ -111,8 +140,8 @@ const AttendanceRowList: React.FC<Props> = ({
                   <button
                     key={type}
                     className={`btn btn-sm ${current === type
-                        ? `btn-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} text-white fw-bold`
-                        : `btn-outline-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} fw-bold`
+                      ? `btn-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} text-white fw-bold`
+                      : `btn-outline-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} fw-bold`
                       }`}
                     onClick={() => handleTypeChange(student.studentid, type)}
                     style={{ width: 26, height: 26, padding: 0 }}
