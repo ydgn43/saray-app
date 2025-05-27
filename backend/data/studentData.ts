@@ -52,8 +52,13 @@ export class StudentData {
             } else {
                 return "Student already exists";
             }
-        } catch (error) {
-            console.error('StudentSequelize findOrCreate failed:', error);
+        } catch (error: any) {
+            if (
+                error.name === 'SequelizeForeignKeyConstraintError' &&
+                error.parent?.sqlMessage?.includes('season')
+            ) {
+                throw new Error("Seçilen sezon mevcut değil. Lütfen önce sezonu ekleyin.");
+            }
             throw new Error("Could not create new student");
         }
     }

@@ -134,7 +134,11 @@ const Talebeler = () => {
                 }),
             });
 
-            if (!res.ok) throw new Error('Ekleme başarısız');
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.message || 'Ekleme başarısız');
+                return;
+            }
             toast.success('Talebe başarıyla eklendi');
 
             setFirstName('');
@@ -146,7 +150,6 @@ const Talebeler = () => {
             loadStudents();
             setShowAddModal(false);
         } catch (err) {
-            console.error(err);
             toast.error('Talebe eklenirken hata oluştu');
         } finally {
             setAdding(false);
