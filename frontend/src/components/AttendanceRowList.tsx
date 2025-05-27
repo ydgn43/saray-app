@@ -2,6 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Student, Attendance } from '../types';
 import { classGroupedColors } from '../constants';
 
+const CLASS_ORDER = [
+  'kuranikerim',
+  'hazirlik',
+  'ibtidai',
+  'ihzari',
+  'tekamulalti',
+  'mezuntekamulalti',
+];
+
+function normalizeClassName(name: string) {
+  return name.replace(/\s+/g, '').toLowerCase();
+}
+
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 
 interface Props {
@@ -59,10 +72,26 @@ const AttendanceRowList: React.FC<Props> = ({
     return classGroupedColors[key] || '#dee2e6';
   };
 
+  // Sort students by class order, then by name
+  const sortedStudents = [...students].sort((a, b) => {
+    const aClass = normalizeClassName(a.class_name);
+    const bClass = normalizeClassName(b.class_name);
+    const aIdx = CLASS_ORDER.indexOf(aClass);
+    const bIdx = CLASS_ORDER.indexOf(bClass);
+    if (aIdx !== bIdx) {
+      // Classes not found in the order will be at the end
+      if (aIdx === -1) return 1;
+      if (bIdx === -1) return -1;
+      return aIdx - bIdx;
+    }
+    // If same class, sort by first name then last name
+    if (a.first_name !== b.first_name) return a.first_name.localeCompare(b.first_name);
+    return a.last_name.localeCompare(b.last_name);
+  });
+
   return (
     <div className="d-flex flex-column gap-3">
-
-      {students.map((student) => {
+      {sortedStudents.map((student) => {
         const current = getAttendanceType(student.studentid);
         const sebep = sebepDrafts[student.studentid] ?? '';
         const recently = recentlyUpdated[student.studentid];
@@ -81,11 +110,10 @@ const AttendanceRowList: React.FC<Props> = ({
                 {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
                   <button
                     key={type}
-                    className={`btn btn-sm ${
-                      current === type
+                    className={`btn btn-sm ${current === type
                         ? `btn-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} text-white fw-bold`
                         : `btn-outline-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} fw-bold`
-                    }`}
+                      }`}
                     onClick={() => handleTypeChange(student.studentid, type)}
                     style={{ width: 26, height: 26, padding: 0 }}
                     title={type}
@@ -104,10 +132,10 @@ const AttendanceRowList: React.FC<Props> = ({
                     sebepOptions.includes(sebep)
                       ? sebep
                       : sebep === '__custom__'
-                      ? '__custom__'
-                      : sebep !== ''
-                      ? sebep
-                      : ''
+                        ? '__custom__'
+                        : sebep !== ''
+                          ? sebep
+                          : ''
                   }
                   onChange={(e) => {
                     const val = e.target.value;
