@@ -49,7 +49,11 @@ export class StudentController {
             res.status(202).json({ message: createdResponse });
         } catch (error) {
             console.error('Error creating student:', error);
-            res.status(404).end();
+            if (error instanceof Error) {
+                res.status(400).json({ message: error.message });
+            } else {
+                res.status(400).json({ message: 'Unknown error' });
+            }
         }
     }
 
