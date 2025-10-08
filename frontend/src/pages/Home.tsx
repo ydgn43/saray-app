@@ -14,26 +14,26 @@ const Home = () => {
 
   useEffect(() => {
     // Toplam talebe
-    authFetch('http://192.168.50.76:3001/student')
+    authFetch('http://localhost:3001/student')
       .then(res => res.json())
       .then(data => setStudentCount(data.length))
       .catch(() => setStudentCount(null));
 
     // Toplam sınıf
-    authFetch('http://192.168.50.76:3001/class')
+    authFetch('http://localhost:3001/class')
       .then(res => res.json())
       .then(data => setClassCount(data.length))
       .catch(() => setClassCount(null));
 
     // Toplam program
-    authFetch('http://192.168.50.76:3001/program')
+    authFetch('http://localhost:3001/program')
       .then(res => res.json())
       .then(data => setProgramCount(data.length))
       .catch(() => setProgramCount(null));
 
     // Bugünkü yoklama (sabah)
     const today = new Date().toISOString().slice(0, 10);
-    authFetch(`http://192.168.50.76:3001/attendance/dailyprogram?date=${today}&program_name=sabah_namazi`)
+    authFetch(`http://localhost:3001/attendance/dailyprogram?date=${today}&program_name=sabah_namazi`)
       .then(res => res.json())
       .then(data => {
         setAttendanceCount(Array.isArray(data) ? data.length : 0);
@@ -58,7 +58,7 @@ const Home = () => {
     const endDate = end.toISOString().slice(0, 10);
 
     // Fetch statistics for current month
-    authFetch(`http://192.168.50.76:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`)
+    authFetch(`http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`)
       .then(res => res.json())
       .then(data => {
         // Sort by "var" percentage descending and take top 5

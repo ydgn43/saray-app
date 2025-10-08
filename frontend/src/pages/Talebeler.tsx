@@ -65,7 +65,7 @@ const Talebeler = () => {
     const loadStudents = async () => {
         setLoading(true);
         try {
-            const res = await authFetch('http://192.168.50.76:3001/student');
+            const res = await authFetch('http://localhost:3001/student');
             const data = await res.json();
             setStudents(data);
         } catch (err) {
@@ -96,7 +96,7 @@ const Talebeler = () => {
 
         const performDelete = async (id: number) => {
             try {
-                const res = await authFetch(`http://192.168.50.76:3001/student/delete?studentid=${id}`, {
+                const res = await authFetch(`http://localhost:3001/student/delete?studentid=${id}`, {
                     method: 'DELETE',
                 });
 
@@ -122,7 +122,7 @@ const Talebeler = () => {
     const performAddStudent = async () => {
         setAdding(true);
         try {
-            const res = await authFetch('http://192.168.50.76:3001/student/create', {
+            const res = await authFetch('http://localhost:3001/student/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -453,7 +453,7 @@ const Talebeler = () => {
                     >
                         <div className="modal-dialog">
                             <div className="modal-content">
-                                <form onSubmit={(e) => { e.preventDefault(); setShowEditModal(false); confirmAlert({ title: 'Düzenleme Onayı', message: 'Talebe bilgilerini güncellemek istiyor musunuz?', buttons: [{ label: 'Evet', onClick: async () => { try { const res = await authFetch('http://192.168.50.76:3001/student', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingStudent), }); if (!res.ok) throw new Error(); toast.success("Talebe bilgileri güncellendi"); setEditingStudent(null); loadStudents(); } catch { toast.error("Güncelleme başarısız"); } }, }, { label: 'Hayır', onClick: () => setShowEditModal(true) }] }); }}>
+                                <form onSubmit={(e) => { e.preventDefault(); setShowEditModal(false); confirmAlert({ title: 'Düzenleme Onayı', message: 'Talebe bilgilerini güncellemek istiyor musunuz?', buttons: [{ label: 'Evet', onClick: async () => { try { const res = await authFetch('http://localhost:3001/student', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingStudent), }); if (!res.ok) throw new Error(); toast.success("Talebe bilgileri güncellendi"); setEditingStudent(null); loadStudents(); } catch { toast.error("Güncelleme başarısız"); } }, }, { label: 'Hayır', onClick: () => setShowEditModal(true) }] }); }}>
                                     <div className="modal-header">
                                         <h5 className="modal-title">Talebe Bilgilerini Güncelle</h5>
                                         <button

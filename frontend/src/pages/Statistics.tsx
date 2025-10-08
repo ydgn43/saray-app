@@ -137,7 +137,7 @@ const Statistics = () => {
         if (!startDate || !endDate) return;
         try {
             const res = await authFetch(
-                `http://192.168.50.76:3001/attendance/all?startDate=${startDate}&endDate=${endDate}`
+                `http://localhost:3001/attendance/all?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -155,7 +155,7 @@ const Statistics = () => {
         setLoading(true);
         try {
             const res = await authFetch(
-                `http://192.168.50.76:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
+                `http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
