@@ -33,7 +33,8 @@ export const login = async (req: Request, res: Response) => {
             user: { accountid: user.accountid, username: user.username, role: user.role_name }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error.' });
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : error });
     }
+
 };
