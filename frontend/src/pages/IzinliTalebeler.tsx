@@ -27,7 +27,7 @@ const IzinliTalebeler = () => {
     const shareBtnRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        authFetch('http://localhost:3001/student')
+        authFetch('http://192.168.50.238:3001/student')
             .then(res => res.json())
             .then(data => setStudents(Array.isArray(data) ? data : []));
     }, []);
@@ -43,7 +43,7 @@ const IzinliTalebeler = () => {
                 const allPrograms = PROGRAM_OPTIONS.filter(p => p.value !== 'tum_gun').map(p => p.value);
                 const izinliLists = await Promise.all(
                     allPrograms.map(async prog => {
-                        const res = await authFetch(`http://localhost:3001/attendance/izinli?date=${date}&program_name=${prog}`);
+                        const res = await authFetch(`http://192.168.50.238:3001/attendance/izinli?date=${date}&program_name=${prog}`);
                         return res.json();
                     })
                 );
@@ -64,7 +64,7 @@ const IzinliTalebeler = () => {
                 });
                 setIzinliler(Array.isArray(izinliTalebeler) ? izinliTalebeler : []);
             } else {
-                const res = await authFetch(`http://localhost:3001/attendance/izinli?date=${date}&program_name=${program}`);
+                const res = await authFetch(`http://192.168.50.238:3001/attendance/izinli?date=${date}&program_name=${program}`);
                 const data = await res.json();
                 setIzinliler(Array.isArray(data) ? data : []);
             }
@@ -95,7 +95,7 @@ const IzinliTalebeler = () => {
                 await Promise.all(
                     selectedStudents.flatMap(studentid =>
                         allPrograms.map(prog =>
-                            authFetch('http://localhost:3001/attendance/create', {
+                            authFetch('http://192.168.50.238:3001/attendance/create', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -112,7 +112,7 @@ const IzinliTalebeler = () => {
             } else {
                 await Promise.all(
                     selectedStudents.map(studentid =>
-                        authFetch('http://localhost:3001/attendance/create', {
+                        authFetch('http://192.168.50.238:3001/attendance/create', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
