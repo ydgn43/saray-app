@@ -44,12 +44,7 @@ const AccountSettings = () => {
         setMessage(null);
 
         try {
-<<<<<<< HEAD
             const response = await fetch('https://api.efendim.nl/user/me', {
-=======
-            const response = await fetch('https://api.efendim.nl
-/user/me', {
->>>>>>> parent of f85c599 (changed to new api domain)
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -67,8 +67,7 @@ const Attendance = () => {
   }, []);
 
   useEffect(() => {
-    fetchJson('https://api.efendim.nl
-      / student')
+    fetchJson('https://api.efendim.nl/student')
         .then(setStudents)
         .catch(() => toast.error('Talebeler alınamadı'));
   }, []);
@@ -133,8 +132,7 @@ const Attendance = () => {
     }));
 
     try {
-      await authFetch('https://api.efendim.nl
-        / attendance / create', {
+      await authFetch('https://api.efendim.nl/attendance/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -163,10 +161,8 @@ const handleUpdateAttendance = async (
     const record = await checkRes.json();
     const method = checkRes.ok && record ? 'PUT' : 'POST';
     const url = method === 'PUT'
-      ? 'https://api.efendim.nl
-      / attendance / put'
-        : 'https://api.efendim.nl
-  / attendance / create';
+      ? 'https://api.efendim.nl/attendance/put'
+        : 'https://api.efendim.nl/attendance/create';
 
 const body = {
   studentid,

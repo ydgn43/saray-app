@@ -21,8 +21,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const res = await authFetch('https://api.efendim.nl
-                / auth / login', {
+            const res = await authFetch('https://api.efendim.nl/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),

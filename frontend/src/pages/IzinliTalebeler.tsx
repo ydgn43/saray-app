@@ -27,8 +27,7 @@ const IzinliTalebeler = () => {
     const shareBtnRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        authFetch('https://api.efendim.nl
-            / student')
+        authFetch('https://api.efendim.nl/student')
                 .then(res => res.json())
                 .then(data => setStudents(Array.isArray(data) ? data : []));
     }, []);
@@ -98,8 +97,7 @@ const IzinliTalebeler = () => {
                 await Promise.all(
                     selectedStudents.flatMap(studentid =>
                         allPrograms.map(prog =>
-                            authFetch('https://api.efendim.nl
-                                / attendance / create', {
+                            authFetch('https://api.efendim.nl/attendance/create', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -116,8 +114,7 @@ const IzinliTalebeler = () => {
             } else {
     await Promise.all(
         selectedStudents.map(studentid =>
-            authFetch('https://api.efendim.nl
-                / attendance / create', {
+            authFetch('https://api.efendim.nl/attendance/create', {
                             method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
