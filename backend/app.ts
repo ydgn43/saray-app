@@ -22,18 +22,24 @@ const port = process.env.PORT_HTTP
 
 const allowedOrigins = [
     "http://localhost:3000",
-    "http://localhost:3000" // your PC's IP and React port
+    "https://app.efendim.nl"   // ✅ add your production frontend domain
 ];
 
 app.options('*', cors({ origin: allowedOrigins, credentials: true }));
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin) return callback(null, true); // Allow REST tools like Postman/cURL
+        // allow REST tools like Postman or same-origin (no Origin header)
+        if (!origin) return callback(null, true);
+
         if (allowedOrigins.includes(origin)) return callback(null, true);
+
         return callback(new Error('CORS not allowed for ' + origin), false);
     },
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 
 app.use(express.json()); // parsing JSON
 
