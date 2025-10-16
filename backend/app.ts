@@ -15,36 +15,40 @@ import { classRouter } from './routes/classRoute';
 const app = express();
 const port = process.env.PORT_HTTP || 3001;
 
-// ✅ allow both local dev and production via Cloudflare
+// Define the whitelist of allowed frontend origins
 const allowedOrigins = [
-    'http://localhost:3000',
-    'https://app.efendim.nl'
+    'http://localhost:3000', // Local development environment
+    'https://app.efendim.nl'  // Production frontend via Cloudflare
 ];
 
+// 1. CORS Middleware (Handles all CORS headers, including OPTIONS/Preflight)
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin) return callback(null, true); // allow Postman/curl
-        if (allowedOrigins.includes(origin)) return callback(null, true);
+        // Allow requests with no origin (like Postman, curl, or mobile apps)
+        if (!origin) return callback(null, true);
+
+        // Check if the requesting origin is in the allowed list
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // Block all other origins
         return callback(new Error('CORS not allowed for ' + origin), false);
     },
+    // Allows credentials (cookies, auth headers) to be sent cross-origin
     credentials: true,
+    // Explicitly allow all necessary methods
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    // Explicitly allow all necessary headers
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// ✅ add this explicit handler BEFORE routes
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', 'https://app.efendim.nl');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.sendStatus(204);
-});
-
-
+// ⛔️ REMOVED THE app.options('*') BLOCK HERE! 
+// The 'cors' middleware above handles preflight requests correctly.
 
 app.use(express.json());
 
-// ✅ routes go AFTER CORS
+// 2. Routes go AFTER the CORS middleware
 app.use('/student', studentRouter);
 app.use('/attendance', attendanceRouter);
 app.use('/user', userRouter);
