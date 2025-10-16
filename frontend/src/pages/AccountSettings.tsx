@@ -44,170 +44,171 @@ const AccountSettings = () => {
         setMessage(null);
 
         try {
-            const response = await fetch('http://localhost:3001/user/me', {
+            const response = await fetch('https://api.efendim.nl
+                / user / me', {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
                 body: JSON.stringify({
                     username: formData.username,
                     ...(formData.password && { password: formData.password })
                 })
             });
 
-            if (response.ok) {
-                setMessage({ type: 'success', text: 'Bilgileriniz başarıyla güncellendi.' });
-                setIsEditing(false);
-                if (setUser && user) {
-                    setUser({ ...user, username: formData.username });
-                }
-                setFormData(prev => ({ ...prev, password: '' }));
-            } else {
-                const error = await response.json();
-                setMessage({ type: 'error', text: error.message || 'Güncelleme başarısız oldu.' });
+        if (response.ok) {
+            setMessage({ type: 'success', text: 'Bilgileriniz başarıyla güncellendi.' });
+            setIsEditing(false);
+            if (setUser && user) {
+                setUser({ ...user, username: formData.username });
             }
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Bir hata oluştu. Lütfen tekrar deneyin.' });
-        } finally {
-            setIsLoading(false);
+            setFormData(prev => ({ ...prev, password: '' }));
+        } else {
+            const error = await response.json();
+            setMessage({ type: 'error', text: error.message || 'Güncelleme başarısız oldu.' });
         }
-    };
+    } catch (error) {
+        setMessage({ type: 'error', text: 'Bir hata oluştu. Lütfen tekrar deneyin.' });
+    } finally {
+        setIsLoading(false);
+    }
+};
 
-    const handleCancel = () => {
-        setIsEditing(false);
-        setFormData(prev => ({
-            username: user?.username || '',
-            password: ''
-        }));
-        setMessage(null);
-    };
+const handleCancel = () => {
+    setIsEditing(false);
+    setFormData(prev => ({
+        username: user?.username || '',
+        password: ''
+    }));
+    setMessage(null);
+};
 
-    return (
-        <div className="container py-5">
-            <div className="row justify-content-center">
-                <div className="col-12 col-md-8 col-lg-6">
-                    <div className="card shadow-sm border-0">
-                        {/* Header */}
-                        <div className="card-header bg-primary text-white py-3">
-                            <h4 className="mb-0 text-center">
-                                <IconComponent icon={FaUser} className="me-2" />
-                                Hesap Ayarları
-                            </h4>
-                        </div>
+return (
+    <div className="container py-5">
+        <div className="row justify-content-center">
+            <div className="col-12 col-md-8 col-lg-6">
+                <div className="card shadow-sm border-0">
+                    {/* Header */}
+                    <div className="card-header bg-primary text-white py-3">
+                        <h4 className="mb-0 text-center">
+                            <IconComponent icon={FaUser} className="me-2" />
+                            Hesap Ayarları
+                        </h4>
+                    </div>
 
-                        {/* Body */}
-                        <div className="card-body p-4">
-                            {message && (
-                                <div className={`alert alert-${message.type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`}>
-                                    {message.text}
-                                    <button type="button" className="btn-close" onClick={() => setMessage(null)}></button>
-                                </div>
-                            )}
+                    {/* Body */}
+                    <div className="card-body p-4">
+                        {message && (
+                            <div className={`alert alert-${message.type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`}>
+                                {message.text}
+                                <button type="button" className="btn-close" onClick={() => setMessage(null)}></button>
+                            </div>
+                        )}
 
-                            <form onSubmit={handleSubmit}>
-                                {/* Username Field */}
-                                <div className="mb-4">
-                                    <label className="form-label fw-bold">
-                                        <IconComponent icon={FaUser} className="me-2 text-primary" />
-                                        Kullanıcı Adı
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="username"
-                                        className="form-control form-control-lg"
-                                        value={formData.username}
-                                        onChange={handleInputChange}
-                                        disabled={!isEditing || isLoading}
-                                        required
-                                    />
-                                </div>
+                        <form onSubmit={handleSubmit}>
+                            {/* Username Field */}
+                            <div className="mb-4">
+                                <label className="form-label fw-bold">
+                                    <IconComponent icon={FaUser} className="me-2 text-primary" />
+                                    Kullanıcı Adı
+                                </label>
+                                <input
+                                    type="text"
+                                    name="username"
+                                    className="form-control form-control-lg"
+                                    value={formData.username}
+                                    onChange={handleInputChange}
+                                    disabled={!isEditing || isLoading}
+                                    required
+                                />
+                            </div>
 
-                                {/* Password Field */}
-                                <div className="mb-4">
-                                    <label className="form-label fw-bold">
-                                        <IconComponent icon={FaKey} className="me-2 text-primary" />
-                                        Yeni Şifre
-                                    </label>
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        className="form-control form-control-lg"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        disabled={!isEditing || isLoading}
-                                        placeholder={isEditing ? 'Yeni şifrenizi girin' : '••••••••'}
-                                    />
-                                    {isEditing && (
-                                        <small className="form-text text-muted">
-                                            Şifrenizi değiştirmek istemiyorsanız boş bırakın.
-                                        </small>
-                                    )}
-                                </div>
+                            {/* Password Field */}
+                            <div className="mb-4">
+                                <label className="form-label fw-bold">
+                                    <IconComponent icon={FaKey} className="me-2 text-primary" />
+                                    Yeni Şifre
+                                </label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    className="form-control form-control-lg"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    disabled={!isEditing || isLoading}
+                                    placeholder={isEditing ? 'Yeni şifrenizi girin' : '••••••••'}
+                                />
+                                {isEditing && (
+                                    <small className="form-text text-muted">
+                                        Şifrenizi değiştirmek istemiyorsanız boş bırakın.
+                                    </small>
+                                )}
+                            </div>
 
-                                {/* Action Buttons */}
-                                <div className="d-grid gap-2">
-                                    {!isEditing ? (
+                            {/* Action Buttons */}
+                            <div className="d-grid gap-2">
+                                {!isEditing ? (
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary btn-lg"
+                                        onClick={() => setIsEditing(true)}
+                                    >
+                                        <IconComponent icon={FaEdit} className="me-2" />
+                                        Düzenle
+                                    </button>
+                                ) : (
+                                    <div className="d-flex gap-2">
+                                        <button
+                                            type="submit"
+                                            className="btn btn-success btn-lg flex-grow-1"
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <span className="spinner-border spinner-border-sm me-2" />
+                                                    Kaydediliyor...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <IconComponent icon={FaSave} className="me-2" />
+                                                    Kaydet
+                                                </>
+                                            )}
+                                        </button>
                                         <button
                                             type="button"
-                                            className="btn btn-primary btn-lg"
-                                            onClick={() => setIsEditing(true)}
+                                            className="btn btn-outline-secondary btn-lg flex-grow-1"
+                                            onClick={handleCancel}
+                                            disabled={isLoading}
                                         >
-                                            <IconComponent icon={FaEdit} className="me-2" />
-                                            Düzenle
+                                            <IconComponent icon={FaTimes} className="me-2" />
+                                            İptal
                                         </button>
-                                    ) : (
-                                        <div className="d-flex gap-2">
-                                            <button
-                                                type="submit"
-                                                className="btn btn-success btn-lg flex-grow-1"
-                                                disabled={isLoading}
-                                            >
-                                                {isLoading ? (
-                                                    <>
-                                                        <span className="spinner-border spinner-border-sm me-2" />
-                                                        Kaydediliyor...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <IconComponent icon={FaSave} className="me-2" />
-                                                        Kaydet
-                                                    </>
-                                                )}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="btn btn-outline-secondary btn-lg flex-grow-1"
-                                                onClick={handleCancel}
-                                                disabled={isLoading}
-                                            >
-                                                <IconComponent icon={FaTimes} className="me-2" />
-                                                İptal
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </form>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="card-footer bg-light py-3 text-center">
-                            <div className="d-flex flex-column align-items-center">
-                                <div className="mb-2">
-                                    <span className="badge bg-info text-dark">
-                                        {user?.role?.toUpperCase()}
-                                    </span>
-                                </div>
-                                <small className="text-muted">
-                                    Son güncelleme: {new Date().toLocaleDateString()}
-                                </small>
+                                    </div>
+                                )}
                             </div>
+                        </form>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="card-footer bg-light py-3 text-center">
+                        <div className="d-flex flex-column align-items-center">
+                            <div className="mb-2">
+                                <span className="badge bg-info text-dark">
+                                    {user?.role?.toUpperCase()}
+                                </span>
+                            </div>
+                            <small className="text-muted">
+                                Son güncelleme: {new Date().toLocaleDateString()}
+                            </small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    );
+    </div>
+);
 };
 
 export default AccountSettings;
