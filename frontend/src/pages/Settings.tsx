@@ -17,30 +17,30 @@ const Settings = () => {
     const [tab, setTab] = useState('profile');
 
     return (
-            <div className="container py-4" style={{ maxWidth: 800 }}>
-                <h2 className="mb-4">Ayarlar</h2>
-                {/* Tabs */}
-                <ul className="nav nav-tabs mb-4">
-                    {TABS.map(t =>
-                        (!t.adminOnly || user?.role === 'admin') && (
-                            <li className="nav-item" key={t.key}>
-                                <button
-                                    className={`nav-link${tab === t.key ? ' active' : ''}`}
-                                    onClick={() => setTab(t.key)}
-                                >
-                                    {t.label}
-                                </button>
-                            </li>
-                        )
-                    )}
-                </ul>
-                {/* Tab content */}
-                <div>
-                    {tab === 'profile' && <AccountSettings />}
-                    {tab === 'users' && user?.role === 'admin' && <UserManagement />}
-                    {tab === 'custom' && user?.role === 'admin' && <CustomManagement />}
-                </div>
+        <div className="container py-4" style={{ maxWidth: 800 }}>
+            <h2 className="mb-4">Ayarlar</h2>
+            {/* Tabs */}
+            <ul className="nav nav-tabs mb-4">
+                {TABS.map(t =>
+                    (!t.adminOnly || user?.role === 'admin') && (
+                        <li className="nav-item" key={t.key}>
+                            <button
+                                className={`nav-link${tab === t.key ? ' active' : ''}`}
+                                onClick={() => setTab(t.key)}
+                            >
+                                {t.label}
+                            </button>
+                        </li>
+                    )
+                )}
+            </ul>
+            {/* Tab content */}
+            <div>
+                {tab === 'profile' && <AccountSettings />}
+                {tab === 'users' && user?.role === 'admin' && <UserManagement />}
+                {tab === 'custom' && user?.role === 'admin' && <CustomManagement />}
             </div>
+        </div>
     );
 };
 

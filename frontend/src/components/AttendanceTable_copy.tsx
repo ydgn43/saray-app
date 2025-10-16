@@ -133,91 +133,89 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
   }, [attendanceData]);
 
   const handleCheckboxChange = async (studentId: number, selectedType: string) => {
-    const checkUrl = `https://api.efendim.nl
-/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
+    const checkUrl = `https://api.efendim.nl/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
     const checkRes = await fetch(checkUrl);
     const record = await checkRes.json();
 
     const method = checkRes.ok && record ? 'PUT' : 'POST';
     const url =
       method === 'PUT'
-        ? 'https://api.efendim.nl
-        / attendance / put'
-        : 'https://api.efendim.nl
-  / attendance / create';
+        ? 'https://api.efendim.nl/attendance/put'
+        : 'https://api.efendim.nl/attendance/create';
 
-await authFetch(url, {
-  method,
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    studentid: studentId,
-    date,
-    program_name: program,
-    attendance_type_name: selectedType,
-    sebep: null,
-  }),
-});
-
-setHighlightedRows((prev) => ({ ...prev, [studentId]: true }));
-setTimeout(() => setHighlightedRows((prev) => ({ ...prev, [studentId]: false })), 3000);
-onChange();
-  };
-
-const handleSebepChange = (
-  studentId: number,
-  newSebep: string,
-  current: string
-) => {
-  if (debounceTimeout.current[studentId]) clearTimeout(debounceTimeout.current[studentId]);
-
-  debounceTimeout.current[studentId] = setTimeout(async () => {
-    await authFetch('https://api.efendim.nl
-      / attendance / put', {
-        method: 'PUT',
+    await authFetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         studentid: studentId,
         date,
         program_name: program,
-        attendance_type_name: current,
-        sebep: newSebep,
+        attendance_type_name: selectedType,
+        sebep: null,
       }),
-      });
+    });
 
-  setSavedIndicators((prev) => ({ ...prev, [studentId]: true }));
-  setHighlightedRows((prev) => ({ ...prev, [studentId]: true }));
-  setTimeout(() => {
-    setSavedIndicators((prev) => ({ ...prev, [studentId]: false }));
-    setHighlightedRows((prev) => ({ ...prev, [studentId]: false }));
+    setHighlightedRows((prev) => ({ ...prev, [studentId]: true }));
+    setTimeout(() => setHighlightedRows((prev) => ({ ...prev, [studentId]: false })), 3000);
     onChange();
-  }, 3000);
-}, 800);
   };
 
-const sorted = [...students].sort(
-  (a, b) =>
-    a.class_name.localeCompare(b.class_name) || a.first_name.localeCompare(b.first_name)
-);
+  const handleSebepChange = (
+    studentId: number,
+    newSebep: string,
+    current: string
+  ) => {
+    if (debounceTimeout.current[studentId]) clearTimeout(debounceTimeout.current[studentId]);
 
-return (
-  <div className="mt-3">
-    {sorted.map((student) => {
-      const record = attendanceData.find((a) => a.studentid === student.studentid);
-      const current = record?.attendance_type_name?.toLowerCase() || 'yok';
-      return (
-        <AttendanceCard
-          key={student.studentid}
-          student={student}
-          attendanceType={current}
-          sebep={sebepDrafts[student.studentid]}
-          onTypeChange={handleCheckboxChange}
-          onSebepChange={handleSebepChange}
-          saved={savedIndicators[student.studentid]}
-        />
-      );
-    })}
-  </div>
-);
+    debounceTimeout.current[studentId] = setTimeout(async () => {
+      await authFetch('https://api.efendim.nl/attendance/put', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentid: studentId,
+          date,
+          program_name: program,
+          attendance_type_name: current,
+          sebep: newSebep,
+        }),
+      });
+
+      setSavedIndicators((prev) => ({ ...prev, [studentId]: true }));
+      setHighlightedRows((prev) => ({ ...prev, [studentId]: true }));
+      setTimeout(() => {
+        setSavedIndicators((prev) => ({ ...prev, [studentId]: false }));
+        setHighlightedRows((prev) => ({ ...prev, [studentId]: false }));
+        onChange();
+      }, 3000);
+    }, 800);
+  };
+
+  // Sort students by class_name, then by first_name
+  const sorted = [...students].sort(
+    (a, b) =>
+      a.class_name.localeCompare(b.class_name) ||
+      a.first_name.localeCompare(b.first_name)
+  );
+
+  return (
+    <div className="mt-3">
+      {sorted.map((student) => {
+        const record = attendanceData.find((a) => a.studentid === student.studentid);
+        const current = record?.attendance_type_name?.toLowerCase() || 'yok';
+        return (
+          <AttendanceCard
+            key={student.studentid}
+            student={student}
+            attendanceType={current}
+            sebep={sebepDrafts[student.studentid]}
+            onTypeChange={handleCheckboxChange}
+            onSebepChange={handleSebepChange}
+            saved={savedIndicators[student.studentid]}
+          />
+        );
+      })}
+    </div>
+  );
 };
 
 export default AttendanceTable;
