@@ -18,7 +18,7 @@ const port = process.env.PORT_HTTP || 3001;
 // ✅ allow both local dev and production via Cloudflare
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://app.efendim.nl',
+    'https://app.efendim.nl'
 ];
 
 app.use(cors({
@@ -32,8 +32,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// ✅ ensure Express automatically handles OPTIONS for all routes
-app.options('*', cors());
+// ✅ add this explicit handler BEFORE routes
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', 'https://app.efendim.nl');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.sendStatus(204);
+});
+
 
 
 app.use(express.json());
