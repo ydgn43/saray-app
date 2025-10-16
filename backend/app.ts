@@ -13,13 +13,17 @@ import { programRouter } from './routes/programRoute';
 import { classRouter } from './routes/classRoute';
 
 const app = express();
-const port = process.env.PORT_HTTP || 3001;
+const port = Number(process.env.PORT_HTTP) || 3001;
+const host = '0.0.0.0';
 
 // Define the whitelist of allowed frontend origins
 const allowedOrigins = [
-    'http://localhost:3000', // Local development environment
-    'https://app.efendim.nl'  // Production frontend via Cloudflare
+    "http://localhost:3000",
+    "http://192.168.50.238:3000",
+    "https://app.efendim.nl",
+    "https://api.efendim.nl"
 ];
+
 
 // 1. CORS Middleware (Handles all CORS headers, including OPTIONS/Preflight)
 app.use(cors({
@@ -57,8 +61,8 @@ app.use('/season', seasonRouter);
 app.use('/program', programRouter);
 app.use('/class', classRouter);
 
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`);
+app.listen(port, host, () => {
+    console.log(`App listening on ${host}:${port}`);
 });
 
 async function testSequelizeConnection() {
