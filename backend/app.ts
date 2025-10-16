@@ -21,8 +21,8 @@ const app = express() // Create express applicaiton
 const port = process.env.PORT_HTTP
 
 const allowedOrigins = [
-    "http://192.168.50.238:3000",
-    "http://192.168.50.238:3000" // your PC's IP and React port
+    "http://localhost:3000",
+    "http://localhost:3000" // your PC's IP and React port
 ];
 
 app.options('*', cors({ origin: allowedOrigins, credentials: true }));

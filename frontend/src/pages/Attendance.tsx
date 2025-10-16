@@ -67,7 +67,7 @@ const Attendance = () => {
   }, []);
 
   useEffect(() => {
-    fetchJson('http://192.168.50.238:3001/student')
+    fetchJson('http://localhost:3001/student')
       .then(setStudents)
       .catch(() => toast.error('Talebeler alınamadı'));
   }, []);
@@ -91,7 +91,7 @@ const Attendance = () => {
 
     try {
       const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
-      const res = await authFetch(`http://192.168.50.238:3001/attendance/dailyprogram?date=${date}&program_name=${apiProgramName}`);
+      const res = await authFetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${apiProgramName}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -131,7 +131,7 @@ const Attendance = () => {
     }));
 
     try {
-      await authFetch('http://192.168.50.238:3001/attendance/create', {
+      await authFetch('http://localhost:3001/attendance/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -154,13 +154,13 @@ const Attendance = () => {
     try {
       const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
       // Determine POST vs PUT as in your API logic
-      const checkUrl = `http://192.168.50.238:3001/attendance?studentid=${studentid}&date=${date}&program_name=${apiProgramName}`;
+      const checkUrl = `http://localhost:3001/attendance?studentid=${studentid}&date=${date}&program_name=${apiProgramName}`;
       const checkRes = await authFetch(checkUrl);
       const record = await checkRes.json();
       const method = checkRes.ok && record ? 'PUT' : 'POST';
       const url = method === 'PUT'
-        ? 'http://192.168.50.238:3001/attendance/put'
-        : 'http://192.168.50.238:3001/attendance/create';
+        ? 'http://localhost:3001/attendance/put'
+        : 'http://localhost:3001/attendance/create';
 
       const body = {
         studentid,
