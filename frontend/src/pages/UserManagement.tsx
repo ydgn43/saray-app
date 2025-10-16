@@ -24,7 +24,7 @@ const UserManagement = () => {
     // Fetch users
     const loadUsers = async () => {
         setLoading(true);
-        const res = await authFetch('http://localhost:3001/user');
+        const res = await authFetch('https://api.efendim.nl/user');
         const data = await res.json();
         setUsers(data);
         setLoading(false);
@@ -65,7 +65,7 @@ const UserManagement = () => {
 
             if (modal === "add") {
                 // Add user
-                const res = await authFetch('http://localhost:3001/user', {
+                const res = await authFetch('https://api.efendim.nl/user', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, role_name, password }),
@@ -73,12 +73,11 @@ const UserManagement = () => {
                 if (!res.ok) throw new Error(await res.text());
             } else if (modal === "edit" && accountid) {
                 // Edit user
-                const res = await authFetch(`http://localhost:3001/user/${accountid}`, {
+                const res = await authFetch(`https://api.efendim.nl/user/${accountid}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, role_name, password }),
                 });
-                if (!res.ok) throw new Error(await res.text());
             }
             setModal(null);
             setCurrentUser({});
@@ -95,7 +94,8 @@ const UserManagement = () => {
         if (!window.confirm(`Kullanıcıyı silmek istediğinize emin misiniz? (${user.username})`)) return;
         setSaving(true);
         try {
-            const res = await authFetch(`http://localhost:3001/user/${user.accountid}`, { method: "DELETE" });
+            const res = await authFetch(`https://api.efendim.nl
+/user/${user.accountid}`, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
             loadUsers();
         } catch (err: any) {

@@ -65,7 +65,7 @@ const Talebeler = () => {
     const loadStudents = async () => {
         setLoading(true);
         try {
-            const res = await authFetch('http://localhost:3001/student');
+            const res = await authFetch('https://api.efendim.nl/student');
             const data = await res.json();
             setStudents(data);
         } catch (err) {
@@ -96,7 +96,7 @@ const Talebeler = () => {
 
         const performDelete = async (id: number) => {
             try {
-                const res = await authFetch(`http://localhost:3001/student/delete?studentid=${id}`, {
+                const res = await authFetch(`https://api.efendim.nl/student/delete?studentid=${id}`, {
                     method: 'DELETE',
                 });
 
@@ -122,7 +122,7 @@ const Talebeler = () => {
     const performAddStudent = async () => {
         setAdding(true);
         try {
-            const res = await authFetch('http://localhost:3001/student/create', {
+            const res = await authFetch('https://api.efendim.nl/student/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -453,7 +453,32 @@ const Talebeler = () => {
                     >
                         <div className="modal-dialog">
                             <div className="modal-content">
-                                <form onSubmit={(e) => { e.preventDefault(); setShowEditModal(false); confirmAlert({ title: 'Düzenleme Onayı', message: 'Talebe bilgilerini güncellemek istiyor musunuz?', buttons: [{ label: 'Evet', onClick: async () => { try { const res = await authFetch('http://localhost:3001/student', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editingStudent), }); if (!res.ok) throw new Error(); toast.success("Talebe bilgileri güncellendi"); setEditingStudent(null); loadStudents(); } catch { toast.error("Güncelleme başarısız"); } }, }, { label: 'Hayır', onClick: () => setShowEditModal(true) }] }); }}>
+                                <form onSubmit={(e) => {
+                                    e.preventDefault(); setShowEditModal(false); confirmAlert({
+                                        title: 'Düzenleme Onayı', message: 'Talebe bilgilerini güncellemek istiyor musunuz?', buttons: [{
+                                            label: 'Evet', onClick: async () => {
+                                                try {
+                                                    const res = await authFetch('https://api.efendim.nl/student', {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify(editingStudent),
+                                                    });
+                                                    if (!res.ok) throw new Error();
+                                                    toast.success("Talebe bilgileri güncellendi");
+                                                    setEditingStudent(null);
+                                                    loadStudents();
+                                                } catch {
+                                                    toast.error("Güncelleme başarısız");
+                                                }
+                                            },
+                                        },
+                                        {
+                                            label: 'Hayır',
+                                            onClick: () => setShowEditModal(true)
+                                        }
+                                        ]
+                                    });
+                                }}>
                                     <div className="modal-header">
                                         <h5 className="modal-title">Talebe Bilgilerini Güncelle</h5>
                                         <button
@@ -522,103 +547,108 @@ const Talebeler = () => {
                                 </form>
                             </div>
                         </div>
-                    </motion.div>
+                    </motion.div >
                 )}
-                {(showAddModal || showEditModal) && (
-                    <motion.div
-                        className="modal-backdrop fade show"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.5 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    />
-                )}
-            </AnimatePresence>
+                {
+                    (showAddModal || showEditModal) && (
+                        <motion.div
+                            className="modal-backdrop fade show"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 0.5 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        />
+                    )
+                }
+            </AnimatePresence >
 
 
-            {loading ? (
-                <div className="text-center my-4">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Yükleniyor...</span>
+            {
+                loading ? (
+                    <div className="text-center my-4" >
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Yükleniyor...</span>
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <div className="table-responsive">
-                    <table className="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>İsim</th>
-                                <th>Soyisim</th>
-                                <th>Sınıf</th>
-                                <th>Sezon</th>
-                                <th>Doğum Tarihi</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <motion.tbody
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                visible: {
-                                    transition: {
-                                        staggerChildren: 0.05,
+                ) : (
+                    <div className="table-responsive">
+                        <table className="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>İsim</th>
+                                    <th>Soyisim</th>
+                                    <th>Sınıf</th>
+                                    <th>Sezon</th>
+                                    <th>Doğum Tarihi</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <motion.tbody
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    visible: {
+                                        transition: {
+                                            staggerChildren: 0.05,
+                                        },
                                     },
-                                },
-                            }}
+                                }}
+                            >
+                                {currentStudents.map((s, index) => (
+                                    <motion.tr
+                                        key={s.studentid}
+                                        variants={{
+                                            hidden: { opacity: 0, y: 10 },
+                                            visible: { opacity: 1, y: 0 },
+                                        }}
+                                    >
+                                        <td>{indexOfFirst + index + 1}</td>
+                                        <td>{s.first_name}</td>
+                                        <td>{s.last_name}</td>
+                                        <td>{getTurkishClassName(s.class_name)}</td>
+                                        <td>{s.season_year}</td>
+                                        <td>{s.birth_date}</td>
+                                        <td>
+                                            <button className="btn btn-warning btn-sm me-2" onClick={() => { setEditingStudent(s); setShowEditModal(true); }}>Düzenle</button>
+                                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>Sil</button>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </motion.tbody>
+
+
+                        </table>
+                    </div>
+
+                )}
+            {
+                totalPages > 1 && (
+                    <motion.div
+                        className="d-flex justify-content-center align-items-center my-3 gap-3"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <button
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                            disabled={currentPage === 1}
                         >
-                            {currentStudents.map((s, index) => (
-                                <motion.tr
-                                    key={s.studentid}
-                                    variants={{
-                                        hidden: { opacity: 0, y: 10 },
-                                        visible: { opacity: 1, y: 0 },
-                                    }}
-                                >
-                                    <td>{indexOfFirst + index + 1}</td>
-                                    <td>{s.first_name}</td>
-                                    <td>{s.last_name}</td>
-                                    <td>{getTurkishClassName(s.class_name)}</td>
-                                    <td>{s.season_year}</td>
-                                    <td>{s.birth_date}</td>
-                                    <td>
-                                        <button className="btn btn-warning btn-sm me-2" onClick={() => { setEditingStudent(s); setShowEditModal(true); }}>Düzenle</button>
-                                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>Sil</button>
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </motion.tbody>
-
-
-                    </table>
-                </div>
-
-            )}
-            {totalPages > 1 && (
-                <motion.div
-                    className="d-flex justify-content-center align-items-center my-3 gap-3"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                        disabled={currentPage === 1}
-                    >
-                        ← Geri
-                    </button>
-                    <span>Sayfa {currentPage} / {totalPages}</span>
-                    <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                    >
-                        İleri →
-                    </button>
-                </motion.div>
-            )}
+                            ← Geri
+                        </button>
+                        <span>Sayfa {currentPage} / {totalPages}</span>
+                        <button
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            İleri →
+                        </button>
+                    </motion.div>
+                )
+            }
 
             <div className="d-flex justify-content-end mb-3">
                 <motion.button
@@ -631,7 +661,7 @@ const Talebeler = () => {
                     Yeni Talebe Ekle
                 </motion.button>
             </div>
-        </div>
+        </div >
     );
 };
 
