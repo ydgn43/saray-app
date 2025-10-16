@@ -23,7 +23,7 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin) return callback(null, true); // allow tools like curl or Postman
+        if (!origin) return callback(null, true); // allow Postman/curl
         if (allowedOrigins.includes(origin)) return callback(null, true);
         return callback(new Error('CORS not allowed for ' + origin), false);
     },
@@ -31,6 +31,10 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// ✅ ensure Express automatically handles OPTIONS for all routes
+app.options('*', cors());
+
 
 app.use(express.json());
 
