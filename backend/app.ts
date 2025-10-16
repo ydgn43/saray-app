@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: './config.env' });
 
-
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import { sequelize } from './data/sequelize';
 import { studentRouter } from './routes/studentRoute';
@@ -13,61 +12,45 @@ import { seasonRouter } from './routes/seasonRoute';
 import { programRouter } from './routes/programRoute';
 import { classRouter } from './routes/classRoute';
 
+const app = express();
+const port = process.env.PORT_HTTP || 3001;
 
-
-
-
-const app = express() // Create express applicaiton
-const port = process.env.PORT_HTTP
-
+// ✅ allow both local dev and production via Cloudflare
 const allowedOrigins = [
-    "http://localhost:3000",
-    "https://app.efendim.nl"   // ✅ add your production frontend domain
+    'http://localhost:3000',
+    'https://app.efendim.nl',
 ];
 
-app.options('*', cors({ origin: allowedOrigins, credentials: true }));
 app.use(cors({
     origin: function (origin, callback) {
-        // allow REST tools like Postman or same-origin (no Origin header)
-        if (!origin) return callback(null, true);
-
+        if (!origin) return callback(null, true); // allow tools like curl or Postman
         if (allowedOrigins.includes(origin)) return callback(null, true);
-
         return callback(new Error('CORS not allowed for ' + origin), false);
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+app.use(express.json());
 
-app.use(express.json()); // parsing JSON
-
-
-
-//app.use(cors()); // Enable CORS
-
-
-// Routes
-app.use("/student", studentRouter);
-app.use("/attendance", attendanceRouter);
-app.use("/user", userRouter);
-app.use("/auth", authRouter);
+// ✅ routes go AFTER CORS
+app.use('/student', studentRouter);
+app.use('/attendance', attendanceRouter);
+app.use('/user', userRouter);
+app.use('/auth', authRouter);
 app.use('/season', seasonRouter);
 app.use('/program', programRouter);
 app.use('/class', classRouter);
 
+app.listen(port, () => {
+    console.log(`App listening on port ${port}`);
+});
 
-app.listen(port, () => { // Starting the server and listening on the defined port
-    console.log(`App listening on port ${port}`)
-})
-
-// testing connection
 async function testSequelizeConnection() {
-    console.log(process.env.HOST_RELATIONAL_DB)
     try {
         await sequelize.authenticate();
-        console.log('Connection has been established successfully.');
+        console.log('Connection established successfully.');
     } catch (error) {
         console.error('Unable to connect to the database:', error);
     }
