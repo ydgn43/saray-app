@@ -1,8 +1,7 @@
 // Load users from the database
 async function loadUsers() {
   try {
-    const response = await fetch('https://api.efendim.nl
-      / student'); // Update with the correct endpoint
+    const response = await fetch('http://localhost:3001/student'); // Update with the correct endpoint
     const users = await response.json();
     return users;
   } catch (error) {
@@ -15,19 +14,17 @@ async function loadUsers() {
 async function createOrUpdateAttendance(studentId, date, programName, attendanceType, sebep = null) {
   try {
     // First, check if the attendance record already exists using GET request with query parameters
-    const checkResponse = await fetch(`https://api.efendim.nl
-/attendance?studentid=${studentId}&date=${date}&program_name=${programName}`);
+    const checkResponse = await fetch(`http://localhost:3001/attendance?studentid=${studentId}&date=${date}&program_name=${programName}`);
 
     if (checkResponse.ok) {
       const attendanceData = await checkResponse.json();
       if (attendanceData) {
         // If attendance record exists, update it
-        await fetch('https://api.efendim.nl
-          / attendance / put', {
+        await fetch('http://localhost:3001/attendance/put', {
           method: 'PUT',
           headers: {
-          'Content-Type': 'application/json',
-        },
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             studentid: studentId,
             date: date,
@@ -36,32 +33,31 @@ async function createOrUpdateAttendance(studentId, date, programName, attendance
             sebep: sebep,
           }),
         });
-      console.log('Attendance updated successfully');
-    } else {
-      // If attendance record does not exist, create it
-      await fetch('https://api.efendim.nl
-        / attendance / create', {
+        console.log('Attendance updated successfully');
+      } else {
+        // If attendance record does not exist, create it
+        await fetch('http://localhost:3001/attendance/create', {
           method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-      },
-        body: JSON.stringify({
-          studentid: studentId,
-          date: date,
-          program_name: programName,
-          attendance_type_name: attendanceType,
-          sebep: sebep,
-        }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            studentid: studentId,
+            date: date,
+            program_name: programName,
+            attendance_type_name: attendanceType,
+            sebep: sebep,
+          }),
         });
-    console.log('Attendance created successfully');
-  }
+        console.log('Attendance created successfully');
+      }
     } else {
-  throw new Error('Failed to check attendance record existence');
-}
+      throw new Error('Failed to check attendance record existence');
+    }
   } catch (error) {
-  console.error('Error creating or updating attendance:', error);
-  alert('Failed to create or update attendance');
-}
+    console.error('Error creating or updating attendance:', error);
+    alert('Failed to create or update attendance');
+  }
 }
 
 // Populate the user table with all students
@@ -213,8 +209,7 @@ document.getElementById('attendanceFilterForm').addEventListener('submit', async
     document.getElementById('createAttendanceButton').style.display = 'none';
 
     // Check if attendance data exists for the selected date and program
-    const response = await fetch(`https://api.efendim.nl
-/attendance/dailyprogram?date=${date}&program_name=${program}`);
+    const response = await fetch(`http://localhost:3001/attendance/dailyprogram?date=${date}&program_name=${program}`);
     const attendanceData = await response.json();
 
     // If attendance data exists, update the existing user table
@@ -251,22 +246,21 @@ document.getElementById('createAttendanceButton').addEventListener('click', asyn
     }));
 
     // Send new attendance data to the server using the '/create' endpoint
-    await fetch('https://api.efendim.nl
-      / attendance / create', {
+    await fetch('http://localhost:3001/attendance/create', {
       method: 'POST',
       headers: {
-      'Content-Type': 'application/json',
-    },
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(newAttendanceData),
     });
 
-alert('New attendance created successfully');
-document.getElementById('createAttendanceButton').style.display = 'none'; // Hide the button after use
-populateUserTable(); // Populate the table with all students
+    alert('New attendance created successfully');
+    document.getElementById('createAttendanceButton').style.display = 'none'; // Hide the button after use
+    populateUserTable(); // Populate the table with all students
   } catch (error) {
-  console.error("Error creating new attendance:", error);
-  alert('Failed to create attendance');
-}
+    console.error("Error creating new attendance:", error);
+    alert('Failed to create attendance');
+  }
 });
 
 // Function to display attendance data by updating only relevant rows

@@ -137,8 +137,7 @@ const Statistics = () => {
         if (!startDate || !endDate) return;
         try {
             const res = await authFetch(
-                `https://api.efendim.nl
-/attendance/all?startDate=${startDate}&endDate=${endDate}`
+                `http://localhost:3001/attendance/all?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -156,8 +155,7 @@ const Statistics = () => {
         setLoading(true);
         try {
             const res = await authFetch(
-                `https://api.efendim.nl
-/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
+                `http://localhost:3001/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
