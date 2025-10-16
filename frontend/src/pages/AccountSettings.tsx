@@ -44,7 +44,7 @@ const AccountSettings = () => {
         setMessage(null);
 
         try {
-            const response = await fetch('http://localhost:3001/user/me', {
+            const response = await fetch('https://localhost:3001/user/me', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
