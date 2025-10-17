@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authFetch } from '../utils/authFetch';
+import config from '../config';
 
 // Type Definitions
 type Student = {
@@ -133,15 +134,15 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
   }, [attendanceData]);
 
   const handleCheckboxChange = async (studentId: number, selectedType: string) => {
-    const checkUrl = `https://api.efendim.nl/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
+    const checkUrl = `${config.API_BASE_URL}/attendance?studentid=${studentId}&date=${date}&program_name=${program}`;
     const checkRes = await fetch(checkUrl);
     const record = await checkRes.json();
 
     const method = checkRes.ok && record ? 'PUT' : 'POST';
     const url =
       method === 'PUT'
-        ? 'https://api.efendim.nl/attendance/put'
-        : 'https://api.efendim.nl/attendance/create';
+        ? `${config.API_BASE_URL}/attendance/put`
+        : `${config.API_BASE_URL}/attendance/create`;
 
     await authFetch(url, {
       method,
@@ -168,7 +169,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
     if (debounceTimeout.current[studentId]) clearTimeout(debounceTimeout.current[studentId]);
 
     debounceTimeout.current[studentId] = setTimeout(async () => {
-      await authFetch('https://api.efendim.nl/attendance/put', {
+      await authFetch(`${config.API_BASE_URL}/attendance/put`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -219,3 +220,4 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
 };
 
 export default AttendanceTable;
+

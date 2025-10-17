@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { authFetch } from '../utils/authFetch';
+import config from '../config';
 
-const API = 'https://api.efendim.nl'; // Adjust to match your backend
+const API = config.API_BASE_URL; // Use centralized configuration
 
 type Entry = string;
 

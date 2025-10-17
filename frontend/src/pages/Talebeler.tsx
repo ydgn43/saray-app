@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '../components/Layout';
 import { authFetch } from '../utils/authFetch';
 import { a } from 'framer-motion/dist/types.d-CtuPurYT';
+import config from '../config';
 
 
 type Student = {
@@ -65,7 +66,7 @@ const Talebeler = () => {
     const loadStudents = async () => {
         setLoading(true);
         try {
-            const res = await authFetch('https://api.efendim.nl/student');
+            const res = await authFetch(`${config.API_BASE_URL}/student`);
             const data = await res.json();
             setStudents(data);
         } catch (err) {
@@ -96,7 +97,7 @@ const Talebeler = () => {
 
         const performDelete = async (id: number) => {
             try {
-                const res = await authFetch(`https://api.efendim.nl/student/delete?studentid=${id}`, {
+                const res = await authFetch(`${config.API_BASE_URL}/student/delete?studentid=${id}`, {
                     method: 'DELETE',
                 });
 
@@ -122,7 +123,7 @@ const Talebeler = () => {
     const performAddStudent = async () => {
         setAdding(true);
         try {
-            const res = await authFetch('https://api.efendim.nl/student/create', {
+            const res = await authFetch(`${config.API_BASE_URL}/student/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -458,7 +459,7 @@ const Talebeler = () => {
                                         title: 'Düzenleme Onayı', message: 'Talebe bilgilerini güncellemek istiyor musunuz?', buttons: [{
                                             label: 'Evet', onClick: async () => {
                                                 try {
-                                                    const res = await authFetch('https://api.efendim.nl/student', {
+                                                    const res = await authFetch(`${config.API_BASE_URL}/student`, {
                                                         method: 'PUT',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify(editingStudent),
@@ -666,3 +667,5 @@ const Talebeler = () => {
 };
 
 export default Talebeler;
+
+

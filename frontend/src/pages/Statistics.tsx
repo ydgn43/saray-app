@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { authFetch } from '../utils/authFetch';
+import config from '../config';
 
 interface StatisticEntry {
     studentid: number;
@@ -137,7 +138,7 @@ const Statistics = () => {
         if (!startDate || !endDate) return;
         try {
             const res = await authFetch(
-                `https://api.efendim.nl
+                `${config.API_BASE_URL}
 /attendance/all?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
@@ -156,7 +157,7 @@ const Statistics = () => {
         setLoading(true);
         try {
             const res = await authFetch(
-                `https://api.efendim.nl
+                `${config.API_BASE_URL}
 /attendance/statistics?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
@@ -609,3 +610,5 @@ const Statistics = () => {
 };
 
 export default Statistics;
+
+

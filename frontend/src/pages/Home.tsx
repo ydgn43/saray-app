@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authFetch } from '../utils/authFetch';
+import config from '../config';
 import DashboardStats from '../components/DashboardStats';
 
 const Home = () => {
@@ -14,26 +15,26 @@ const Home = () => {
 
   useEffect(() => {
     // Toplam talebe
-    authFetch('https://api.efendim.nl/student')
+    authFetch(`${config.API_BASE_URL}/student`)
       .then(res => res.json())
       .then(data => setStudentCount(data.length))
       .catch(() => setStudentCount(null));
 
     // Toplam sınıf
-    authFetch('https://api.efendim.nl/class')
+    authFetch(`${config.API_BASE_URL}/class`)
       .then(res => res.json())
       .then(data => setClassCount(data.length))
       .catch(() => setClassCount(null));
 
     // Toplam program
-    authFetch('https://api.efendim.nl/program')
+    authFetch(`${config.API_BASE_URL}/program`)
       .then(res => res.json())
       .then(data => setProgramCount(data.length))
       .catch(() => setProgramCount(null));
 
     // Bugünkü yoklama (sabah)
     const today = new Date().toISOString().slice(0, 10);
-    authFetch(`https://api.efendim.nl/attendance/dailyprogram?date=${today}&program_name=sabah_namazi`)
+    authFetch(`${config.API_BASE_URL}/attendance/dailyprogram?date=${today}&program_name=sabah_namazi`)
       .then(res => res.json())
       .then(data => {
         setAttendanceCount(Array.isArray(data) ? data.length : 0);
@@ -58,7 +59,7 @@ const Home = () => {
     const endDate = end.toISOString().slice(0, 10);
 
     // Fetch statistics for current month
-    authFetch(`https://api.efendim.nl/attendance/statistics?startDate=${startDate}&endDate=${endDate}`)
+    authFetch(`${config.API_BASE_URL}/attendance/statistics?startDate=${startDate}&endDate=${endDate}`)
       .then(res => res.json())
       .then(data => {
         // Sort by "var" percentage descending and take top 5

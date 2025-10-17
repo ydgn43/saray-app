@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { FaUser, FaKey, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import { IconType } from 'react-icons';
+import config from '../config';
 
 // Fixed IconComponent with proper typing
 const IconComponent = ({ icon: Icon, className }: { icon: IconType; className?: string }) => {
@@ -44,7 +45,7 @@ const AccountSettings = () => {
         setMessage(null);
 
         try {
-            const response = await fetch('https://api.efendim.nl/user/me', {
+            const response = await fetch(`${config.API_BASE_URL}/user/me`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

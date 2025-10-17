@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../auth/AuthContext';
 import { ToastContainer, toast } from 'react-toastify';
+import config from '../config';
 
 const PROGRAM_OPTIONS = [
     { value: 'sabah_namazi', label: 'Sabah Namazı' },
@@ -27,7 +28,7 @@ const IzinliTalebeler = () => {
     const shareBtnRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        authFetch('https://api.efendim.nl/student')
+        authFetch(`${config.API_BASE_URL}/student`)
             .then(res => res.json())
             .then(data => setStudents(Array.isArray(data) ? data : []));
     }, []);
@@ -43,7 +44,7 @@ const IzinliTalebeler = () => {
                 const allPrograms = PROGRAM_OPTIONS.filter(p => p.value !== 'tum_gun').map(p => p.value);
                 const izinliLists = await Promise.all(
                     allPrograms.map(async prog => {
-                        const res = await authFetch(`https://api.efendim.nl
+                        const res = await authFetch(`${config.API_BASE_URL}
 /attendance/izinli?date=${date}&program_name=${prog}`);
                         return res.json();
                     })
@@ -65,7 +66,7 @@ const IzinliTalebeler = () => {
                 });
                 setIzinliler(Array.isArray(izinliTalebeler) ? izinliTalebeler : []);
             } else {
-                const res = await authFetch(`https://api.efendim.nl
+                const res = await authFetch(`${config.API_BASE_URL}
 /attendance/izinli?date=${date}&program_name=${program}`);
                 const data = await res.json();
                 setIzinliler(Array.isArray(data) ? data : []);
@@ -97,7 +98,7 @@ const IzinliTalebeler = () => {
                 await Promise.all(
                     selectedStudents.flatMap(studentid =>
                         allPrograms.map(prog =>
-                            authFetch('https://api.efendim.nl/attendance/create', {
+                            authFetch(`${config.API_BASE_URL}/attendance/create`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -114,7 +115,7 @@ const IzinliTalebeler = () => {
             } else {
                 await Promise.all(
                     selectedStudents.map(studentid =>
-                        authFetch('https://api.efendim.nl/attendance/create', {
+                        authFetch(`${config.API_BASE_URL}/attendance/create`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -384,3 +385,5 @@ const IzinliTalebeler = () => {
 };
 
 export default IzinliTalebeler;
+
+

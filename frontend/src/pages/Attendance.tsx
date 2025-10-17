@@ -8,6 +8,7 @@ import Layout from '../components/Layout';
 import { classOrder, groupHeaderTitles } from '../constants';
 import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
+import config from '../config';
 
 const PROGRAM_OPTIONS = [
   'Sabah Namazı', 'Öğle Namazı', 'İkindi Namazı', 'Akşam Namazı', 'Yatsı Namazı', 'Hatim'
@@ -67,7 +68,7 @@ const Attendance = () => {
   }, []);
 
   useEffect(() => {
-    fetchJson('https://api.efendim.nl/student')
+    fetchJson(`${config.API_BASE_URL}/student`)
       .then(setStudents)
       .catch(() => toast.error('Talebeler alınamadı'));
   }, []);
@@ -91,7 +92,7 @@ const Attendance = () => {
 
     try {
       const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
-      const res = await authFetch(`https://api.efendim.nl
+      const res = await authFetch(`${config.API_BASE_URL}
 /attendance/dailyprogram?date=${date}&program_name=${apiProgramName}`);
       const data = await res.json();
 
@@ -132,7 +133,7 @@ const Attendance = () => {
     }));
 
     try {
-      await authFetch('https://api.efendim.nl/attendance/create', {
+      await authFetch(`${config.API_BASE_URL}/attendance/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -155,14 +156,14 @@ const Attendance = () => {
     try {
       const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
       // Determine POST vs PUT as in your API logic
-      const checkUrl = `https://api.efendim.nl
+      const checkUrl = `${config.API_BASE_URL}
 /attendance?studentid=${studentid}&date=${date}&program_name=${apiProgramName}`;
       const checkRes = await authFetch(checkUrl);
       const record = await checkRes.json();
       const method = checkRes.ok && record ? 'PUT' : 'POST';
       const url = method === 'PUT'
-        ? 'https://api.efendim.nl/attendance/put'
-        : 'https://api.efendim.nl/attendance/create';
+        ? `${config.API_BASE_URL}/attendance/put`
+        : `${config.API_BASE_URL}/attendance/create`;
 
       const body = {
         studentid,
@@ -423,3 +424,5 @@ const Attendance = () => {
 };
 
 export default Attendance;
+
+
