@@ -28,6 +28,34 @@ export const programController = {
         }
     },
 
+    async update(req: Request, res: Response) {
+        if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+
+        const oldName = req.params.program_name;
+        const { program_name: newName } = req.body;
+
+        if (!newName) return res.status(400).json({ message: 'Yeni program adı eksik.' });
+
+        try {
+            const program = await Program.findByPk(oldName);
+            if (!program) return res.status(404).json({ message: 'Program bulunamadı.' });
+
+            // If name is changing, check if new name already exists
+            if (oldName !== newName) {
+                const exists = await Program.findByPk(newName);
+                if (exists) return res.status(409).json({ message: 'Bu program adı zaten mevcut.' });
+
+                // Since program_name is the primary key, we need to delete old and create new
+                await program.destroy();
+                await Program.create({ program_name: newName });
+            }
+
+            res.json({ message: 'Program güncellendi.' });
+        } catch {
+            res.status(500).json({ message: 'Program güncellenemedi.' });
+        }
+    },
+
     async delete(req: Request, res: Response) {
         if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
 

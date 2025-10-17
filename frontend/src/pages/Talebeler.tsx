@@ -286,7 +286,7 @@ const Talebeler = () => {
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="İsim, soyisim, sınıf veya sezon ile ara..."
+                        placeholder="İsim, soyisim, Dahili Seviye veya sezon ile ara..."
                         value={searchInput}
                         onChange={(e) => {
                             setSearchInput(e.target.value);
@@ -298,7 +298,7 @@ const Talebeler = () => {
                 <div className="row mb-3">
                     <div className="col-md-6">
                         <select className="form-select" value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
-                            <option value="">Tüm Sınıflar</option>
+                            <option value="">Tüm Dahili Seviyelar</option>
                             <option value="kuranikerim">Kuran-ı Kerim</option>
                             <option value="hazirlik">Hazırlık</option>
                             <option value="ibtidai">İbtidai</option>
@@ -339,7 +339,7 @@ const Talebeler = () => {
                             <button
                                 type="button"
                                 className="btn-close btn-close-white btn-sm ms-2"
-                                aria-label="Sınıf filtresini kaldır"
+                                aria-label="Dahili Seviye filtresini kaldır"
                                 onClick={() => setSelectedClass('')}
                             ></button>
                         </span>
@@ -413,9 +413,9 @@ const Talebeler = () => {
                                         </div>
                                         <div className="row">
                                             <div className="col-md-6 mb-3">
-                                                <label>Sınıf Adı</label>
+                                                <label>Dahili Seviye Adı</label>
                                                 <select className="form-select" value={class_name} onChange={(e) => setClassName(e.target.value)}>
-                                                    <option value="">Sınıf Seç</option>
+                                                    <option value="">Dahili Seviye Seç</option>
                                                     <option value="kuranikerim">Kuran-ı Kerim</option>
                                                     <option value="hazirlik">Hazırlık</option>
                                                     <option value="ibtidai">İbtidai</option>
@@ -520,9 +520,9 @@ const Talebeler = () => {
                                             </select>
                                         </div>
                                         <div className="mb-3">
-                                            <label>Sınıf</label>
+                                            <label>Dahili Seviye</label>
                                             <select className="form-select" value={editingStudent.class_name} onChange={(e) => setEditingStudent({ ...editingStudent, class_name: e.target.value })}>
-                                                <option value="">Sınıf Seç</option>
+                                                <option value="">Dahili Seviye Seç</option>
                                                 <option value="kuranikerim">Kuran-ı Kerim</option>
                                                 <option value="hazirlik">Hazırlık</option>
                                                 <option value="ibtidai">İbtidai</option>
@@ -579,7 +579,7 @@ const Talebeler = () => {
                                     <th>#</th>
                                     <th>İsim</th>
                                     <th>Soyisim</th>
-                                    <th>Sınıf</th>
+                                    <th>Dahili Seviye</th>
                                     <th>Sezon</th>
                                     <th>Doğum Tarihi</th>
                                     <th>İşlem</th>

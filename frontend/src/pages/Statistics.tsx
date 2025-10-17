@@ -240,7 +240,7 @@ const Statistics = () => {
     // Export functions
     const handleExportToCSV = () => {
         const csvRows: string[] = [];
-        const headers = ['#', 'İsim', 'Sınıf', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel'];
+        const headers = ['#', 'İsim', 'Dahili Seviye', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel'];
         csvRows.push(headers.join(';'));
         sortedStats.forEach((s, i) => {
             const { programSums, genel } = getProgramSums(s);
@@ -269,7 +269,7 @@ const Statistics = () => {
                 const row: any = {
                     '#': i + 1,
                     'İsim': s.name,
-                    'Sınıf': s.class_name,
+                    'Dahili Seviye': s.class_name,
                 };
                 allPrograms.forEach((p, idx) => {
                     row[p.replace(/_/g, ' ')] = programSums[idx];
@@ -302,7 +302,7 @@ const Statistics = () => {
 
         autoTable(doc, {
             head: [
-                ['#', 'İsim', 'Sınıf', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel']
+                ['#', 'İsim', 'Dahili Seviye', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel']
             ],
             body: tableData,
             startY: 20,
@@ -488,7 +488,7 @@ const Statistics = () => {
                                         )
                                     }
                                 >
-                                    Sınıf {getSortIcon('class_name')}
+                                    Dahili Seviye {getSortIcon('class_name')}
                                 </th>
                                 {selectedProgram === 'genel'
                                     ? allPrograms.map((p) => (

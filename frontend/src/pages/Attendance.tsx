@@ -10,11 +10,10 @@ import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 import config from '../config';
 
-const PROGRAM_OPTIONS = [
-  'Sabah Namazı', 'Öğle Namazı', 'İkindi Namazı', 'Akşam Namazı', 'Yatsı Namazı', 'Hatim'
-];
+// These will be loaded from the database
+const PROGRAM_OPTIONS: string[] = [];
 
-// Map user-friendly names to DB values
+// Map user-friendly names to DB values (if needed for backwards compatibility)
 const PROGRAM_NAME_MAP: Record<string, string> = {
   "Sabah Namazı": "sabah_namazi",
   "Öğle Namazı": "oglen_namazi",
@@ -57,6 +56,24 @@ const Attendance = () => {
   const [date, setDate] = useState<string>('');
   const [program, setProgram] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
+
+  // Fetch available programs from the database
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        const response = await authFetch(`${config.API_BASE_URL}/program`);
+        const data = await response.json();
+        const programNames = data.map((p: any) => p.program_name);
+        setAvailablePrograms(programNames);
+      } catch (error) {
+        console.error('Error fetching programs:', error);
+        toast.error('Programlar yüklenemedi');
+      }
+    };
+
+    fetchPrograms();
+  }, []);
 
   useEffect(() => {
     const savedDate = localStorage.getItem('attendance-date');
@@ -330,9 +347,9 @@ const Attendance = () => {
               onChange={(e) => setProgram(e.target.value)}
             >
               <option value="">Program Seçin</option>
-              {PROGRAM_OPTIONS.map((p) => (
+              {availablePrograms.map((p) => (
                 <option key={p} value={p}>
-                  {p[0].toUpperCase() + p.slice(1)}
+                  {p.charAt(0).toUpperCase() + p.slice(1).replace(/_/g, ' ')}
                 </option>
               ))}
             </select>
