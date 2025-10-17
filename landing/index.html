@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Efendim</title>
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Dark mode toggle persistence
+    tailwind.config = {
+      darkMode: 'class',
+    };
+    if (localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <style>
+    html, body {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+  <!-- Navbar -->
+  <nav class="w-full py-4 px-6 flex justify-between items-center fixed top-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md z-50 shadow-sm">
+    <h1 class="text-2xl font-bold">Efendim!</h1>
+    <div class="flex items-center gap-4">
+      <a href="#about" class="hover:text-blue-500">Hakkında</a>
+      <a href="https://app.efendim.nl" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">Uygulamaya Git</a>
+      <button id="theme-toggle" class="ml-3 text-xl">🌓</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="flex flex-col items-center justify-center text-center h-screen px-6">
+    <h2 class="text-4xl md:text-6xl font-extrabold mt-24">Dijital Yoklama Sistemi - Efendim!</h2>
+    <p class="mt-4 text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-xl">
+      Yoklama takibinizi ve yurt yönetiminizi Efendim! ile kolaylaştırın — güvenilir, kolay kullanım ve verimlilik için tasarlandı.
+    </p>
+    <a href="https://app.efendim.nl" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg shadow-md transition">
+      Uygulamayı Başlat
+    </a>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-20 bg-gray-50 dark:bg-gray-800 text-center">
+    <h3 class="text-3xl font-bold mb-6">Neden Efendim?</h3>
+    <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-8 px-6">
+      <div class="p-6 bg-white dark:bg-gray-700 rounded-2xl shadow">
+        <h4 class="text-xl font-semibold mb-2">Yoklama Sistemi</h4>
+        <p class="text-gray-600 dark:text-gray-300">
+          Günlük program takibatınızı, en kolay yol ile çözümleyin.
+        </p>
+      </div>
+      <div class="p-6 bg-white dark:bg-gray-700 rounded-2xl shadow">
+        <h4 class="text-xl font-semibold mb-2">Analiz Sistemi</h4>
+        <p class="text-gray-600 dark:text-gray-300">
+          Detaylı veri görselleştirme ile eğilimleri ve istatistikleri anında görüntüleyin.
+        </p>
+      </div>
+      <div class="p-6 bg-white dark:bg-gray-700 rounded-2xl shadow">
+        <h4 class="text-xl font-semibold mb-2">Bulut Çözümleme</h4>
+        <p class="text-gray-600 dark:text-gray-300">
+          Güvenli, senkronize ve her yerden ulaşılabilir — modern web teknolojisiyle geliştirildi.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 bg-gray-100 dark:bg-gray-800 text-center text-gray-600 dark:text-gray-400">
+    <p>© <span id="year"></span> Efendim. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // dynamic year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // dark mode toggle
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const html = document.documentElement;
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        html.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
+    });
+  </script>
+</body>
+</html>
+
