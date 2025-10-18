@@ -364,7 +364,7 @@ const Statistics = () => {
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </div>
-                    <div className="col-md-3">
+                    <div className="col-md-2">
                         <label className="form-label fw-semibold">Program</label>
                         <select
                             className="form-select"
@@ -379,7 +379,22 @@ const Statistics = () => {
                             ))}
                         </select>
                     </div>
-                    <div className="col-md-3 d-flex align-items-end">
+                    <div className="col-md-2">
+                        <label className="form-label fw-semibold">Dahili Seviye</label>
+                        <select
+                            className="form-select"
+                            value={selectedClass}
+                            onChange={e => setSelectedClass(e.target.value)}
+                        >
+                            <option value="">Tümü</option>
+                            {Object.entries(CLASS_NAME_TURKISH_MAP).map(([key, label]) => (
+                                <option key={key} value={key}>
+                                    {label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="col-md-2 d-flex align-items-end">
                         <button
                             className="btn btn-primary w-100"
                             onClick={fetchStatistics}
@@ -573,7 +588,7 @@ const Statistics = () => {
                                     const val = programSums[programIdx] ?? 0;
                                     let bg = '';
                                     if (val < 60) bg = 'bg-danger text-white';
-                                    else if (val < 80) bg = 'bg-warning text-dark';
+                                    else if (val < 75) bg = 'bg-warning text-dark';
                                     else bg = 'bg-success text-white';
                                     return (
                                         <tr key={s.studentid}>
@@ -584,7 +599,7 @@ const Statistics = () => {
                                             <td className={
                                                 genel < 60
                                                     ? 'bg-danger text-white'
-                                                    : genel < 80
+                                                    : genel < 75
                                                         ? 'bg-warning text-dark'
                                                         : 'bg-success text-white'
                                             }>
