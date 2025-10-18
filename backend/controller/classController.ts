@@ -8,23 +8,23 @@ export const classController = {
             const classes = await Class.findAll();
             res.json(classes);
         } catch {
-            res.status(500).json({ message: 'Dahili Seviyelar alınamadı.' });
+            res.status(500).json({ message: 'Sınıflar alınamadı.' });
         }
     },
 
     async create(req: Request, res: Response) {
         if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
         const { class_name } = req.body;
-        if (!class_name) return res.status(400).json({ message: 'Dahili Seviye adı eksik.' });
+        if (!class_name) return res.status(400).json({ message: 'Sınıf adı eksik.' });
 
         try {
             const exists = await Class.findByPk(class_name);
-            if (exists) return res.status(409).json({ message: 'Dahili Seviye zaten mevcut.' });
+            if (exists) return res.status(409).json({ message: 'Sınıf zaten mevcut.' });
 
             await Class.create({ class_name });
-            res.status(201).json({ message: 'Dahili Seviye oluşturuldu.' });
+            res.status(201).json({ message: 'Sınıf oluşturuldu.' });
         } catch {
-            res.status(500).json({ message: 'Dahili Seviye oluşturulamadı.' });
+            res.status(500).json({ message: 'Sınıf oluşturulamadı.' });
         }
     },
 
@@ -33,12 +33,12 @@ export const classController = {
 
         try {
             const cls = await Class.findByPk(req.params.class_name);
-            if (!cls) return res.status(404).json({ message: 'Dahili Seviye bulunamadı.' });
+            if (!cls) return res.status(404).json({ message: 'Sınıf bulunamadı.' });
 
             await cls.destroy();
-            res.json({ message: 'Dahili Seviye silindi.' });
+            res.json({ message: 'Sınıf silindi.' });
         } catch {
-            res.status(500).json({ message: 'Dahili Seviye silinemedi.' });
+            res.status(500).json({ message: 'Sınıf silinemedi.' });
         }
     },
 };
