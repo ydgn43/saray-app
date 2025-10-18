@@ -70,6 +70,7 @@
     html,
     body {
       scroll-behavior: smooth;
+      overflow-x: hidden;
     }
 
     .gradient-text {
@@ -77,6 +78,8 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      animation: gradientShift 3s ease infinite;
+      background-size: 200% 200%;
     }
 
     .dark .gradient-text {
@@ -84,6 +87,18 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+    }
+
+    @keyframes gradientShift {
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
     }
 
     .glass-effect {
@@ -110,6 +125,286 @@
       text-align: center;
       padding: 2rem;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screenshot-placeholder::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: rotate(45deg);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+      }
+
+      100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+      }
+    }
+
+    .screenshot-placeholder:hover {
+      transform: scale(1.02) translateY(-5px);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Particle animation */
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0.6;
+      animation: float-particle 20s infinite ease-in-out;
+    }
+
+    @keyframes float-particle {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6;
+      }
+
+      25% {
+        transform: translate(100px, -100px) scale(1.2);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: translate(-50px, -200px) scale(0.8);
+        opacity: 0.4;
+      }
+
+      75% {
+        transform: translate(-150px, -100px) scale(1.1);
+        opacity: 0.7;
+      }
+    }
+
+    /* Cursor trail effect */
+    .cursor-trail {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.6), transparent);
+      pointer-events: none;
+      z-index: 9999;
+      animation: fade-out 0.5s forwards;
+    }
+
+    @keyframes fade-out {
+      to {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+
+    /* Tilt effect */
+    .tilt-card {
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease;
+    }
+
+    .tilt-card:hover {
+      transform: perspective(1000px) rotateX(var(--rotate-x, 0)) rotateY(var(--rotate-y, 0));
+    }
+
+    /* Typing cursor */
+    .typing-cursor {
+      display: inline-block;
+      width: 3px;
+      height: 1.2em;
+      background: currentColor;
+      margin-left: 5px;
+      animation: blink 1s infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes blink {
+
+      0%,
+      49% {
+        opacity: 1;
+      }
+
+      50%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* Ripple effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(0);
+      animation: ripple-animation 0.6s ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Parallax layers */
+    .parallax-layer {
+      transition: transform 0.3s ease-out;
+    }
+
+    /* Glowing border */
+    .glow-border {
+      position: relative;
+      background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+      background-size: 200% 100%;
+      animation: border-flow 3s linear infinite;
+    }
+
+    @keyframes border-flow {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      z-index: 9999;
+      transition: width 0.1s ease;
+    }
+
+    /* Stagger animation */
+    .stagger-item {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: stagger-fade-in 0.6s ease forwards;
+    }
+
+    @keyframes stagger-fade-in {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Magnetic button effect */
+    .magnetic-btn {
+      transition: transform 0.2s ease;
+    }
+
+    /* Screenshot carousel */
+    .screenshot-carousel {
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .screenshot-carousel>* {
+      scroll-snap-align: center;
+    }
+
+    /* Number counter animation */
+    @keyframes count-up {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .count-up {
+      animation: count-up 0.6s ease-out;
+    }
+
+    /* Floating badges */
+    @keyframes float-badge {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-10px) rotate(2deg);
+      }
+    }
+
+    .float-badge {
+      animation: float-badge 3s ease-in-out infinite;
+    }
+
+    /* Interactive hover glow */
+    .hover-glow {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hover-glow::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease, height 0.4s ease;
+    }
+
+    .hover-glow:hover::after {
+      width: 300px;
+      height: 300px;
+    }
+
+    /* Feature card reveal */
+    .feature-card {
+      opacity: 0;
+      transform: translateY(50px) rotateX(-10deg);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .feature-card.revealed {
+      opacity: 1;
+      transform: translateY(0) rotateX(0);
+    }
+
+    /* Mouse follower spotlight */
+    .spotlight {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.1), transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s ease;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -122,10 +417,26 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+
+      .particle,
+      .spotlight,
+      .cursor-trail {
+        display: none;
+      }
+    }
   </style>
 </head>
 
 <body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progress-bar"></div>
+
+  <!-- Mouse Spotlight Effect -->
+  <div class="spotlight" id="spotlight"></div>
 
   <!-- Navbar -->
   <nav
@@ -191,28 +502,30 @@
 
     <div class="relative z-10 max-w-5xl mx-auto animate-fade-in">
       <div
-        class="inline-block mb-4 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-semibold">
+        class="inline-block mb-4 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-semibold float-badge">
         🚀 Yeni Nesil Yoklama Sistemi
       </div>
 
       <h1 class="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight">
         <span class="gradient-text">Efendim</span> ile<br />
-        <span class="text-gray-900 dark:text-white">Yoklama Artık Çok Kolay</span>
+        <span class="text-gray-900 dark:text-white">Yoklama Artık <span id="typed-text"></span><span
+            class="typing-cursor"></span></span>
       </h1>
 
-      <p class="mt-6 text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+      <p class="mt-6 text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed parallax-layer"
+        data-speed="0.5">
         Öğrenci yoklamasını, program takibini ve raporlamayı tek bir platformdan yönetin.
         Modern, hızlı ve kullanıcı dostu arayüz ile tanışın.
       </p>
 
       <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
         <a href="https://app.efendim.nl"
-          class="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
+          class="group magnetic-btn hover-glow bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
           Ücretsiz Başla
           <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform inline-block"></i>
         </a>
         <a href="#screenshots"
-          class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500">
+          class="magnetic-btn hover-glow bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500">
           <i class="fas fa-play-circle mr-2"></i>
           Demo İzle
         </a>
@@ -220,20 +533,20 @@
 
       <!-- Stats -->
       <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-        <div class="text-center">
-          <div class="text-4xl font-bold text-blue-600 dark:text-blue-400">1000+</div>
+        <div class="text-center stagger-item" style="animation-delay: 0.1s">
+          <div class="text-4xl font-bold text-blue-600 dark:text-blue-400 count-up" data-target="1000">0</div>
           <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Aktif Kullanıcı</div>
         </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-purple-600 dark:text-purple-400">50K+</div>
+        <div class="text-center stagger-item" style="animation-delay: 0.2s">
+          <div class="text-4xl font-bold text-purple-600 dark:text-purple-400 count-up" data-target="50000">0</div>
           <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Yoklama Kaydı</div>
         </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-pink-600 dark:text-pink-400">99.9%</div>
+        <div class="text-center stagger-item" style="animation-delay: 0.3s">
+          <div class="text-4xl font-bold text-pink-600 dark:text-pink-400 count-up" data-target="99.9">0</div>
           <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Çalışma Süresi</div>
         </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-indigo-600 dark:text-indigo-400">4.9/5</div>
+        <div class="text-center stagger-item" style="animation-delay: 0.4s">
+          <div class="text-4xl font-bold text-indigo-600 dark:text-indigo-400 count-up" data-target="4.9">0</div>
           <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Kullanıcı Puanı</div>
         </div>
       </div>
@@ -260,9 +573,9 @@
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         <!-- Feature 1 -->
         <div
-          class="group p-8 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
+          class="tilt-card feature-card group p-8 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
           <div
-            class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <i class="fas fa-clipboard-check text-3xl text-white"></i>
           </div>
           <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Hızlı Yoklama</h3>
@@ -273,9 +586,9 @@
 
         <!-- Feature 2 -->
         <div
-          class="group p-8 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
+          class="tilt-card feature-card group p-8 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
           <div
-            class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <i class="fas fa-chart-line text-3xl text-white"></i>
           </div>
           <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Detaylı Analiz</h3>
@@ -287,9 +600,9 @@
 
         <!-- Feature 3 -->
         <div
-          class="group p-8 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
+          class="tilt-card feature-card group p-8 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
           <div
-            class="w-16 h-16 bg-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            class="w-16 h-16 bg-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <i class="fas fa-cloud text-3xl text-white"></i>
           </div>
           <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Bulut Tabanlı</h3>
@@ -300,9 +613,9 @@
 
         <!-- Feature 4 -->
         <div
-          class="group p-8 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
+          class="tilt-card feature-card group p-8 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
           <div
-            class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <i class="fas fa-users text-3xl text-white"></i>
           </div>
           <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Öğrenci Yönetimi</h3>
@@ -313,9 +626,9 @@
 
         <!-- Feature 5 -->
         <div
-          class="group p-8 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
+          class="tilt-card feature-card group p-8 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
           <div
-            class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <i class="fas fa-calendar-alt text-3xl text-white"></i>
           </div>
           <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Program Takibi</h3>
@@ -326,9 +639,9 @@
 
         <!-- Feature 6 -->
         <div
-          class="group p-8 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
+          class="tilt-card feature-card group p-8 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
           <div
-            class="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            class="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <i class="fas fa-shield-alt text-3xl text-white"></i>
           </div>
           <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Güvenli & GDPR</h3>
@@ -773,10 +1086,11 @@
 
   <!-- Scripts -->
   <script>
+    // ==================== INITIALIZATION ====================
     // Dynamic year
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Theme toggle - Desktop
+    // ==================== THEME TOGGLE ====================
     const themeToggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
@@ -817,7 +1131,7 @@
       });
     }
 
-    // Mobile menu toggle
+    // ==================== MOBILE MENU ====================
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const mobileMenu = document.getElementById('mobile-menu');
 
@@ -840,7 +1154,7 @@
       });
     });
 
-    // Smooth scroll for anchor links
+    // ==================== SMOOTH SCROLL ====================
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -856,7 +1170,96 @@
       });
     });
 
-    // Intersection Observer for scroll animations
+    // ==================== TYPING ANIMATION ====================
+    const typedTextElement = document.getElementById('typed-text');
+    const words = ['Çok Kolay', 'Hızlı', 'Verimli', 'Modern', 'Güvenli'];
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+
+    function type() {
+      const currentWord = words[wordIndex];
+
+      if (isDeleting) {
+        typedTextElement.textContent = currentWord.substring(0, charIndex - 1);
+        charIndex--;
+      } else {
+        typedTextElement.textContent = currentWord.substring(0, charIndex + 1);
+        charIndex++;
+      }
+
+      if (!isDeleting && charIndex === currentWord.length) {
+        isDeleting = true;
+        setTimeout(type, 2000);
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        wordIndex = (wordIndex + 1) % words.length;
+        setTimeout(type, 500);
+      } else {
+        setTimeout(type, isDeleting ? 50 : 100);
+      }
+    }
+
+    type();
+
+    // ==================== COUNTER ANIMATION ====================
+    function animateCounter(element) {
+      const target = parseFloat(element.getAttribute('data-target'));
+      const increment = target / 100;
+      let current = 0;
+      const isDecimal = target.toString().includes('.');
+
+      const updateCounter = () => {
+        current += increment;
+        if (current < target) {
+          element.textContent = isDecimal ? current.toFixed(1) : Math.floor(current);
+          requestAnimationFrame(updateCounter);
+        } else {
+          element.textContent = isDecimal ? target.toFixed(1) : target.toLocaleString();
+          if (!isDecimal && target >= 1000) {
+            element.textContent = target >= 1000 ? (target / 1000).toFixed(0) + 'K+' : target + '+';
+          } else if (target === 99.9) {
+            element.textContent = '99.9%';
+          } else if (target === 4.9) {
+            element.textContent = '4.9/5';
+          }
+        }
+      };
+
+      updateCounter();
+    }
+
+    // Start counters when visible
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.count-up').forEach(counter => {
+      counterObserver.observe(counter);
+    });
+
+    // ==================== FEATURE CARDS REVEAL ====================
+    const featureObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('revealed');
+          }, index * 100);
+          featureObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.feature-card').forEach(card => {
+      featureObserver.observe(card);
+    });
+
+    // ==================== SCROLL ANIMATIONS ====================
     const observerOptions = {
       threshold: 0.1,
       rootMargin: '0px 0px -100px 0px'
@@ -879,7 +1282,16 @@
       observer.observe(el);
     });
 
-    // Navbar background on scroll
+    // ==================== PROGRESS BAR ====================
+    const progressBar = document.getElementById('progress-bar');
+
+    window.addEventListener('scroll', () => {
+      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (window.pageYOffset / windowHeight) * 100;
+      progressBar.style.width = scrolled + '%';
+    });
+
+    // ==================== NAVBAR EFFECTS ====================
     let lastScroll = 0;
     const navbar = document.querySelector('nav');
 
@@ -894,6 +1306,223 @@
 
       lastScroll = currentScroll;
     });
+
+    // ==================== MOUSE SPOTLIGHT EFFECT ====================
+    const spotlight = document.getElementById('spotlight');
+    let mouseX = 0;
+    let mouseY = 0;
+    let spotlightX = 0;
+    let spotlightY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function animateSpotlight() {
+      spotlightX += (mouseX - spotlightX) * 0.1;
+      spotlightY += (mouseY - spotlightY) * 0.1;
+
+      spotlight.style.left = spotlightX + 'px';
+      spotlight.style.top = spotlightY + 'px';
+
+      requestAnimationFrame(animateSpotlight);
+    }
+
+    if (window.innerWidth > 768) {
+      animateSpotlight();
+    }
+
+    // ==================== CURSOR TRAIL EFFECT ====================
+    let cursorTrailTimeout;
+
+    document.addEventListener('mousemove', (e) => {
+      if (window.innerWidth <= 768) return;
+
+      clearTimeout(cursorTrailTimeout);
+      cursorTrailTimeout = setTimeout(() => {
+        const trail = document.createElement('div');
+        trail.className = 'cursor-trail';
+        trail.style.left = e.clientX + 'px';
+        trail.style.top = e.clientY + 'px';
+        document.body.appendChild(trail);
+
+        setTimeout(() => {
+          trail.remove();
+        }, 500);
+      }, 50);
+    });
+
+    // ==================== RIPPLE EFFECT ON BUTTONS ====================
+    document.querySelectorAll('a, button').forEach(button => {
+      button.addEventListener('click', function (e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.style.position = 'absolute';
+
+        this.style.position = 'relative';
+        this.style.overflow = 'hidden';
+        this.appendChild(ripple);
+
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+
+    // ==================== PARALLAX EFFECT ====================
+    window.addEventListener('scroll', () => {
+      const scrolled = window.pageYOffset;
+      document.querySelectorAll('.parallax-layer').forEach(layer => {
+        const speed = layer.dataset.speed || 0.5;
+        layer.style.transform = `translateY(${scrolled * speed}px)`;
+      });
+    });
+
+    // ==================== TILT EFFECT FOR CARDS ====================
+    document.querySelectorAll('.tilt-card').forEach(card => {
+      card.addEventListener('mousemove', function (e) {
+        if (window.innerWidth <= 768) return;
+
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
+
+        this.style.setProperty('--rotate-x', rotateX + 'deg');
+        this.style.setProperty('--rotate-y', rotateY + 'deg');
+      });
+
+      card.addEventListener('mouseleave', function () {
+        this.style.setProperty('--rotate-x', '0deg');
+        this.style.setProperty('--rotate-y', '0deg');
+      });
+    });
+
+    // ==================== MAGNETIC BUTTON EFFECT ====================
+    document.querySelectorAll('.magnetic-btn').forEach(button => {
+      button.addEventListener('mousemove', function (e) {
+        if (window.innerWidth <= 768) return;
+
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+
+        this.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) scale(1.05)`;
+      });
+
+      button.addEventListener('mouseleave', function () {
+        this.style.transform = 'translate(0, 0) scale(1)';
+      });
+    });
+
+    // ==================== SCREENSHOT HOVER EFFECTS ====================
+    document.querySelectorAll('.screenshot-placeholder').forEach(screenshot => {
+      screenshot.addEventListener('mouseenter', function () {
+        this.style.transform = 'scale(1.02) translateY(-5px)';
+      });
+
+      screenshot.addEventListener('mouseleave', function () {
+        this.style.transform = 'scale(1) translateY(0)';
+      });
+    });
+
+    // ==================== PARTICLE GENERATION ====================
+    function createParticles() {
+      if (window.innerWidth <= 768) return;
+
+      const heroSection = document.querySelector('section');
+      const colors = ['#667eea', '#764ba2', '#93c5fd', '#c084fc'];
+
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.width = Math.random() * 100 + 50 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.animationDelay = Math.random() * 5 + 's';
+        particle.style.animationDuration = Math.random() * 10 + 15 + 's';
+        heroSection.appendChild(particle);
+      }
+    }
+
+    createParticles();
+
+    // ==================== STAGGER ANIMATION ====================
+    document.querySelectorAll('.stagger-item').forEach((item, index) => {
+      item.style.animationDelay = (index * 0.1) + 's';
+    });
+
+    // ==================== SCROLL REVEAL FOR SCREENSHOTS ====================
+    const screenshotObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'scale(1) translateY(0)';
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.screenshot-placeholder').forEach(screenshot => {
+      screenshot.style.opacity = '0';
+      screenshot.style.transform = 'scale(0.9) translateY(20px)';
+      screenshot.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+      screenshotObserver.observe(screenshot);
+    });
+
+    // ==================== PERFORMANCE OPTIMIZATION ====================
+    // Throttle function for performance
+    function throttle(func, delay) {
+      let lastCall = 0;
+      return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        return func(...args);
+      };
+    }
+
+    // Apply throttling to scroll events
+    window.addEventListener('scroll', throttle(() => {
+      // Scroll-dependent animations here
+    }, 16)); // ~60fps
+
+    // ==================== EASTER EGG: KONAMI CODE ====================
+    let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiIndex = 0;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        if (konamiIndex === konamiCode.length) {
+          alert('🎉 Tebrikler! Gizli kodu buldunuz! Efendim ekibi sizi selamlıyor! 🚀');
+          document.body.style.animation = 'rainbow 2s infinite';
+          konamiIndex = 0;
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    });
+
+    // ==================== CONSOLE MESSAGE ====================
+    console.log('%c🚀 Efendim - Modern Yoklama Sistemi', 'color: #667eea; font-size: 20px; font-weight: bold;');
+    console.log('%cGeliştirici misiniz? Ekibimize katılın! https://app.efendim.nl', 'color: #764ba2; font-size: 14px;');
   </script>
 </body>
 
