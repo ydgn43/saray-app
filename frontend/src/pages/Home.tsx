@@ -20,7 +20,7 @@ const Home = () => {
       .then(data => setStudentCount(data.length))
       .catch(() => setStudentCount(null));
 
-    // Toplam sınıf
+    // Toplam Dahili Seviye
     authFetch(`${config.API_BASE_URL}/class`)
       .then(res => res.json())
       .then(data => setClassCount(data.length))
@@ -84,7 +84,7 @@ const Home = () => {
         <div className="col-md-3 mb-3">
           <div className="card shadow-sm text-center">
             <div className="card-body">
-              <h6 className="card-title">Toplam Sınıf</h6>
+              <h6 className="card-title">Toplam Dahili Seviye</h6>
               <p className="display-6">{classCount !== null ? classCount : '...'}</p>
             </div>
           </div>
@@ -136,7 +136,7 @@ const Home = () => {
                   <tr>
                     <th>#</th>
                     <th>İsim</th>
-                    <th>Sınıf</th>
+                    <th>Dahili Seviye</th>
                     <th>Var (%)</th>
                   </tr>
                 </thead>

@@ -22,7 +22,7 @@ exports.classController = {
                 res.json(classes);
             }
             catch (_a) {
-                res.status(500).json({ message: 'Sınıflar alınamadı.' });
+                res.status(500).json({ message: 'Dahili Seviyelar alınamadı.' });
             }
         });
     },
@@ -32,16 +32,16 @@ exports.classController = {
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
             const { class_name } = req.body;
             if (!class_name)
-                return res.status(400).json({ message: 'Sınıf adı eksik.' });
+                return res.status(400).json({ message: 'Dahili Seviye adı eksik.' });
             try {
                 const exists = yield Class_1.default.findByPk(class_name);
                 if (exists)
-                    return res.status(409).json({ message: 'Sınıf zaten mevcut.' });
+                    return res.status(409).json({ message: 'Dahili Seviye zaten mevcut.' });
                 yield Class_1.default.create({ class_name });
-                res.status(201).json({ message: 'Sınıf oluşturuldu.' });
+                res.status(201).json({ message: 'Dahili Seviye oluşturuldu.' });
             }
             catch (_a) {
-                res.status(500).json({ message: 'Sınıf oluşturulamadı.' });
+                res.status(500).json({ message: 'Dahili Seviye oluşturulamadı.' });
             }
         });
     },
@@ -52,12 +52,12 @@ exports.classController = {
             try {
                 const cls = yield Class_1.default.findByPk(req.params.class_name);
                 if (!cls)
-                    return res.status(404).json({ message: 'Sınıf bulunamadı.' });
+                    return res.status(404).json({ message: 'Dahili Seviye bulunamadı.' });
                 yield cls.destroy();
-                res.json({ message: 'Sınıf silindi.' });
+                res.json({ message: 'Dahili Seviye silindi.' });
             }
             catch (_a) {
-                res.status(500).json({ message: 'Sınıf silinemedi.' });
+                res.status(500).json({ message: 'Dahili Seviye silinemedi.' });
             }
         });
     },
