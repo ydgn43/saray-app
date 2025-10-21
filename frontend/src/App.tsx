@@ -8,7 +8,7 @@ import Attendance from './pages/Attendance';
 import Statistics from './pages/Statistics';
 import Talebeler from './pages/Talebeler';
 import Layout from './components/Layout';
-import AccountSettings from './pages/AccountSettings';
+import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import PageTransition from './components/PageTransition';
 import Home from './pages/Home';
@@ -82,12 +82,12 @@ function App() {
             }
           />
           <Route
-            path="/account"
+            path="/profile"
             element={
               <PrivateRoute>
                 <Layout>
                   <PageTransition>
-                    <AccountSettings />
+                    <Profile />
                   </PageTransition>
                 </Layout>
               </PrivateRoute>
@@ -97,11 +97,13 @@ function App() {
             path="/settings"
             element={
               <PrivateRoute>
-                <Layout>
-                  <PageTransition>
-                    <Settings />
-                  </PageTransition>
-                </Layout>
+                <RequireRole roles={['admin']}>
+                  <Layout>
+                    <PageTransition>
+                      <Settings />
+                    </PageTransition>
+                  </Layout>
+                </RequireRole>
               </PrivateRoute>
             }
           />

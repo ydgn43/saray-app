@@ -1,20 +1,18 @@
 // src/pages/Settings.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import AccountSettings from './AccountSettings';
 import UserManagement from './UserManagement';
 import Layout from '../components/Layout';
 import CustomManagement from './CustomManagement';
 
 const TABS = [
-    { key: 'profile', label: 'Profilim' },
     { key: 'users', label: 'Kullanıcı Yönetimi', adminOnly: true },
     { key: 'custom', label: 'Sezon ve Program Yönetimi', adminOnly: true },
 ];
 
 const Settings = () => {
     const { user } = useAuth();
-    const [tab, setTab] = useState('profile');
+    const [tab, setTab] = useState('users');
 
     return (
         <div className="container py-4" style={{ maxWidth: 800 }}>
@@ -36,7 +34,6 @@ const Settings = () => {
             </ul>
             {/* Tab content */}
             <div>
-                {tab === 'profile' && <AccountSettings />}
                 {tab === 'users' && user?.role === 'admin' && <UserManagement />}
                 {tab === 'custom' && user?.role === 'admin' && <CustomManagement />}
             </div>

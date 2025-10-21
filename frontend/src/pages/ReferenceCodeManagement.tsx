@@ -308,6 +308,7 @@ const ReferenceCodeManagement: React.FC = () => {
                                     <th>Rol</th>
                                     <th>Durum</th>
                                     <th>Kullanım</th>
+                                    <th>Oluşturulma</th>
                                     <th>Son Kullanma</th>
                                     <th>Açıklama</th>
                                     <th>İşlemler</th>
@@ -338,6 +339,7 @@ const ReferenceCodeManagement: React.FC = () => {
                                         </td>
                                         <td>{getStatusBadge(code)}</td>
                                         <td>{code.currentUses} / {code.maxUses}</td>
+                                        <td>{formatDate(code.createdAt)}</td>
                                         <td>{formatDate(code.expiresAt)}</td>
                                         <td>
                                             <span className="description-text">

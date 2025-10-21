@@ -3,3 +3,219 @@
   z-index: 1050 !important;
   /* Ensure it appears above modals */
 }
+
+/* User Profile Section Styles - Fixed at bottom of screen */
+.user-profile-section-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 250px;
+  background-color: #fff;
+  padding: 1.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  border-top: 2px solid #e5e5e5;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1350;
+}
+
+.user-profile-section-fixed:hover {
+  background-color: #f8f9ff;
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-profile-section-fixed:hover .user-avatar {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+}
+
+/* User Modal - Small popup */
+.user-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1400;
+  animation: fadeIn 0.2s ease;
+}
+
+.user-modal {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 280px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 1500;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.user-modal-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+}
+
+.user-avatar-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.user-modal-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-modal-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.user-modal-role {
+  font-size: 13px;
+  color: #666;
+  display: inline-block;
+  padding: 3px 10px;
+  background-color: #f0f0f0;
+  border-radius: 12px;
+}
+
+.user-modal-divider {
+  height: 1px;
+  background-color: #e5e5e5;
+}
+
+.user-modal-settings {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: none;
+  color: #0d6efd;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-modal-settings:hover {
+  background-color: #f0f7ff;
+}
+
+.user-modal-settings span {
+  flex: 1;
+}
+
+.user-modal-logout {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: none;
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.user-modal-logout:hover {
+  background-color: #fff5f5;
+}
+
+.user-modal-logout span {
+  flex: 1;
+}
