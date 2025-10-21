@@ -11,6 +11,7 @@ import { authRouter } from './routes/authRoute';
 import { seasonRouter } from './routes/seasonRoute';
 import { programRouter } from './routes/programRoute';
 import { classRouter } from './routes/classRoute';
+import referenceCodeRouter from './routes/referenceCodeRoute';
 
 const app = express();
 const port = Number(process.env.PORT_HTTP) || 3001;
@@ -47,9 +48,20 @@ app.use('/auth', authRouter);
 app.use('/season', seasonRouter);
 app.use('/program', programRouter);
 app.use('/class', classRouter);
+app.use('/reference-codes', referenceCodeRouter);
+
+console.log('✅ All routes registered successfully!');
+console.log('📍 Auth routes: POST /auth/login, POST /auth/signup');
+
+// Catch-all for debugging 404s
+app.use((req, res, next) => {
+    console.log(`⚠️  404 - Route not found: ${req.method} ${req.url}`);
+    res.status(404).json({ message: 'Route not found', path: req.url, method: req.method });
+});
 
 app.listen(port, host, () => {
-    console.log(`App listening on ${host}:${port}`);
+    console.log(`🚀 Backend server listening on http://${host}:${port}`);
+    console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
 });
 
 async function testSequelizeConnection() {

@@ -42,3 +42,11 @@ export const requireRoles = (roles: string[]) => {
         next();
     };
 };
+
+// Helper middleware for admin-only routes
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Forbidden: Admin access required' });
+    }
+    next();
+};

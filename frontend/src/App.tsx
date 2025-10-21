@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import PrivateRoute from './auth/PrivateRoute';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Attendance from './pages/Attendance';
 import Statistics from './pages/Statistics';
 import Talebeler from './pages/Talebeler';
@@ -12,6 +13,7 @@ import Settings from './pages/Settings';
 import PageTransition from './components/PageTransition';
 import Home from './pages/Home';
 import IzinliTalebeler from './pages/IzinliTalebeler';
+import ReferenceCodeManagement from './pages/ReferenceCodeManagement';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -28,6 +30,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route
             path="/attendance"
             element={
@@ -111,6 +114,20 @@ function App() {
                     <IzinliTalebeler />
                   </PageTransition>
                 </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/reference-codes"
+            element={
+              <PrivateRoute>
+                <RequireRole roles={['admin']}>
+                  <Layout>
+                    <PageTransition>
+                      <ReferenceCodeManagement />
+                    </PageTransition>
+                  </Layout>
+                </RequireRole>
               </PrivateRoute>
             }
           />

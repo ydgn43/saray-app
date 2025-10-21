@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -633,6 +633,23 @@ export default function Login() {
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
+
+                                {/* Signup Link */}
+                                <motion.div variants={itemVariants} style={{ textAlign: 'center', marginTop: '24px' }}>
+                                    <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
+                                        Hesabınız yok mu?{' '}
+                                        <Link
+                                            to="/signup"
+                                            style={{
+                                                color: '#3b82f6',
+                                                fontWeight: '600',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            Kayıt Ol
+                                        </Link>
+                                    </p>
+                                </motion.div>
                             </form>
                         </motion.div>
                     </div>

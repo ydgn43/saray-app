@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
@@ -25,7 +25,7 @@ const IconComponent = ({ icon: Icon }: { icon: IconType }) => {
 
 const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode }) => {
     const location = useLocation();
-    const { logout } = useAuth(); // <-- Use the logout function
+    const { logout, user } = useAuth(); // <-- Use the logout function and user
 
     return (
         <Sidebar
@@ -112,6 +112,17 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                     >
                         İzinli Talebeler
                     </MenuItem>
+                    {/* --- Admin Only: Reference Code Management --- */}
+                    {user?.role === 'admin' && (
+                        <MenuItem
+                            active={location.pathname === '/reference-codes'}
+                            icon={<IconComponent icon={FaKey} />}
+                            component={<Link to="/reference-codes" />}
+                            onClick={onToggle}
+                        >
+                            Referans Kodları
+                        </MenuItem>
+                    )}
                     {/* --- Logout Button --- */}
                     <MenuItem
                         icon={<IconComponent icon={FaSignOutAlt} />}
