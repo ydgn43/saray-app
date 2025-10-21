@@ -11,13 +11,13 @@ export const login = async (req: Request, res: Response) => {
         // 1. Find user by username
         const user: any = await User.findOne({ where: { username } });
         if (!user) {
-            return res.status(401).json({ message: 'Invalid username or password.' });
+            return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
         // 2. Compare password with hashed password
         const valid = await bcrypt.compare(password, user.password);
 
         if (!valid) {
-            return res.status(401).json({ message: 'Invalid username or password.' });
+            return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
         // 3. Create JWT
         const jwtSecret = process.env.JWT_SECRET;
