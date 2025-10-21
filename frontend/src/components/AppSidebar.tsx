@@ -53,13 +53,21 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
 
     return (
         <>
+            {/* Mobile Backdrop - Only show on mobile when sidebar is open */}
+            {mobileMode && toggled && (
+                <div
+                    className="mobile-sidebar-backdrop"
+                    onClick={onToggle}
+                />
+            )}
+
             <Sidebar
                 style={{
                     height: '100vh',
                     position: mobileMode ? 'fixed' : 'relative',
                     top: 0,
                     left: 0,
-                    zIndex: 1300,
+                    zIndex: 1350,
                     transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1)',
                     boxShadow: mobileMode && toggled ? '2px 0 16px rgba(0,0,0,0.25)' : undefined,
                     width: 250,
@@ -174,10 +182,32 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                     </Menu>
                 </div>
 
+                {/* User Profile Section - Inside Sidebar */}
+                {user && (
+                    <div
+                        className="user-profile-section"
+                        onClick={() => setShowUserModal(!showUserModal)}
+                    >
+                        {/* Profile Photo/Avatar */}
+                        <div className="user-avatar">
+                            {getInitials(user.username)}
+                        </div>
+
+                        {/* User Info */}
+                        <div className="user-info">
+                            <div className="user-name">
+                                {user.username}
+                            </div>
+                            <div className="user-role">
+                                {getRoleDisplayName(user.role)}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Bottom: Version */}
                 <div style={{
-                    marginTop: 'auto',
-                    padding: '1rem',
+                    padding: '0.75rem 1rem',
                     borderTop: '1px solid #e5e5e5',
                     textAlign: 'center',
                     fontSize: 13,
@@ -188,84 +218,57 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                 </div>
             </Sidebar>
 
-            {/* User Profile Section - Fixed at the bottom of screen */}
-            {
-                user && (
-                    <>
-                        <div
-                            className="user-profile-section-fixed"
-                            onClick={() => setShowUserModal(!showUserModal)}
-                        >
-                            {/* Profile Photo/Avatar */}
-                            <div className="user-avatar">
+            {/* User Modal - Small popup */}
+            {user && showUserModal && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="user-modal-backdrop"
+                        onClick={handleModalBackdropClick}
+                    />
+
+                    {/* Modal Content */}
+                    <div className={`user-modal ${mobileMode ? 'mobile' : ''}`}>
+                        <div className="user-modal-header">
+                            <div className="user-avatar-large">
                                 {getInitials(user.username)}
                             </div>
-
-                            {/* User Info */}
-                            <div className="user-info">
-                                <div className="user-name">
-                                    {user.username}
-                                </div>
-                                <div className="user-role">
-                                    {getRoleDisplayName(user.role)}
-                                </div>
+                            <div className="user-modal-info">
+                                <div className="user-modal-name">{user.username}</div>
+                                <div className="user-modal-role">{getRoleDisplayName(user.role)}</div>
                             </div>
                         </div>
 
-                        {/* User Modal - Small popup */}
-                        {showUserModal && (
-                            <>
-                                {/* Backdrop */}
-                                <div
-                                    className="user-modal-backdrop"
-                                    onClick={handleModalBackdropClick}
-                                />
+                        <div className="user-modal-divider" />
 
-                                {/* Modal Content */}
-                                <div className="user-modal">
-                                    <div className="user-modal-header">
-                                        <div className="user-avatar-large">
-                                            {getInitials(user.username)}
-                                        </div>
-                                        <div className="user-modal-info">
-                                            <div className="user-modal-name">{user.username}</div>
-                                            <div className="user-modal-role">{getRoleDisplayName(user.role)}</div>
-                                        </div>
-                                    </div>
+                        {/* Profile Button */}
+                        <button
+                            className="user-modal-settings"
+                            onClick={() => {
+                                navigate('/profile');
+                                setShowUserModal(false);
+                                if (mobileMode) onToggle();
+                            }}
+                        >
+                            <IconComponent icon={FaCog} />
+                            <span>Ayarlar</span>
+                        </button>
 
-                                    <div className="user-modal-divider" />
-
-                                    {/* Profile Button */}
-                                    <button
-                                        className="user-modal-settings"
-                                        onClick={() => {
-                                            navigate('/profile');
-                                            setShowUserModal(false);
-                                            if (mobileMode) onToggle();
-                                        }}
-                                    >
-                                        <IconComponent icon={FaCog} />
-                                        <span>Ayarlar</span>
-                                    </button>
-
-                                    {/* Logout Button */}
-                                    <button
-                                        className="user-modal-logout"
-                                        onClick={() => {
-                                            logout();
-                                            setShowUserModal(false);
-                                            onToggle();
-                                        }}
-                                    >
-                                        <IconComponent icon={FaSignOutAlt} />
-                                        <span>Çıkış Yap</span>
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </>
-                )
-            }
+                        {/* Logout Button */}
+                        <button
+                            className="user-modal-logout"
+                            onClick={() => {
+                                logout();
+                                setShowUserModal(false);
+                                onToggle();
+                            }}
+                        >
+                            <IconComponent icon={FaSignOutAlt} />
+                            <span>Çıkış Yap</span>
+                        </button>
+                    </div>
+                </>
+            )}
         </>
     );
 };
