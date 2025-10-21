@@ -31,6 +31,9 @@ export class StudentData {
 
     public async createStudent(student: Student): Promise<string> {
         try {
+            // Generate unique reference code for the student
+            const referenceCode = this.generateStudentReferenceCode();
+
             const [newStudent, created] = await StudentSequelize.findOrCreate({
                 where: {
                     first_name: student.firstName,
@@ -43,12 +46,14 @@ export class StudentData {
                     last_name: student.lastName,
                     birth_date: student.birthDate,
                     season_year: student.seasonYear,
-                    class_name: student.className
+                    class_name: student.className,
+                    reference_code: referenceCode
                 }
             });
 
             if (created) {
-                return "Student succesfully created";
+                console.log(`✅ Student created with reference code: ${referenceCode}`);
+                return `Student successfully created with reference code: ${referenceCode}`;
             } else {
                 return "Student already exists";
             }
@@ -61,6 +66,16 @@ export class StudentData {
             }
             throw new Error("Could not create new student");
         }
+    }
+
+    private generateStudentReferenceCode(): string {
+        // Generate a unique code: STU-XXXXXX (STU + 6 random alphanumeric)
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluded similar chars: I,O,0,1
+        let code = 'STU-';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
     }
 
     public async updateStudent(student: Student): Promise<boolean> {

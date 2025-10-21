@@ -34,7 +34,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
     const getRoleDisplayName = (role: string): string => {
         const roleMap: { [key: string]: string } = {
             'admin': 'Admin',
-            'hoca': 'Öğretmen',
+            'hoca': 'Hoca',
             'yoklamaci': 'Yoklamacı',
             'talebe': 'Talebe'
         };
@@ -141,12 +141,15 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                 Talebeler
                             </MenuItem>
                         )}
-                        <MenuItem
-                            icon={<IconComponent icon={FaUserCheck} />}
-                            component={<Link to="/izinli-talebeler" />}
-                        >
-                            İzinli Talebeler
-                        </MenuItem>
+                        {/* İzinli Talebeler - Hidden from talebe role */}
+                        {user?.role !== 'talebe' && (
+                            <MenuItem
+                                icon={<IconComponent icon={FaUserCheck} />}
+                                component={<Link to="/izinli-talebeler" />}
+                            >
+                                İzinli Talebeler
+                            </MenuItem>
+                        )}
                         {/* --- Admin Only: Reference Code Management --- */}
                         {user?.role === 'admin' && (
                             <>

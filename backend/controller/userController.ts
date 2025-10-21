@@ -34,7 +34,7 @@ async function updateMe(req: Request, res: Response) {
 async function getAllUsers(req: Request, res: Response) {
     try {
         const users = await User.findAll({
-            attributes: ['accountid', 'username', 'role_name']
+            attributes: ['accountid', 'username', 'role_name', 'studentid']
         });
         res.json(users); // This sends a JSON array!
     } catch (err) {

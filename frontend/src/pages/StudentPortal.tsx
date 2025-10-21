@@ -58,42 +58,96 @@ const StudentPortal = () => {
     const { user } = useAuth();
     const [students, setStudents] = useState<{ studentid: number; name: string }[]>([]);
     const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [selectedYear, setSelectedYear] = useState('');
+    const [selectedMonth, setSelectedMonth] = useState('');
     const [statistics, setStatistics] = useState<StatisticEntry[]>([]);
     const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // Load saved student selection and dates from localStorage
-    useEffect(() => {
-        const savedStudentId = localStorage.getItem('student-portal-studentId');
-        const savedStartDate = localStorage.getItem('student-portal-startDate');
-        const savedEndDate = localStorage.getItem('student-portal-endDate');
+    // Check if current user is a talebe and has a studentid
+    const isTalebe = user?.role === 'talebe';
+    const userStudentId = user?.studentid;
 
-        if (savedStudentId) setSelectedStudentId(parseInt(savedStudentId));
-        if (savedStartDate) setStartDate(savedStartDate);
-        if (savedEndDate) setEndDate(savedEndDate);
-    }, []);
+    // Generate years array (current year and 5 years back)
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 6 }, (_, i) => currentYear - i);
 
-    // Save selections to localStorage
+    // Months array in Turkish
+    const months = [
+        { value: '01', label: 'Ocak' },
+        { value: '02', label: 'Şubat' },
+        { value: '03', label: 'Mart' },
+        { value: '04', label: 'Nisan' },
+        { value: '05', label: 'Mayıs' },
+        { value: '06', label: 'Haziran' },
+        { value: '07', label: 'Temmuz' },
+        { value: '08', label: 'Ağustos' },
+        { value: '09', label: 'Eylül' },
+        { value: '10', label: 'Ekim' },
+        { value: '11', label: 'Kasım' },
+        { value: '12', label: 'Aralık' }
+    ];
+
+    // Calculate start and end dates from year and month
+    const getDateRange = () => {
+        if (!selectedYear || !selectedMonth) return { startDate: '', endDate: '' };
+
+        const year = parseInt(selectedYear);
+        const month = parseInt(selectedMonth);
+
+        // First day of the month
+        const startDate = `${year}-${selectedMonth}-01`;
+
+        // Last day of the month
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${selectedMonth}-${lastDay.toString().padStart(2, '0')}`;
+
+        return { startDate, endDate };
+    };
+
+    // Load saved student selection and date from localStorage
     useEffect(() => {
-        if (selectedStudentId) {
+        // If user is a talebe with a studentid, use that automatically
+        if (isTalebe && userStudentId) {
+            setSelectedStudentId(userStudentId);
+        } else {
+            // Otherwise, try to load from localStorage (for admin/hoca/yoklamaci)
+            const savedStudentId = localStorage.getItem('student-portal-studentId');
+            if (savedStudentId) setSelectedStudentId(parseInt(savedStudentId));
+        }
+
+        const savedYear = localStorage.getItem('student-portal-year');
+        const savedMonth = localStorage.getItem('student-portal-month');
+
+        if (savedYear) setSelectedYear(savedYear);
+        if (savedMonth) setSelectedMonth(savedMonth);
+
+        // Set default to current year and month if nothing saved
+        if (!savedYear) setSelectedYear(currentYear.toString());
+        if (!savedMonth) setSelectedMonth((new Date().getMonth() + 1).toString().padStart(2, '0'));
+    }, [isTalebe, userStudentId]);
+
+    // Save selections to localStorage (only for non-talebe users)
+    useEffect(() => {
+        if (selectedStudentId && !isTalebe) {
             localStorage.setItem('student-portal-studentId', selectedStudentId.toString());
         }
-    }, [selectedStudentId]);
+    }, [selectedStudentId, isTalebe]);
 
     useEffect(() => {
-        if (startDate) localStorage.setItem('student-portal-startDate', startDate);
-    }, [startDate]);
+        if (selectedYear) localStorage.setItem('student-portal-year', selectedYear);
+    }, [selectedYear]);
 
     useEffect(() => {
-        if (endDate) localStorage.setItem('student-portal-endDate', endDate);
-    }, [endDate]);
+        if (selectedMonth) localStorage.setItem('student-portal-month', selectedMonth);
+    }, [selectedMonth]);
 
-    // Fetch all students on component mount
+    // Fetch all students on component mount (only if not talebe)
     useEffect(() => {
-        fetchStudents();
-    }, []);
+        if (!isTalebe) {
+            fetchStudents();
+        }
+    }, [isTalebe]);
 
     const fetchStudents = async () => {
         try {
@@ -111,6 +165,7 @@ const StudentPortal = () => {
     };
 
     const fetchAttendanceRecords = async () => {
+        const { startDate, endDate } = getDateRange();
         if (!startDate || !endDate) return;
         try {
             const res = await authFetch(
@@ -125,8 +180,9 @@ const StudentPortal = () => {
     };
 
     const fetchStatistics = async () => {
+        const { startDate, endDate } = getDateRange();
         if (!startDate || !endDate) {
-            toast.error('Lütfen tarih aralığı seçin.');
+            toast.error('Lütfen yıl ve ay seçin.');
             return;
         }
         if (!selectedStudentId) {
@@ -208,58 +264,70 @@ const StudentPortal = () => {
                     )}
                 </div>
 
-                {/* Student Selection */}
-                <div className="card shadow-sm mb-4">
-                    <div className="card-body">
-                        <h5 className="card-title mb-3">Talebe Seç</h5>
-                        <div className="row g-3">
-                            <div className="col-md-12">
-                                <label className="form-label fw-semibold">Adın</label>
-                                <select
-                                    className="form-select form-select-lg"
-                                    value={selectedStudentId || ''}
-                                    onChange={(e) => setSelectedStudentId(parseInt(e.target.value))}
-                                >
-                                    <option value="">-- Talebe Seç --</option>
-                                    {students.map((s) => (
-                                        <option key={s.studentid} value={s.studentid}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
+                {/* Student Selection - Only show for non-talebe users */}
+                {!isTalebe && (
+                    <div className="card shadow-sm mb-4">
+                        <div className="card-body">
+                            <h5 className="card-title mb-3">Talebe Seç</h5>
+                            <div className="row g-3">
+                                <div className="col-md-12">
+                                    <label className="form-label fw-semibold">Adın</label>
+                                    <select
+                                        className="form-select form-select-lg"
+                                        value={selectedStudentId || ''}
+                                        onChange={(e) => setSelectedStudentId(parseInt(e.target.value))}
+                                    >
+                                        <option value="">-- Talebe Seç --</option>
+                                        {students.map((s) => (
+                                            <option key={s.studentid} value={s.studentid}>
+                                                {s.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Date Range Selection */}
                 <div className="card shadow-sm mb-4">
                     <div className="card-body">
-                        <h5 className="card-title mb-3">Tarih Aralığı</h5>
+                        <h5 className="card-title mb-3">Tarih Seçimi</h5>
                         <div className="row g-3">
                             <div className="col-md-5">
-                                <label className="form-label fw-semibold">Başlangıç Tarihi</label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
+                                <label className="form-label fw-semibold">Yıl</label>
+                                <select
+                                    className="form-select"
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                >
+                                    <option value="">Yıl seçin</option>
+                                    {years.map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="col-md-5">
-                                <label className="form-label fw-semibold">Bitiş Tarihi</label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
+                                <label className="form-label fw-semibold">Ay</label>
+                                <select
+                                    className="form-select"
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                >
+                                    <option value="">Ay seçin</option>
+                                    {months.map((month) => (
+                                        <option key={month.value} value={month.value}>
+                                            {month.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="col-md-2 d-flex align-items-end">
                                 <button
                                     className="btn btn-primary w-100"
                                     onClick={fetchStatistics}
-                                    disabled={!selectedStudentId || !startDate || !endDate || loading}
+                                    disabled={!selectedStudentId || !selectedYear || !selectedMonth || loading}
                                 >
                                     {loading ? 'Yükleniyor...' : 'Getir'}
                                 </button>

@@ -32,7 +32,12 @@ export const login = async (req: Request, res: Response) => {
         // 4. Send token and user info
         res.json({
             token,
-            user: { accountid: user.accountid, username: user.username, role: user.role_name }
+            user: {
+                accountid: user.accountid,
+                username: user.username,
+                role: user.role_name,
+                studentid: user.studentid || null
+            }
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -49,6 +54,7 @@ export const signup = async (req: Request, res: Response) => {
         const User = sequelize.models.UserSequelize;
         const ReferenceCode = sequelize.models.ReferenceCode;
         const Role = sequelize.models.RoleSequelize;
+        const Student = sequelize.models.StudentSequelize;
 
         // 1. Validate required fields
         if (!username || !password || !referenceCode) {
@@ -62,52 +68,73 @@ export const signup = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Username already exists' });
         }
 
-        // 3. Validate reference code
-        const refCode: any = await ReferenceCode.findOne({
-            where: { code: referenceCode.toUpperCase() },
+        // 3. Check if this is a student-specific reference code
+        const student: any = await Student.findOne({
+            where: { reference_code: referenceCode.toUpperCase() }
         });
 
-        console.log('Reference code found:', refCode ? { code: refCode.code, roleId: refCode.roleId } : 'NOT FOUND');
+        let roleToAssign = 'talebe'; // Default for student codes
+        let linkedStudentId = null;
 
-        if (!refCode) {
-            console.log('Invalid reference code');
-            return res.status(400).json({ message: 'Invalid reference code' });
-        }
+        if (student) {
+            // This is a student-specific code
+            console.log('✅ Student reference code detected:', { studentId: student.studentid, code: referenceCode });
+            linkedStudentId = student.studentid;
+        } else {
+            // 3b. Check if it's a regular reference code (for other roles)
+            const refCode: any = await ReferenceCode.findOne({
+                where: { code: referenceCode.toUpperCase() },
+            });
 
-        // Check if expired
-        if (new Date() > refCode.expiresAt) {
-            console.log('Reference code expired');
-            return res.status(400).json({ message: 'Reference code has expired' });
-        }
+            console.log('Reference code found:', refCode ? { code: refCode.code, roleId: refCode.roleId } : 'NOT FOUND');
 
-        // Check if fully used
-        if (refCode.currentUses >= refCode.maxUses) {
-            console.log('Reference code reached max uses');
-            return res.status(400).json({ message: 'Reference code has reached maximum uses' });
-        }
+            if (!refCode) {
+                console.log('Invalid reference code');
+                return res.status(400).json({ message: 'Invalid reference code' });
+            }
 
-        // 4. Validate role exists
-        console.log('Looking for role:', refCode.roleId);
-        const role = await Role.findOne({ where: { role_name: refCode.roleId } });
-        console.log('Role found:', role ? 'YES' : 'NO');
+            // Check if expired
+            if (new Date() > refCode.expiresAt) {
+                console.log('Reference code expired');
+                return res.status(400).json({ message: 'Reference code has expired' });
+            }
 
-        if (!role) {
-            console.log('Invalid role associated with reference code');
-            return res.status(400).json({ message: 'Invalid role associated with reference code' });
+            // Check if fully used
+            if (refCode.currentUses >= refCode.maxUses) {
+                console.log('Reference code reached max uses');
+                return res.status(400).json({ message: 'Reference code has reached maximum uses' });
+            }
+
+            // 4. Validate role exists
+            console.log('Looking for role:', refCode.roleId);
+            const role = await Role.findOne({ where: { role_name: refCode.roleId } });
+            console.log('Role found:', role ? 'YES' : 'NO');
+
+            if (!role) {
+                console.log('Invalid role associated with reference code');
+                return res.status(400).json({ message: 'Invalid role associated with reference code' });
+            }
+
+            roleToAssign = refCode.roleId;
         }
 
         // 5. Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 6. Create new user
+        // 6. Create new user with auto-linked studentid if applicable
         const newUser: any = await User.create({
             username,
             password: hashedPassword,
-            role_name: refCode.roleId,
+            role_name: roleToAssign,
+            studentid: linkedStudentId
         });
 
-        // 7. Mark reference code as used
-        await markCodeAsUsed(referenceCode.toUpperCase(), newUser.accountid);
+        console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId });
+
+        // 7. Mark reference code as used (only for non-student codes)
+        if (!student) {
+            await markCodeAsUsed(referenceCode.toUpperCase(), newUser.accountid);
+        }
 
         // 8. Create JWT token
         const jwtSecret = process.env.JWT_SECRET;
@@ -130,6 +157,7 @@ export const signup = async (req: Request, res: Response) => {
                 accountid: newUser.accountid,
                 username: newUser.username,
                 role: newUser.role_name,
+                studentid: newUser.studentid || null
             },
         });
     } catch (error) {

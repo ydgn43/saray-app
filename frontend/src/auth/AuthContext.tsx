@@ -4,6 +4,7 @@ type UserType = {
     accountid: number;
     username: string;
     role: string;
+    studentid?: number | null;
 };
 
 type AuthContextType = {

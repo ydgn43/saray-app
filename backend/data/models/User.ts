@@ -1,5 +1,6 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import Role from './Role';
+import Student from './Student';
 
 @Table({
     tableName: 'User',
@@ -32,6 +33,16 @@ export default class UserSequelize extends Model {
     })
     declare role_name: string;
 
+    @ForeignKey(() => Student)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: true
+    })
+    declare studentid: number | null;
+
     @BelongsTo(() => Role)
     role!: Role;
+
+    @BelongsTo(() => Student)
+    student?: Student;
 }

@@ -46,6 +46,8 @@ export class StudentController {
 
             const createdResponse: string = await this.studentService.createStudent(student);
 
+            console.log('📤 Sending response to frontend:', createdResponse);
+
             res.status(202).json({ message: createdResponse });
         } catch (error) {
             console.error('Error creating student:', error);

@@ -46,6 +46,13 @@ export default class StudentSequelize extends Model {
     })
     declare class_name: string;
 
+    @Column({
+        type: DataType.STRING(20),
+        allowNull: true,
+        unique: true
+    })
+    declare reference_code: string | null;
+
     @BelongsTo(() => Season)
     season!: Season;
 

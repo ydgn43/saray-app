@@ -19,6 +19,7 @@ type Student = {
     birth_date: string;
     season_year: string;
     class_name: string;
+    reference_code?: string | null;
 };
 
 const CLASS_NAME_MAP: Record<string, string> = {
@@ -140,7 +141,35 @@ const Talebeler = () => {
                 toast.error(data.message || 'Ekleme başarısız');
                 return;
             }
-            toast.success('Talebe başarıyla eklendi');
+
+            const data = await res.json();
+            console.log('📥 Student created response:', data);
+            console.log('📝 Message:', data.message);
+
+            // Extract reference code from the message if present
+            const message = data.message || '';
+            console.log('🔍 Looking for code in:', message);
+            const codeMatch = message.match(/STU-[A-Z0-9]{6}/);
+            console.log('✅ Code match:', codeMatch);
+
+            if (codeMatch) {
+                const referenceCode = codeMatch[0];
+                console.log('🎯 Reference code extracted:', referenceCode);
+                toast.success(`Talebe eklendi! Referans Kodu: ${referenceCode}`, {
+                    autoClose: 10000, // Show for 10 seconds
+                    className: 'toast-with-code'
+                });
+
+                // Also show an alert with the code
+                setTimeout(() => {
+                    alert(`✅ Talebe başarıyla eklendi!\n\n` +
+                        `📋 Referans Kodu: ${referenceCode}\n\n` +
+                        `Bu kodu talebeye verin. Kayıt olurken bu kodu kullanacaklar.`);
+                }, 500);
+            } else {
+                console.log('⚠️ No reference code found in message');
+                toast.success('Talebe başarıyla eklendi');
+            }
 
             setFirstName('');
             setLastName('');
@@ -582,6 +611,7 @@ const Talebeler = () => {
                                     <th>Dahili Seviye</th>
                                     <th>Sezon</th>
                                     <th>Doğum Tarihi</th>
+                                    <th>Referans Kodu</th>
                                     <th>İşlem</th>
                                 </tr>
                             </thead>
@@ -610,6 +640,13 @@ const Talebeler = () => {
                                         <td>{getTurkishClassName(s.class_name)}</td>
                                         <td>{s.season_year}</td>
                                         <td>{s.birth_date}</td>
+                                        <td>
+                                            {s.reference_code ? (
+                                                <code className="bg-light px-2 py-1 rounded">{s.reference_code}</code>
+                                            ) : (
+                                                <span className="text-muted fst-italic">Yok</span>
+                                            )}
+                                        </td>
                                         <td>
                                             <button className="btn btn-warning btn-sm me-2" onClick={() => { setEditingStudent(s); setShowEditModal(true); }}>Düzenle</button>
                                             <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s.studentid)}>Sil</button>
