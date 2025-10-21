@@ -13,14 +13,14 @@ export const login = async (req: Request, res: Response) => {
         if (!user) {
             return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
-        
+
         console.log('🔍 User found in database:', {
             accountid: user.accountid,
             username: user.username,
             role_name: user.role_name,
             studentid: user.studentid
         });
-        
+
         // 2. Compare password with hashed password
         const valid = await bcrypt.compare(password, user.password);
 
@@ -37,7 +37,7 @@ export const login = async (req: Request, res: Response) => {
             jwtSecret,
             { expiresIn: '7d' }
         );
-        
+
         const responseData = {
             token,
             user: {
@@ -47,9 +47,9 @@ export const login = async (req: Request, res: Response) => {
                 studentid: user.studentid || null
             }
         };
-        
+
         console.log('✅ Login response:', responseData);
-        
+
         // 4. Send token and user info
         res.json(responseData);
     } catch (error) {

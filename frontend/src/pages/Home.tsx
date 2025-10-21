@@ -461,98 +461,209 @@ const Home = () => {
 
   // Admin/Hoca/Yoklamaci Home View
   return (
-    <div>
-      <h1 className="mb-4 text-center">Efendim! Dashboard</h1>
-      <div className="row mb-4">
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm text-center">
-            <div className="card-body">
-              <h6 className="card-title">Toplam Talebe</h6>
-              <p className="display-6">{studentCount !== null ? studentCount : '...'}</p>
+    <div className="container-fluid py-4">
+      {/* Welcome Header */}
+      <div className="mb-4">
+        <h1 className="display-5 fw-bold mb-2" style={{ color: '#0d6efd' }}>
+          Hoş Geldiniz, {user?.username}! 👋
+        </h1>
+        <p className="text-muted fs-5">
+          Bugünün Tarihi: {new Date().toLocaleDateString('tr-TR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="row g-4 mb-4">
+        {/* Total Students Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            transition: 'transform 0.2s'
+          }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div className="card-body text-white">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="card-title mb-2 opacity-75">Toplam Talebe</h6>
+                  <h2 className="display-4 fw-bold mb-0">
+                    {studentCount !== null ? studentCount : '...'}
+                  </h2>
+                </div>
+                <div style={{ fontSize: '3rem', opacity: 0.3 }}>👥</div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm text-center">
-            <div className="card-body">
-              <h6 className="card-title">Toplam Dahili Seviye</h6>
-              <p className="display-6">{classCount !== null ? classCount : '...'}</p>
+
+        {/* Total Classes Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            transition: 'transform 0.2s'
+          }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div className="card-body text-white">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="card-title mb-2 opacity-75">Dahili Seviye</h6>
+                  <h2 className="display-4 fw-bold mb-0">
+                    {classCount !== null ? classCount : '...'}
+                  </h2>
+                </div>
+                <div style={{ fontSize: '3rem', opacity: 0.3 }}>📚</div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm text-center">
-            <div className="card-body">
-              <h6 className="card-title">Toplam Program</h6>
-              <p className="display-6">{programCount !== null ? programCount : '...'}</p>
+
+        {/* Total Programs Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            transition: 'transform 0.2s'
+          }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div className="card-body text-white">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="card-title mb-2 opacity-75">Program Sayısı</h6>
+                  <h2 className="display-4 fw-bold mb-0">
+                    {programCount !== null ? programCount : '...'}
+                  </h2>
+                </div>
+                <div style={{ fontSize: '3rem', opacity: 0.3 }}>📋</div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-md-3 mb-3">
-          <div className="card shadow-sm text-center">
-            <div className="card-body">
-              <h6 className="card-title">Bugünkü Yoklama Oranı</h6>
-              <p className="display-6">
-                {attendanceRate !== null ? `${attendanceRate}%` : '...'}
-              </p>
+
+        {/* Today's Attendance Rate Card */}
+        <div className="col-xl-3 col-md-6">
+          <div className="card border-0 shadow-sm h-100" style={{
+            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            transition: 'transform 0.2s'
+          }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div className="card-body text-white">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="card-title mb-2 opacity-75">Bugünkü Katılım</h6>
+                  <h2 className="display-4 fw-bold mb-0">
+                    {attendanceRate !== null ? `${attendanceRate}%` : '...'}
+                  </h2>
+                </div>
+                <div style={{ fontSize: '3rem', opacity: 0.3 }}>✅</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="row mb-4">
-        <div className="col-md-12 mb-3">
-          <div
-            className="card shadow-sm"
-            style={{ cursor: 'pointer', transition: 'box-shadow 0.2s' }}
-            onClick={() => {
-              // Set dates in localStorage and navigate
-              const now = new Date();
-              const start = new Date(now.getFullYear(), now.getMonth(), 1);
-              const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-              const startDate = start.toISOString().slice(0, 10);
-              const endDate = end.toISOString().slice(0, 10);
-              localStorage.setItem('statistics-startDate', startDate);
-              localStorage.setItem('statistics-endDate', endDate);
-              // Optionally, you can set a flag to auto-fetch on Statistics page
-              localStorage.setItem('statistics-autofetch', '1');
-              navigate('/statistics');
-            }}
-            onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 0 0.2rem #0d6efd33')}
-            onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0.125rem 0.25rem rgba(0,0,0,.075)')}
-          >
-            <div className="card-body">
-              <h5 className="card-title mb-3">Aylık Katılım (Top 5)</h5>
-              <table className="table table-sm mb-0">
-                <thead>
+
+      {/* Top Performers */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white border-0 py-3">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h5 className="mb-0 fw-bold">🏆 Aylık En İyi Performans (Top 5)</h5>
+              <small className="text-muted">
+                {new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+              </small>
+            </div>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                const startDate = start.toISOString().slice(0, 10);
+                const endDate = end.toISOString().slice(0, 10);
+                localStorage.setItem('statistics-startDate', startDate);
+                localStorage.setItem('statistics-endDate', endDate);
+                localStorage.setItem('statistics-autofetch', '1');
+                navigate('/statistics');
+              }}
+            >
+              Tümünü Gör →
+            </button>
+          </div>
+        </div>
+        <div className="card-body">
+          {monthlyTop.length === 0 ? (
+            <div className="text-center py-5">
+              <div className="fs-1 mb-3">📊</div>
+              <p className="text-muted">Bu ay için henüz veri yok</p>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
                   <tr>
-                    <th>#</th>
-                    <th>İsim</th>
-                    <th>Dahili Seviye</th>
-                    <th>Var (%)</th>
+                    <th className="border-0" style={{ width: '60px' }}>Sıra</th>
+                    <th className="border-0">Talebe</th>
+                    <th className="border-0">Dahili Seviye</th>
+                    <th className="border-0 text-center">Katılım</th>
+                    <th className="border-0 text-end">Performans</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {monthlyTop.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="text-center">Veri yok</td>
-                    </tr>
-                  ) : (
-                    monthlyTop.map((s, i) => (
+                  {monthlyTop.map((s, i) => {
+                    const percentage = s.percentages.var ?? 0;
+                    let badgeClass = 'success';
+                    let medal = '';
+
+                    if (i === 0) medal = '🥇';
+                    else if (i === 1) medal = '🥈';
+                    else if (i === 2) medal = '🥉';
+
+                    if (percentage < 60) badgeClass = 'danger';
+                    else if (percentage < 80) badgeClass = 'warning';
+
+                    return (
                       <tr key={s.studentid}>
-                        <td>{i + 1}</td>
-                        <td>{s.name}</td>
-                        <td>{s.class_name}</td>
-                        <td>{s.percentages.var ?? 0}%</td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            <span className="fs-5 me-2">{medal}</span>
+                            <span className="fw-bold">{i + 1}</span>
+                          </div>
+                        </td>
+                        <td className="fw-semibold">{s.name}</td>
+                        <td>
+                          <span className="badge bg-light text-dark">
+                            {getTurkishClassName(s.class_name)}
+                          </span>
+                        </td>
+                        <td className="text-center">
+                          <span className="badge bg-secondary">
+                            {s.total} yoklama
+                          </span>
+                        </td>
+                        <td className="text-end">
+                          <span className={`badge bg-${badgeClass} fs-6 px-3`}>
+                            {percentage}%
+                          </span>
+                        </td>
                       </tr>
-                    ))
-                  )}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          </div>
+          )}
         </div>
       </div>
-      {/* ...rest of dashboard... */}
     </div>
   );
 };
