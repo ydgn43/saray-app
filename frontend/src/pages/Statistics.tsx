@@ -411,7 +411,7 @@ const Statistics = () => {
                     {[
                         { label: 'İyi', color: 'green', value: 'green', textColor: 'white' },
                         { label: 'Orta', color: 'yellow', value: 'yellow', textColor: 'black' },
-                        { label: 'Kötü', color: 'red', value: 'red', textColor: 'white' },
+                        { label: 'Zayıf', color: 'red', value: 'red', textColor: 'white' },
                     ].map(({ label, color, value, textColor }) => (
                         <span
                             key={value}

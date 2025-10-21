@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
@@ -35,7 +35,8 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
         const roleMap: { [key: string]: string } = {
             'admin': 'Admin',
             'hoca': 'Öğretmen',
-            'yoklamaci': 'Yoklamacı'
+            'yoklamaci': 'Yoklamacı',
+            'talebe': 'Talebe'
         };
         return roleMap[role] || role;
     };
@@ -98,30 +99,48 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                         >
                             Ana Sayfa
                         </MenuItem>
-                        <MenuItem
-                            active={location.pathname === '/attendance'}
-                            icon={<IconComponent icon={FaListAlt} />}
-                            component={<Link to="/attendance" />}
-                            onClick={onToggle}
-                        >
-                            Yoklama
-                        </MenuItem>
-                        <MenuItem
-                            active={location.pathname === '/statistics'}
-                            icon={<IconComponent icon={FaChartBar} />}
-                            component={<Link to="/statistics" />}
-                            onClick={onToggle}
-                        >
-                            İstatistik
-                        </MenuItem>
-                        <MenuItem
-                            active={location.pathname === '/talebeler'}
-                            icon={<IconComponent icon={FaUser} />}
-                            component={<Link to="/talebeler" />}
-                            onClick={onToggle}
-                        >
-                            Talebeler
-                        </MenuItem>
+                        {/* --- Student Portal: Only for talebe --- */}
+                        {user?.role === 'talebe' && (
+                            <MenuItem
+                                active={location.pathname === '/student-portal'}
+                                icon={<IconComponent icon={FaUserGraduate} />}
+                                component={<Link to="/student-portal" />}
+                                onClick={onToggle}
+                            >
+                                İstatistiklerim
+                            </MenuItem>
+                        )}
+                        {/* --- Regular Menu Items: For admin, hoca, and yoklamaci --- */}
+                        {(user?.role === 'admin' || user?.role === 'hoca' || user?.role === 'yoklamaci') && (
+                            <>
+                                <MenuItem
+                                    active={location.pathname === '/attendance'}
+                                    icon={<IconComponent icon={FaListAlt} />}
+                                    component={<Link to="/attendance" />}
+                                    onClick={onToggle}
+                                >
+                                    Yoklama
+                                </MenuItem>
+                                <MenuItem
+                                    active={location.pathname === '/statistics'}
+                                    icon={<IconComponent icon={FaChartBar} />}
+                                    component={<Link to="/statistics" />}
+                                    onClick={onToggle}
+                                >
+                                    İstatistik
+                                </MenuItem>
+                            </>
+                        )}
+                        {user?.role === 'admin' && (
+                            <MenuItem
+                                active={location.pathname === '/talebeler'}
+                                icon={<IconComponent icon={FaUser} />}
+                                component={<Link to="/talebeler" />}
+                                onClick={onToggle}
+                            >
+                                Talebeler
+                            </MenuItem>
+                        )}
                         <MenuItem
                             icon={<IconComponent icon={FaUserCheck} />}
                             component={<Link to="/izinli-talebeler" />}

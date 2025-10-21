@@ -19,17 +19,23 @@ export const createReferenceCode = async (req: Request, res: Response) => {
         // Map frontend role names to database role names
         const roleMapping: { [key: string]: string } = {
             'Teacher': 'hoca',
-            'Student': 'yoklamaci',
+            'Tracker': 'yoklamaci',
+            'Student': 'talebe',
             'Admin': 'admin'
         };
 
         const dbRoleName = roleMapping[roleId] || roleId.toLowerCase();
 
+        console.log('Creating reference code with roleId:', roleId, '-> dbRoleName:', dbRoleName);
+
         // Validate role exists
         const role = await Role.findOne({ where: { role_name: dbRoleName } });
         if (!role) {
-            return res.status(404).json({ message: 'Role not found' });
+            console.error('Role not found in database:', dbRoleName);
+            return res.status(404).json({ message: `Role not found: ${dbRoleName}. Please ensure the role exists in the database.` });
         }
+
+        console.log('Role found:', role.get('role_name'));
 
         // Generate unique code
         let code = generateUniqueCode();
@@ -55,6 +61,8 @@ export const createReferenceCode = async (req: Request, res: Response) => {
             description: description || '',
             isUsed: false,
         });
+
+        console.log('Reference code created with roleId:', referenceCode.get('roleId'));
 
         res.status(201).json(referenceCode);
     } catch (error: any) {
@@ -145,13 +153,12 @@ export const deactivateReferenceCode = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Reference code not found' });
         }
 
-        // Set expiration to now
-        referenceCode.expiresAt = new Date();
-        await referenceCode.save();
+        // Permanently delete the reference code
+        await referenceCode.destroy();
 
-        res.json({ message: 'Reference code deactivated successfully' });
+        res.json({ message: 'Reference code deleted successfully' });
     } catch (error: any) {
-        console.error('Error deactivating reference code:', error);
+        console.error('Error deleting reference code:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

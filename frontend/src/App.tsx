@@ -14,6 +14,7 @@ import PageTransition from './components/PageTransition';
 import Home from './pages/Home';
 import IzinliTalebeler from './pages/IzinliTalebeler';
 import ReferenceCodeManagement from './pages/ReferenceCodeManagement';
+import StudentPortal from './pages/StudentPortal';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -127,6 +128,20 @@ function App() {
                   <Layout>
                     <PageTransition>
                       <ReferenceCodeManagement />
+                    </PageTransition>
+                  </Layout>
+                </RequireRole>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/student-portal"
+            element={
+              <PrivateRoute>
+                <RequireRole roles={['talebe']}>
+                  <Layout>
+                    <PageTransition>
+                      <StudentPortal />
                     </PageTransition>
                   </Layout>
                 </RequireRole>

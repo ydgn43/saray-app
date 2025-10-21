@@ -175,6 +175,7 @@ const UserManagement = () => {
                                         <option value="admin">Admin</option>
                                         <option value="hoca">Hoca</option>
                                         <option value="yoklamaci">Yoklamacı</option>
+                                        <option value="talebe">Talebe</option>
                                     </select>
                                 </div>
                                 <div className="mb-3">

@@ -45,7 +45,7 @@ const ReferenceCodeManagement: React.FC = () => {
         description: ''
     });
 
-    const roles = ['Teacher', 'Student', 'Admin'];
+    const roles = ['Teacher', 'Tracker', 'Student', 'Admin'];
 
     useEffect(() => {
         fetchReferenceCodes();
@@ -80,6 +80,8 @@ const ReferenceCodeManagement: React.FC = () => {
         setSuccess('');
         setLoading(true);
 
+        console.log('Creating reference code with formData:', formData);
+
         try {
             const response = await fetch(`${API_BASE_URL}/reference-codes`, {
                 method: 'POST',
@@ -96,6 +98,10 @@ const ReferenceCodeManagement: React.FC = () => {
             }
 
             const newCode = await response.json();
+            console.log('Received new code from backend:', newCode);
+            console.log('New code roleId:', newCode.roleId);
+            console.log('Role display name:', getRoleName(newCode.roleId));
+
             setReferenceCodes([newCode, ...referenceCodes]);
             setSuccess('Referans kodu başarıyla oluşturuldu!');
             setShowForm(false);
@@ -167,10 +173,18 @@ const ReferenceCodeManagement: React.FC = () => {
     };
 
     const getRoleName = (roleId: string) => {
+        // Map both frontend role IDs and database role names to Turkish display names
         const roleNames: { [key: string]: string } = {
+            // Frontend role IDs (used in form)
             'Teacher': 'Hoca',
+            'Tracker': 'Yoklamacı',
+            'Admin': 'Admin',
             'Student': 'Talebe',
-            'Admin': 'Admin'
+            // Database role names (stored in DB and returned in API)
+            'hoca': 'Hoca',
+            'yoklamaci': 'Yoklamacı',
+            'admin': 'Admin',
+            'talebe': 'Talebe'
         };
         return roleNames[roleId] || roleId;
     };
