@@ -1,7 +1,7 @@
 /* src/components/AppSidebar.css */
 .ps-sidebar-root {
-  z-index: 1050 !important;
-  /* Ensure it appears above modals */
+  z-index: 1350 !important;
+  /* Ensure sidebar appears above backdrop */
 }
 
 /* Mobile Sidebar Backdrop */

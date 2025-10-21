@@ -103,7 +103,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                             active={location.pathname === '/'}
                             icon={<IconComponent icon={FaHome} />}
                             component={<Link to="/" />}
-                            onClick={onToggle}
+                            onClick={mobileMode ? onToggle : undefined}
                         >
                             Ana Sayfa
                         </MenuItem>
@@ -113,7 +113,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                 active={location.pathname === '/student-portal'}
                                 icon={<IconComponent icon={FaUserGraduate} />}
                                 component={<Link to="/student-portal" />}
-                                onClick={onToggle}
+                                onClick={mobileMode ? onToggle : undefined}
                             >
                                 İstatistiklerim
                             </MenuItem>
@@ -125,7 +125,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                     active={location.pathname === '/attendance'}
                                     icon={<IconComponent icon={FaListAlt} />}
                                     component={<Link to="/attendance" />}
-                                    onClick={onToggle}
+                                    onClick={mobileMode ? onToggle : undefined}
                                 >
                                     Yoklama
                                 </MenuItem>
@@ -133,7 +133,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                     active={location.pathname === '/statistics'}
                                     icon={<IconComponent icon={FaChartBar} />}
                                     component={<Link to="/statistics" />}
-                                    onClick={onToggle}
+                                    onClick={mobileMode ? onToggle : undefined}
                                 >
                                     İstatistik
                                 </MenuItem>
@@ -144,7 +144,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                 active={location.pathname === '/talebeler'}
                                 icon={<IconComponent icon={FaUser} />}
                                 component={<Link to="/talebeler" />}
-                                onClick={onToggle}
+                                onClick={mobileMode ? onToggle : undefined}
                             >
                                 Talebeler
                             </MenuItem>
@@ -154,6 +154,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                             <MenuItem
                                 icon={<IconComponent icon={FaUserCheck} />}
                                 component={<Link to="/izinli-talebeler" />}
+                                onClick={mobileMode ? onToggle : undefined}
                             >
                                 İzinli Talebeler
                             </MenuItem>
@@ -165,7 +166,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                     active={location.pathname === '/reference-codes'}
                                     icon={<IconComponent icon={FaKey} />}
                                     component={<Link to="/reference-codes" />}
-                                    onClick={onToggle}
+                                    onClick={mobileMode ? onToggle : undefined}
                                 >
                                     Referans Kodları
                                 </MenuItem>
@@ -173,7 +174,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                     active={location.pathname === '/settings'}
                                     icon={<IconComponent icon={FaCog} />}
                                     component={<Link to="/settings" />}
-                                    onClick={onToggle}
+                                    onClick={mobileMode ? onToggle : undefined}
                                 >
                                     Ayarlar
                                 </MenuItem>
@@ -260,7 +261,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                             onClick={() => {
                                 logout();
                                 setShowUserModal(false);
-                                onToggle();
+                                if (mobileMode) onToggle();
                             }}
                         >
                             <IconComponent icon={FaSignOutAlt} />
