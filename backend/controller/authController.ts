@@ -73,6 +73,13 @@ export const signup = async (req: Request, res: Response) => {
             where: { reference_code: referenceCode.toUpperCase() }
         });
 
+        console.log('🔍 Looking for student with reference code:', referenceCode.toUpperCase());
+        console.log('Student found:', student ? {
+            studentid: student.studentid,
+            name: `${student.first_name} ${student.last_name}`,
+            reference_code: student.reference_code
+        } : 'NOT FOUND');
+
         let roleToAssign = 'talebe'; // Default for student codes
         let linkedStudentId = null;
 

@@ -34,6 +34,8 @@ export class StudentData {
             // Generate unique reference code for the student
             const referenceCode = this.generateStudentReferenceCode();
 
+            console.log(`🔵 Creating student with reference code: ${referenceCode}`);
+
             const [newStudent, created] = await StudentSequelize.findOrCreate({
                 where: {
                     first_name: student.firstName,
@@ -53,11 +55,15 @@ export class StudentData {
 
             if (created) {
                 console.log(`✅ Student created with reference code: ${referenceCode}`);
+                console.log(`Student ID: ${(newStudent as any).studentid}`);
+                console.log(`Reference code in DB: ${(newStudent as any).reference_code}`);
                 return `Student successfully created with reference code: ${referenceCode}`;
             } else {
+                console.log('⚠️ Student already exists');
                 return "Student already exists";
             }
         } catch (error: any) {
+            console.error('❌ Error creating student:', error);
             if (
                 error.name === 'SequelizeForeignKeyConstraintError' &&
                 error.parent?.sqlMessage?.includes('season')

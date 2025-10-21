@@ -29,35 +29,12 @@ export default function Signup() {
     const [loading, setLoading] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const [codeValidated, setCodeValidated] = useState(false);
-    const [roleName, setRoleName] = useState('');
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
-    const validateCode = async () => {
-        if (!referenceCode) return;
-
-        try {
-            const res = await fetch(`${config.API_BASE_URL}/reference-codes/validate/${referenceCode}`);
-            const data = await res.json();
-
-            if (data.valid) {
-                setCodeValidated(true);
-                setRoleName(data.roleName);
-                setError('');
-            } else {
-                setCodeValidated(false);
-                setError(data.message || 'Invalid reference code');
-            }
-        } catch (err) {
-            setCodeValidated(false);
-            setError('Failed to validate reference code');
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,11 +53,6 @@ export default function Signup() {
 
         if (password.length < 6) {
             setError('Password must be at least 6 characters');
-            return;
-        }
-
-        if (!codeValidated) {
-            setError('Please validate your reference code first');
             return;
         }
 
@@ -508,89 +480,43 @@ export default function Signup() {
                                     >
                                         Referans Kodu
                                     </label>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <div style={{ position: 'relative', flex: 1 }}>
-                                            <Key
-                                                style={{
-                                                    position: 'absolute',
-                                                    left: '16px',
-                                                    top: '50%',
-                                                    transform: 'translateY(-50%)',
-                                                    color: focusedField === 'refCode' ? '#3b82f6' : '#9ca3af',
-                                                    transition: 'color 0.2s',
-                                                    fontSize: '20px',
-                                                    pointerEvents: 'none',
-                                                    zIndex: 1,
-                                                }}
-                                            />
-                                            <input
-                                                className="form-control"
-                                                placeholder="XXXXXXXX"
-                                                value={referenceCode}
-                                                onChange={e => {
-                                                    setReferenceCode(e.target.value.toUpperCase());
-                                                    setCodeValidated(false);
-                                                }}
-                                                onFocus={() => setFocusedField('refCode')}
-                                                onBlur={() => {
-                                                    setFocusedField(null);
-                                                    if (referenceCode) validateCode();
-                                                }}
-                                                autoFocus
-                                                disabled={loading}
-                                                style={{
-                                                    paddingLeft: '48px',
-                                                    height: '52px',
-                                                    border: codeValidated
-                                                        ? '2px solid #10b981'
-                                                        : focusedField === 'refCode'
-                                                            ? '2px solid #3b82f6'
-                                                            : '2px solid #e5e7eb',
-                                                    borderRadius: '12px',
-                                                    fontSize: '15px',
-                                                    transition: 'all 0.2s',
-                                                    backgroundColor: '#f9fafb',
-                                                    textTransform: 'uppercase',
-                                                }}
-                                            />
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={validateCode}
-                                            disabled={!referenceCode || loading}
+                                    <div style={{ position: 'relative' }}>
+                                        <Key
                                             style={{
+                                                position: 'absolute',
+                                                left: '16px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                color: focusedField === 'refCode' ? '#3b82f6' : '#9ca3af',
+                                                transition: 'color 0.2s',
+                                                fontSize: '20px',
+                                                pointerEvents: 'none',
+                                                zIndex: 1,
+                                            }}
+                                        />
+                                        <input
+                                            className="form-control"
+                                            placeholder="STU-XXXXXX veya kod"
+                                            value={referenceCode}
+                                            onChange={e => {
+                                                setReferenceCode(e.target.value.toUpperCase());
+                                            }}
+                                            onFocus={() => setFocusedField('refCode')}
+                                            onBlur={() => setFocusedField(null)}
+                                            autoFocus
+                                            disabled={loading}
+                                            style={{
+                                                paddingLeft: '48px',
                                                 height: '52px',
-                                                padding: '0 20px',
+                                                border: focusedField === 'refCode' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
                                                 borderRadius: '12px',
-                                                border: 'none',
-                                                background: codeValidated ? '#10b981' : '#3b82f6',
-                                                color: 'white',
-                                                fontSize: '14px',
-                                                fontWeight: '600',
-                                                cursor: !referenceCode || loading ? 'not-allowed' : 'pointer',
-                                                opacity: !referenceCode || loading ? 0.5 : 1,
+                                                fontSize: '15px',
+                                                transition: 'all 0.2s',
+                                                backgroundColor: '#f9fafb',
+                                                textTransform: 'uppercase',
                                             }}
-                                        >
-                                            {codeValidated ? <CheckCircleFill size={20} /> : 'Doğrula'}
-                                        </button>
+                                        />
                                     </div>
-                                    {codeValidated && roleName && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            style={{
-                                                marginTop: '8px',
-                                                padding: '8px 12px',
-                                                background: 'rgba(16, 185, 129, 0.1)',
-                                                borderRadius: '8px',
-                                                fontSize: '13px',
-                                                color: '#059669',
-                                                fontWeight: '500',
-                                            }}
-                                        >
-                                            ✓ Rol: {roleName}
-                                        </motion.div>
-                                    )}
                                 </motion.div>
 
                                 {/* Username Field */}
@@ -746,25 +672,25 @@ export default function Signup() {
                                 <motion.button
                                     variants={itemVariants}
                                     type="submit"
-                                    disabled={loading || !codeValidated}
+                                    disabled={loading}
                                     style={{
                                         width: '100%',
                                         height: '56px',
                                         borderRadius: '12px',
                                         border: 'none',
                                         background:
-                                            loading || !codeValidated
+                                            loading
                                                 ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)'
                                                 : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                                         color: 'white',
                                         fontSize: '16px',
                                         fontWeight: '600',
-                                        cursor: loading || !codeValidated ? 'not-allowed' : 'pointer',
+                                        cursor: loading ? 'not-allowed' : 'pointer',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '8px',
-                                        boxShadow: loading || !codeValidated ? 'none' : '0 4px 16px rgba(59, 130, 246, 0.4)',
+                                        boxShadow: loading ? 'none' : '0 4px 16px rgba(59, 130, 246, 0.4)',
                                         transition: 'all 0.3s',
                                     }}
                                 >
