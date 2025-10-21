@@ -69,8 +69,11 @@ const Home = () => {
   const isTalebe = user?.role === 'talebe';
   const userStudentId = user?.studentid;
 
+  console.log('🏠 Home component loaded:', { isTalebe, userStudentId, user });
+
   // Fetch data for talebe users
   useEffect(() => {
+    console.log('🔄 useEffect triggered:', { isTalebe, userStudentId });
     if (isTalebe && userStudentId) {
       fetchTalebeStatistics();
     }
@@ -88,13 +91,17 @@ const Home = () => {
       const startDate = start.toISOString().slice(0, 10);
       const endDate = end.toISOString().slice(0, 10);
 
+      console.log('🔍 Fetching statistics for:', { userStudentId, startDate, endDate });
+
       // Fetch statistics
       const statsRes = await authFetch(
         `${config.API_BASE_URL}/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
       );
       if (statsRes.ok) {
         const data = await statsRes.json();
+        console.log('📊 Statistics data received:', data);
         const myStats = data.find((s: StatisticEntry) => s.studentid === userStudentId);
+        console.log('👤 My statistics:', myStats);
         setMyStatistics(myStats || null);
       }
 
@@ -104,10 +111,13 @@ const Home = () => {
       );
       if (recordsRes.ok) {
         const data = await recordsRes.json();
+        console.log('📝 Attendance records:', data.length, 'total records');
+        const myRecords = data.filter((r: any) => r.studentid === userStudentId);
+        console.log('👤 My attendance records:', myRecords.length, 'records');
         setAttendanceRecords(data);
       }
     } catch (error) {
-      console.error('Error fetching talebe statistics:', error);
+      console.error('❌ Error fetching talebe statistics:', error);
     } finally {
       setLoading(false);
     }
