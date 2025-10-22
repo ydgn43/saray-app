@@ -24,27 +24,33 @@ const authRoute_1 = require("./routes/authRoute");
 const seasonRoute_1 = require("./routes/seasonRoute");
 const programRoute_1 = require("./routes/programRoute");
 const classRoute_1 = require("./routes/classRoute");
+const referenceCodeRoute_1 = __importDefault(require("./routes/referenceCodeRoute"));
+const activityLogRoute_1 = require("./routes/activityLogRoute");
 const app = (0, express_1.default)();
-const port = process.env.PORT_HTTP || 3001;
-// ✅ allow both local dev and production via Cloudflare
+const port = Number(process.env.PORT_HTTP) || 3001;
+const host = '0.0.0.0';
+// Define the whitelist of allowed frontend origins
 const allowedOrigins = [
-    'http://localhost:3000',
-    'https://app.efendim.nl',
+    "http://localhost:3000",
+    "http://192.168.50.238:3000",
+    "https://app.efendim.nl",
+    "https://api.efendim.nl"
 ];
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
         if (!origin)
-            return callback(null, true); // allow tools like curl or Postman
+            return callback(null, true); // allow REST tools like Postman
         if (allowedOrigins.includes(origin))
             return callback(null, true);
-        return callback(new Error('CORS not allowed for ' + origin), false);
+        console.error("❌ CORS blocked for", origin);
+        return callback(new Error("CORS not allowed for " + origin), false);
     },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
+// ⛔️ REMOVED THE app.options('*') BLOCK HERE! 
+// The 'cors' middleware above handles preflight requests correctly.
 app.use(express_1.default.json());
-// ✅ routes go AFTER CORS
+// 2. Routes go AFTER the CORS middleware
 app.use('/student', studentRoute_1.studentRouter);
 app.use('/attendance', attendanceRoute_1.attendanceRouter);
 app.use('/user', userRoute_1.userRouter);
@@ -52,8 +58,39 @@ app.use('/auth', authRoute_1.authRouter);
 app.use('/season', seasonRoute_1.seasonRouter);
 app.use('/program', programRoute_1.programRouter);
 app.use('/class', classRoute_1.classRouter);
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`);
+app.use('/reference-codes', referenceCodeRoute_1.default);
+app.use('/activity-logs', activityLogRoute_1.activityLogRouter);
+// Health check endpoint
+app.get('/health', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield sequelize_1.sequelize.authenticate();
+        const User = sequelize_1.sequelize.models.UserSequelize;
+        const userCount = yield User.count();
+        res.json({
+            status: 'OK',
+            database: 'Connected',
+            userCount: userCount,
+            timestamp: new Date().toISOString()
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            status: 'ERROR',
+            database: 'Disconnected',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+}));
+console.log('✅ All routes registered successfully!');
+console.log('📍 Auth routes: POST /auth/login, POST /auth/signup');
+// Catch-all for debugging 404s
+app.use((req, res, next) => {
+    console.log(`⚠️  404 - Route not found: ${req.method} ${req.url}`);
+    res.status(404).json({ message: 'Route not found', path: req.url, method: req.method });
+});
+app.listen(port, host, () => {
+    console.log(`🚀 Backend server listening on http://${host}:${port}`);
+    console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
 });
 function testSequelizeConnection() {
     return __awaiter(this, void 0, void 0, function* () {

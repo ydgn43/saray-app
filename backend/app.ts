@@ -12,6 +12,7 @@ import { seasonRouter } from './routes/seasonRoute';
 import { programRouter } from './routes/programRoute';
 import { classRouter } from './routes/classRoute';
 import referenceCodeRouter from './routes/referenceCodeRoute';
+import { activityLogRouter } from './routes/activityLogRoute';
 
 const app = express();
 const port = Number(process.env.PORT_HTTP) || 3001;
@@ -49,6 +50,7 @@ app.use('/season', seasonRouter);
 app.use('/program', programRouter);
 app.use('/class', classRouter);
 app.use('/reference-codes', referenceCodeRouter);
+app.use('/activity-logs', activityLogRouter);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

@@ -1,0 +1,86 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const sequelize_typescript_1 = require("sequelize-typescript");
+const Student_1 = __importDefault(require("./Student"));
+const AttendanceType_1 = __importDefault(require("./AttendanceType"));
+const Program_1 = __importDefault(require("./Program"));
+let AttendanceSequelize = class AttendanceSequelize extends sequelize_typescript_1.Model {
+};
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => Student_1.default),
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER,
+        allowNull: false,
+        primaryKey: true,
+    }),
+    __metadata("design:type", Number)
+], AttendanceSequelize.prototype, "studentid", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.DATEONLY,
+        allowNull: false,
+        primaryKey: true,
+    }),
+    __metadata("design:type", Date)
+], AttendanceSequelize.prototype, "date", void 0);
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => AttendanceType_1.default),
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING(45),
+        allowNull: false,
+    }),
+    __metadata("design:type", String)
+], AttendanceSequelize.prototype, "attendance_type_name", void 0);
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => Program_1.default),
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING(45),
+        allowNull: false,
+        primaryKey: true,
+    }),
+    __metadata("design:type", String)
+], AttendanceSequelize.prototype, "program_name", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING(255),
+        allowNull: true,
+    }),
+    __metadata("design:type", Object)
+], AttendanceSequelize.prototype, "sebep", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => Student_1.default),
+    __metadata("design:type", Student_1.default)
+], AttendanceSequelize.prototype, "student", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => AttendanceType_1.default),
+    __metadata("design:type", AttendanceType_1.default)
+], AttendanceSequelize.prototype, "attendanceType", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => Program_1.default),
+    __metadata("design:type", Program_1.default)
+], AttendanceSequelize.prototype, "program", void 0);
+AttendanceSequelize = __decorate([
+    (0, sequelize_typescript_1.Table)({
+        tableName: 'Attendance',
+        timestamps: false,
+        indexes: [
+            {
+                unique: true,
+                fields: ['studentid', 'date', 'program_name'],
+            },
+        ],
+    })
+], AttendanceSequelize);
+exports.default = AttendanceSequelize;

@@ -15,6 +15,7 @@ import Home from './pages/Home';
 import IzinliTalebeler from './pages/IzinliTalebeler';
 import ReferenceCodeManagement from './pages/ReferenceCodeManagement';
 import StudentPortal from './pages/StudentPortal';
+import ActivityLogs from './pages/ActivityLogs';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -102,6 +103,20 @@ function App() {
                   <Layout>
                     <PageTransition>
                       <Settings />
+                    </PageTransition>
+                  </Layout>
+                </RequireRole>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/activity-logs"
+            element={
+              <PrivateRoute>
+                <RequireRole roles={['admin']}>
+                  <Layout>
+                    <PageTransition>
+                      <ActivityLogs />
                     </PageTransition>
                   </Layout>
                 </RequireRole>

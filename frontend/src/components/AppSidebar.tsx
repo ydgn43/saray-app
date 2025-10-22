@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate, FaHistory } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
@@ -169,6 +169,14 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                     onClick={mobileMode ? onToggle : undefined}
                                 >
                                     Referans Kodları
+                                </MenuItem>
+                                <MenuItem
+                                    active={location.pathname === '/activity-logs'}
+                                    icon={<IconComponent icon={FaHistory} />}
+                                    component={<Link to="/activity-logs" />}
+                                    onClick={mobileMode ? onToggle : undefined}
+                                >
+                                    Aktivite Logları
                                 </MenuItem>
                                 <MenuItem
                                     active={location.pathname === '/settings'}
