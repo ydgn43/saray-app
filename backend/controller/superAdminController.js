@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllAdmins = exports.assignAdminToYurt = exports.createAdminUser = exports.getSystemStatistics = exports.getAllYurtsWithAdmins = exports.deleteAdminReferenceCode = exports.getAdminReferenceCodes = exports.createAdminReferenceCode = void 0;
+exports.deleteUser = exports.updateUser = exports.getAllUsers = exports.getAllAdmins = exports.assignAdminToYurt = exports.createAdminUser = exports.getSystemStatistics = exports.getAllYurtsWithAdmins = exports.deleteAdminReferenceCode = exports.getAdminReferenceCodes = exports.createAdminReferenceCode = void 0;
 const sequelize_1 = require("sequelize");
 const crypto_1 = __importDefault(require("crypto"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -399,3 +399,142 @@ const getAllAdmins = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.getAllAdmins = getAllAdmins;
+/**
+ * Get all users (Super-admin only)
+ * Returns list of all users with their yurt information
+ */
+const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { role } = req.query;
+        console.log('👥 Fetching all users, filter role:', role || 'all');
+        // Build query
+        const whereClause = {};
+        if (role && role !== 'all') {
+            whereClause.role_name = role;
+        }
+        const [users] = yield sequelize_2.sequelize.query(`
+            SELECT 
+                u.accountid,
+                u.username,
+                u.role_name,
+                u.studentid,
+                GROUP_CONCAT(
+                    CONCAT(
+                        '{"yurtid":', y.yurtid,
+                        ',"yurt_name":"', y.yurt_name, '"',
+                        ',"is_primary":', uy.is_primary, '}'
+                    ) SEPARATOR ','
+                ) as yurts_json
+            FROM user u
+            LEFT JOIN useryurt uy ON u.accountid = uy.accountid
+            LEFT JOIN yurt y ON uy.yurtid = y.yurtid
+            ${role && role !== 'all' ? `WHERE u.role_name = '${role}'` : ''}
+            GROUP BY u.accountid, u.username, u.role_name, u.studentid
+            ORDER BY u.role_name, u.username
+        `);
+        // Parse yurts JSON
+        const usersWithYurts = users.map((user) => {
+            const yurts = user.yurts_json
+                ? JSON.parse(`[${user.yurts_json}]`)
+                : [];
+            return {
+                accountid: user.accountid,
+                username: user.username,
+                role_name: user.role_name,
+                studentid: user.studentid,
+                yurts: yurts
+            };
+        });
+        console.log('👥 Fetched', usersWithYurts.length, 'users');
+        res.json(usersWithYurts);
+    }
+    catch (error) {
+        console.error('❌ Error fetching users:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+exports.getAllUsers = getAllUsers;
+/**
+ * Update user (Super-admin only)
+ * Allows updating username, role, and password
+ */
+const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { accountid } = req.params;
+        const { username, role_name, password } = req.body;
+        const superAdmin = req.user;
+        console.log('✏️ Super-admin updating user:', accountid);
+        console.log('   - New username:', username);
+        console.log('   - New role:', role_name);
+        console.log('   - Password change:', password ? 'Yes' : 'No');
+        const User = sequelize_2.sequelize.models.UserSequelize;
+        // Find user
+        const user = yield User.findByPk(accountid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        // Prevent super-admin from changing their own role
+        if (Number(accountid) === superAdmin.accountid && role_name && role_name !== 'super-admin') {
+            return res.status(400).json({ message: 'You cannot change your own role' });
+        }
+        // Check if new username already exists (if changing username)
+        if (username && username !== user.username) {
+            const existingUser = yield User.findOne({ where: { username } });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Username already exists' });
+            }
+        }
+        // Update fields
+        const updateData = {};
+        if (username)
+            updateData.username = username;
+        if (role_name)
+            updateData.role_name = role_name;
+        // Hash password if provided
+        if (password) {
+            const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+            updateData.password = hashedPassword;
+        }
+        yield User.update(updateData, { where: { accountid } });
+        console.log('✅ User updated:', accountid);
+        res.json({ message: 'User updated successfully' });
+    }
+    catch (error) {
+        console.error('❌ Error updating user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+exports.updateUser = updateUser;
+/**
+ * Delete user (Super-admin only)
+ * Deletes user and all related records
+ */
+const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { accountid } = req.params;
+        const superAdmin = req.user;
+        console.log('🗑️ Super-admin deleting user:', accountid);
+        // Prevent super-admin from deleting themselves
+        if (Number(accountid) === superAdmin.accountid) {
+            return res.status(400).json({ message: 'You cannot delete your own account' });
+        }
+        const User = sequelize_2.sequelize.models.UserSequelize;
+        const UserYurt = sequelize_2.sequelize.models.UserYurt;
+        // Find user
+        const user = yield User.findByPk(accountid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        // Delete user's yurt assignments first
+        yield UserYurt.destroy({ where: { accountid } });
+        // Delete user
+        yield User.destroy({ where: { accountid } });
+        console.log('✅ User deleted:', accountid);
+        res.json({ message: 'User deleted successfully' });
+    }
+    catch (error) {
+        console.error('❌ Error deleting user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+exports.deleteUser = deleteUser;

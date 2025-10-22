@@ -429,3 +429,159 @@ export const getAllAdmins = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+/**
+ * Get all users (Super-admin only)
+ * Returns list of all users with their yurt information
+ */
+export const getAllUsers = async (req: Request, res: Response) => {
+    try {
+        const { role } = req.query;
+
+        console.log('👥 Fetching all users, filter role:', role || 'all');
+
+        // Build query
+        const whereClause: any = {};
+        if (role && role !== 'all') {
+            whereClause.role_name = role;
+        }
+
+        const [users]: any = await sequelize.query(`
+            SELECT 
+                u.accountid,
+                u.username,
+                u.role_name,
+                u.studentid,
+                GROUP_CONCAT(
+                    CONCAT(
+                        '{"yurtid":', y.yurtid,
+                        ',"yurt_name":"', y.yurt_name, '"',
+                        ',"is_primary":', uy.is_primary, '}'
+                    ) SEPARATOR ','
+                ) as yurts_json
+            FROM user u
+            LEFT JOIN useryurt uy ON u.accountid = uy.accountid
+            LEFT JOIN yurt y ON uy.yurtid = y.yurtid
+            ${role && role !== 'all' ? `WHERE u.role_name = '${role}'` : ''}
+            GROUP BY u.accountid, u.username, u.role_name, u.studentid
+            ORDER BY u.role_name, u.username
+        `);
+
+        // Parse yurts JSON
+        const usersWithYurts = users.map((user: any) => {
+            const yurts = user.yurts_json
+                ? JSON.parse(`[${user.yurts_json}]`)
+                : [];
+
+            return {
+                accountid: user.accountid,
+                username: user.username,
+                role_name: user.role_name,
+                studentid: user.studentid,
+                yurts: yurts
+            };
+        });
+
+        console.log('👥 Fetched', usersWithYurts.length, 'users');
+        res.json(usersWithYurts);
+    } catch (error: any) {
+        console.error('❌ Error fetching users:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+/**
+ * Update user (Super-admin only)
+ * Allows updating username, role, and password
+ */
+export const updateUser = async (req: Request, res: Response) => {
+    try {
+        const { accountid } = req.params;
+        const { username, role_name, password } = req.body;
+        const superAdmin = (req as any).user;
+
+        console.log('✏️ Super-admin updating user:', accountid);
+        console.log('   - New username:', username);
+        console.log('   - New role:', role_name);
+        console.log('   - Password change:', password ? 'Yes' : 'No');
+
+        const User = sequelize.models.UserSequelize;
+
+        // Find user
+        const user = await User.findByPk(accountid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Prevent super-admin from changing their own role
+        if (Number(accountid) === superAdmin.accountid && role_name && role_name !== 'super-admin') {
+            return res.status(400).json({ message: 'You cannot change your own role' });
+        }
+
+        // Check if new username already exists (if changing username)
+        if (username && username !== (user as any).username) {
+            const existingUser = await User.findOne({ where: { username } });
+            if (existingUser) {
+                return res.status(400).json({ message: 'Username already exists' });
+            }
+        }
+
+        // Update fields
+        const updateData: any = {};
+        if (username) updateData.username = username;
+        if (role_name) updateData.role_name = role_name;
+
+        // Hash password if provided
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            updateData.password = hashedPassword;
+        }
+
+        await User.update(updateData, { where: { accountid } });
+
+        console.log('✅ User updated:', accountid);
+        res.json({ message: 'User updated successfully' });
+    } catch (error: any) {
+        console.error('❌ Error updating user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+/**
+ * Delete user (Super-admin only)
+ * Deletes user and all related records
+ */
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const { accountid } = req.params;
+        const superAdmin = (req as any).user;
+
+        console.log('🗑️ Super-admin deleting user:', accountid);
+
+        // Prevent super-admin from deleting themselves
+        if (Number(accountid) === superAdmin.accountid) {
+            return res.status(400).json({ message: 'You cannot delete your own account' });
+        }
+
+        const User = sequelize.models.UserSequelize;
+        const UserYurt = sequelize.models.UserYurt;
+
+        // Find user
+        const user = await User.findByPk(accountid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Delete user's yurt assignments first
+        await UserYurt.destroy({ where: { accountid } });
+
+        // Delete user
+        await User.destroy({ where: { accountid } });
+
+        console.log('✅ User deleted:', accountid);
+        res.json({ message: 'User deleted successfully' });
+    } catch (error: any) {
+        console.error('❌ Error deleting user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};

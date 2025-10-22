@@ -57,15 +57,29 @@ interface Admin {
     role_name: string;
 }
 
+interface User {
+    accountid: number;
+    username: string;
+    role_name: string;
+    studentid: number | null;
+    yurts: Array<{
+        yurtid: number;
+        yurt_name: string;
+        is_primary: boolean;
+    }>;
+}
+
 const SuperAdminDashboard = () => {
     const [stats, setStats] = useState<SystemStats | null>(null);
     const [yurts, setYurts] = useState<Yurt[]>([]);
     const [referenceCodes, setReferenceCodes] = useState<AdminReferenceCode[]>([]);
     const [admins, setAdmins] = useState<Admin[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
     const [showAssignAdminModal, setShowAssignAdminModal] = useState(false);
+    const [showEditUserModal, setShowEditUserModal] = useState(false);
 
     // Form state for creating reference code
     const [expiresAt, setExpiresAt] = useState('');
@@ -82,12 +96,24 @@ const SuperAdminDashboard = () => {
     const [assignYurtId, setAssignYurtId] = useState<number | ''>('');
     const [isPrimary, setIsPrimary] = useState(false);
 
+    // Form state for user management
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editUsername, setEditUsername] = useState('');
+    const [editRole, setEditRole] = useState('');
+    const [editPassword, setEditPassword] = useState('');
+
     useEffect(() => {
         fetchSystemStats();
         fetchYurts();
         fetchReferenceCodes();
         fetchAdmins();
+        fetchUsers();
     }, []);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [roleFilter]);
 
     const fetchSystemStats = async () => {
         try {
@@ -130,6 +156,20 @@ const SuperAdminDashboard = () => {
             setAdmins(data);
         } catch {
             toast.error('Failed to load admins');
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const url = roleFilter === 'all'
+                ? `${config.API_BASE_URL}/super-admin/users`
+                : `${config.API_BASE_URL}/super-admin/users?role=${roleFilter}`;
+            const res = await authFetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setUsers(data);
+        } catch {
+            toast.error('Failed to load users');
         }
     };
 
@@ -259,6 +299,87 @@ const SuperAdminDashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleEditUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+
+        setLoading(true);
+        try {
+            const updateData: any = {};
+            if (editUsername && editUsername !== editingUser.username) {
+                updateData.username = editUsername;
+            }
+            if (editRole && editRole !== editingUser.role_name) {
+                updateData.role_name = editRole;
+            }
+            if (editPassword) {
+                updateData.password = editPassword;
+            }
+
+            const res = await authFetch(
+                `${config.API_BASE_URL}/super-admin/users/${editingUser.accountid}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                }
+            );
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message);
+            }
+
+            toast.success('✅ User updated successfully');
+            setShowEditUserModal(false);
+            setEditingUser(null);
+            setEditUsername('');
+            setEditRole('');
+            setEditPassword('');
+            fetchUsers();
+            fetchSystemStats();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to update user');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUser = async (user: User) => {
+        if (!window.confirm(`Are you sure you want to delete user "${user.username}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await authFetch(
+                `${config.API_BASE_URL}/super-admin/users/${user.accountid}`,
+                { method: 'DELETE' }
+            );
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message);
+            }
+
+            toast.success('✅ User deleted successfully');
+            fetchUsers();
+            fetchSystemStats();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to delete user');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openEditModal = (user: User) => {
+        setEditingUser(user);
+        setEditUsername(user.username);
+        setEditRole(user.role_name);
+        setEditPassword('');
+        setShowEditUserModal(true);
     };
 
     const getStatusBadge = (code: AdminReferenceCode) => {
@@ -484,6 +605,97 @@ const SuperAdminDashboard = () => {
                         )}
                     </div>
                 </div>
+
+                {/* User Management Section */}
+                <div className="card border-0 shadow-sm mt-4" style={{ borderRadius: '12px' }}>
+                    <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center" style={{ padding: '20px' }}>
+                        <h5 className="mb-0 fw-bold" style={{ color: '#7c3aed' }}>
+                            <PeopleFill className="me-2" />
+                            User Management
+                        </h5>
+                        <select
+                            className="form-select w-auto"
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            style={{ borderRadius: '8px' }}
+                        >
+                            <option value="all">All Users</option>
+                            <option value="super-admin">Super Admins</option>
+                            <option value="admin">Admins</option>
+                            <option value="hoca">Hocas</option>
+                            <option value="yoklamaci">Yoklamacis</option>
+                            <option value="talebe">Talebes</option>
+                        </select>
+                    </div>
+                    <div className="card-body" style={{ padding: '20px' }}>
+                        {users.length === 0 ? (
+                            <div className="text-center py-5 text-muted">
+                                <PeopleFill size={48} className="mb-3" style={{ opacity: 0.3 }} />
+                                <p>No users found.</p>
+                            </div>
+                        ) : (
+                            <div className="table-responsive">
+                                <table className="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Role</th>
+                                            <th>Yurts</th>
+                                            <th className="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {users.map((user) => (
+                                            <tr key={user.accountid}>
+                                                <td className="fw-semibold">{user.username}</td>
+                                                <td>
+                                                    <span className={`badge ${user.role_name === 'super-admin' ? 'bg-danger' :
+                                                        user.role_name === 'admin' ? 'bg-primary' :
+                                                            user.role_name === 'hoca' ? 'bg-success' :
+                                                                user.role_name === 'yoklamaci' ? 'bg-info' :
+                                                                    'bg-secondary'
+                                                        }`}>
+                                                        {user.role_name}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {user.yurts.length > 0 ? (
+                                                        <div className="d-flex flex-wrap gap-1">
+                                                            {user.yurts.map((yurt, idx) => (
+                                                                <small key={idx} className="badge bg-light text-dark">
+                                                                    {yurt.yurt_name}
+                                                                    {yurt.is_primary && ' ⭐'}
+                                                                </small>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <small className="text-muted">No yurt assigned</small>
+                                                    )}
+                                                </td>
+                                                <td className="text-end">
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary me-2"
+                                                        onClick={() => openEditModal(user)}
+                                                        style={{ borderRadius: '6px' }}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => handleDeleteUser(user)}
+                                                        style={{ borderRadius: '6px' }}
+                                                    >
+                                                        <Trash size={14} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Create Reference Code Modal */}
@@ -692,6 +904,77 @@ const SuperAdminDashboard = () => {
                                     </button>
                                     <button type="submit" className="btn btn-primary" disabled={loading}>
                                         {loading ? 'Assigning...' : 'Assign Admin'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit User Modal */}
+            {showEditUserModal && editingUser && (
+                <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowEditUserModal(false)}>
+                    <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-content" style={{ borderRadius: '12px' }}>
+                            <div className="modal-header border-0">
+                                <h5 className="modal-title fw-bold">Edit User: {editingUser.username}</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowEditUserModal(false)}></button>
+                            </div>
+                            <form onSubmit={handleEditUser}>
+                                <div className="modal-body">
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Username</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={editUsername}
+                                            onChange={(e) => setEditUsername(e.target.value)}
+                                            placeholder="Enter username"
+                                            minLength={3}
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Role</label>
+                                        <select
+                                            className="form-select"
+                                            value={editRole}
+                                            onChange={(e) => setEditRole(e.target.value)}
+                                        >
+                                            <option value="">Keep current role ({editingUser.role_name})</option>
+                                            <option value="super-admin">Super Admin</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="hoca">Hoca</option>
+                                            <option value="yoklamaci">Yoklamaci</option>
+                                            <option value="talebe">Talebe</option>
+                                        </select>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">New Password (Optional)</label>
+                                        <input
+                                            type="password"
+                                            className="form-control"
+                                            value={editPassword}
+                                            onChange={(e) => setEditPassword(e.target.value)}
+                                            placeholder="Leave blank to keep current password"
+                                            minLength={6}
+                                            autoComplete="new-password"
+                                        />
+                                        <small className="text-muted">Leave blank to keep current password</small>
+                                    </div>
+                                    <div className="alert alert-warning d-flex align-items-start gap-2 mb-0">
+                                        <ShieldCheck size={20} className="flex-shrink-0 mt-1" />
+                                        <small>
+                                            You cannot change your own role. Username must be unique across all users.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowEditUserModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                                        {loading ? 'Saving...' : 'Save Changes'}
                                     </button>
                                 </div>
                             </form>

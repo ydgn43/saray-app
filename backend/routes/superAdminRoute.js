@@ -77,4 +77,21 @@ router.post('/assign-admin', superAdminController.assignAdminToYurt);
  * Get all admin users
  */
 router.get('/admins', superAdminController.getAllAdmins);
+/**
+ * GET /super-admin/users
+ * Get all users with yurt information
+ * Query params: role (optional filter)
+ */
+router.get('/users', superAdminController.getAllUsers);
+/**
+ * PUT /super-admin/users/:accountid
+ * Update user details
+ * Body: { username?, role_name?, password? }
+ */
+router.put('/users/:accountid', superAdminController.updateUser);
+/**
+ * DELETE /super-admin/users/:accountid
+ * Delete user and related records
+ */
+router.delete('/users/:accountid', superAdminController.deleteUser);
 exports.default = router;
