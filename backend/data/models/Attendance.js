@@ -87,7 +87,7 @@ __decorate([
 ], AttendanceSequelize.prototype, "yurt", void 0);
 AttendanceSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Attendance',
+        tableName: 'attendance',
         timestamps: false,
         indexes: [
             {

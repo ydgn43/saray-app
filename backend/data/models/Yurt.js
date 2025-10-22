@@ -60,7 +60,7 @@ __decorate([
 ], YurtSequelize.prototype, "created_at", void 0);
 YurtSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Yurt',
+        tableName: 'yurt',
         timestamps: false
     })
 ], YurtSequelize);

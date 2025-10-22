@@ -62,7 +62,7 @@ __decorate([
 ], AdminSignupRequest.prototype, "yurt", void 0);
 AdminSignupRequest = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'AdminSignupRequest',
+        tableName: 'adminsignuprequest',
         timestamps: false
     })
 ], AdminSignupRequest);

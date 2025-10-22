@@ -91,7 +91,13 @@ export default function Signup() {
 
                 console.log('🔐 Calling login...');
                 login(data.user, data.token);
-                navigate('/');
+
+                // Redirect based on user role
+                if (data.user.role === 'super-admin') {
+                    navigate('/super-admin');
+                } else {
+                    navigate('/');
+                }
             } else {
                 const data = await res.json();
                 setError(data.message || 'Kayıt başarısız oldu');

@@ -39,7 +39,7 @@ __decorate([
 ], ClassSequelize.prototype, "yurt", void 0);
 ClassSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Class',
+        tableName: 'class',
         timestamps: false
     })
 ], ClassSequelize);

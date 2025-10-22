@@ -96,7 +96,7 @@ __decorate([
 ], ActivityLog.prototype, "yurt", void 0);
 ActivityLog = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'ActivityLog',
+        tableName: 'activitylog',
         timestamps: false
     })
 ], ActivityLog);

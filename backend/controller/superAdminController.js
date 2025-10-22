@@ -12,9 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSystemStatistics = exports.getAllYurtsWithAdmins = exports.deleteAdminReferenceCode = exports.getAdminReferenceCodes = exports.createAdminReferenceCode = void 0;
+exports.getAllAdmins = exports.assignAdminToYurt = exports.createAdminUser = exports.getSystemStatistics = exports.getAllYurtsWithAdmins = exports.deleteAdminReferenceCode = exports.getAdminReferenceCodes = exports.createAdminReferenceCode = void 0;
 const sequelize_1 = require("sequelize");
 const crypto_1 = __importDefault(require("crypto"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_2 = require("../data/sequelize");
 // Generate a unique reference code
 const generateUniqueCode = () => {
@@ -152,9 +153,9 @@ const getAllYurtsWithAdmins = (req, res) => __awaiter(void 0, void 0, void 0, fu
                         ',"role_name":"', u.role_name, '"}'
                     ) SEPARATOR ','
                 ) as admins_json
-            FROM Yurt y
-            LEFT JOIN UserYurt uy ON y.yurtid = uy.yurtid
-            LEFT JOIN User u ON uy.accountid = u.accountid AND u.role_name = 'admin'
+            FROM yurt y
+            LEFT JOIN useryurt uy ON y.yurtid = uy.yurtid
+            LEFT JOIN user u ON uy.accountid = u.accountid AND u.role_name = 'admin'
             WHERE y.is_active = 1
             GROUP BY y.yurtid, y.yurt_name, y.location, y.description, y.is_active, y.created_at
             ORDER BY y.created_at DESC
@@ -237,3 +238,164 @@ const getSystemStatistics = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.getSystemStatistics = getSystemStatistics;
+/**
+ * Create an admin user directly (Super-admin only)
+ * Allows super-admin to create admins and assign them to any yurt
+ */
+const createAdminUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { username, password, yurtid } = req.body;
+        const superAdmin = req.user;
+        console.log('👤 Super-admin creating admin user:');
+        console.log('   - Username:', username);
+        console.log('   - Yurt ID:', yurtid);
+        console.log('   - Created by:', superAdmin.username);
+        // Validate required fields
+        if (!username || !password || !yurtid) {
+            return res.status(400).json({ message: 'Username, password, and yurtid are required' });
+        }
+        const User = sequelize_2.sequelize.models.UserSequelize;
+        const UserYurt = sequelize_2.sequelize.models.UserYurt;
+        const Yurt = sequelize_2.sequelize.models.YurtSequelize;
+        // Check if username already exists
+        const existingUser = yield User.findOne({ where: { username } });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username already exists' });
+        }
+        // Verify yurt exists
+        const yurt = yield Yurt.findByPk(yurtid);
+        if (!yurt) {
+            return res.status(404).json({ message: 'Yurt not found' });
+        }
+        // Hash password
+        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+        // Create admin user
+        const newUser = yield User.create({
+            username,
+            password: hashedPassword,
+            role_name: 'admin',
+            studentid: null
+        });
+        // Assign user to yurt as primary
+        yield UserYurt.create({
+            accountid: newUser.accountid,
+            yurtid: yurtid,
+            is_primary: true,
+            assigned_by: superAdmin.accountid,
+            assigned_at: new Date()
+        });
+        console.log('✅ Admin user created:', {
+            accountid: newUser.accountid,
+            username: newUser.username,
+            yurtid: yurtid
+        });
+        res.status(201).json({
+            message: 'Admin user created successfully',
+            user: {
+                accountid: newUser.accountid,
+                username: newUser.username,
+                role: 'admin',
+                yurtid: yurtid
+            }
+        });
+    }
+    catch (error) {
+        console.error('❌ Error creating admin user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+exports.createAdminUser = createAdminUser;
+/**
+ * Assign an existing admin user to a yurt (Super-admin only)
+ * Allows super-admin to assign existing admins to any yurt
+ */
+const assignAdminToYurt = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { accountid, yurtid, isPrimary } = req.body;
+        const superAdmin = req.user;
+        console.log('👤 Super-admin assigning admin to yurt:');
+        console.log('   - Admin accountid:', accountid);
+        console.log('   - Yurt ID:', yurtid);
+        console.log('   - Set as primary:', isPrimary);
+        console.log('   - Assigned by:', superAdmin.username);
+        // Validate required fields
+        if (!accountid || !yurtid) {
+            return res.status(400).json({ message: 'Account ID and yurtid are required' });
+        }
+        const User = sequelize_2.sequelize.models.UserSequelize;
+        const UserYurt = sequelize_2.sequelize.models.UserYurt;
+        const Yurt = sequelize_2.sequelize.models.YurtSequelize;
+        // Verify user exists and is an admin
+        const user = yield User.findByPk(accountid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const userData = user;
+        if (userData.role_name !== 'admin') {
+            return res.status(400).json({ message: 'User must be an admin to be assigned to a yurt' });
+        }
+        // Verify yurt exists
+        const yurt = yield Yurt.findByPk(yurtid);
+        if (!yurt) {
+            return res.status(404).json({ message: 'Yurt not found' });
+        }
+        // Check if assignment already exists
+        const existingAssignment = yield UserYurt.findOne({
+            where: { accountid, yurtid }
+        });
+        if (existingAssignment) {
+            return res.status(400).json({ message: 'Admin is already assigned to this yurt' });
+        }
+        // If setting as primary, remove primary status from other assignments for this user
+        if (isPrimary) {
+            yield UserYurt.update({ is_primary: false }, { where: { accountid } });
+        }
+        // Create assignment
+        yield UserYurt.create({
+            accountid,
+            yurtid,
+            is_primary: isPrimary || false,
+            assigned_by: superAdmin.accountid,
+            assigned_at: new Date()
+        });
+        console.log('✅ Admin assigned to yurt:', {
+            accountid,
+            yurtid,
+            isPrimary: isPrimary || false
+        });
+        res.json({
+            message: 'Admin assigned to yurt successfully',
+            assignment: {
+                accountid,
+                yurtid,
+                isPrimary: isPrimary || false
+            }
+        });
+    }
+    catch (error) {
+        console.error('❌ Error assigning admin to yurt:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+exports.assignAdminToYurt = assignAdminToYurt;
+/**
+ * Get all admin users (Super-admin only)
+ * Returns list of all users with admin role
+ */
+const getAllAdmins = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const User = sequelize_2.sequelize.models.UserSequelize;
+        const admins = yield User.findAll({
+            where: { role_name: 'admin' },
+            attributes: ['accountid', 'username', 'role_name'],
+            order: [['username', 'ASC']]
+        });
+        console.log('📋 Fetched', admins.length, 'admin users');
+        res.json(admins);
+    }
+    catch (error) {
+        console.error('❌ Error fetching admins:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+exports.getAllAdmins = getAllAdmins;

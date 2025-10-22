@@ -39,7 +39,7 @@ __decorate([
 ], ProgramSequelize.prototype, "yurt", void 0);
 ProgramSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Program',
+        tableName: 'program',
         timestamps: false
     })
 ], ProgramSequelize);

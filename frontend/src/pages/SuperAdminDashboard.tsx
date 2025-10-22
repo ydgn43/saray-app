@@ -51,22 +51,42 @@ interface AdminReferenceCode {
     createdAt: string;
 }
 
+interface Admin {
+    accountid: number;
+    username: string;
+    role_name: string;
+}
+
 const SuperAdminDashboard = () => {
     const [stats, setStats] = useState<SystemStats | null>(null);
     const [yurts, setYurts] = useState<Yurt[]>([]);
     const [referenceCodes, setReferenceCodes] = useState<AdminReferenceCode[]>([]);
+    const [admins, setAdmins] = useState<Admin[]>([]);
     const [loading, setLoading] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
+    const [showAssignAdminModal, setShowAssignAdminModal] = useState(false);
 
     // Form state for creating reference code
     const [expiresAt, setExpiresAt] = useState('');
     const [maxUses, setMaxUses] = useState(1);
     const [description, setDescription] = useState('');
 
+    // Form state for creating admin user directly
+    const [newAdminUsername, setNewAdminUsername] = useState('');
+    const [newAdminPassword, setNewAdminPassword] = useState('');
+    const [selectedYurtId, setSelectedYurtId] = useState<number | ''>('');
+
+    // Form state for assigning existing admin
+    const [selectedAdminId, setSelectedAdminId] = useState<number | ''>('');
+    const [assignYurtId, setAssignYurtId] = useState<number | ''>('');
+    const [isPrimary, setIsPrimary] = useState(false);
+
     useEffect(() => {
         fetchSystemStats();
         fetchYurts();
         fetchReferenceCodes();
+        fetchAdmins();
     }, []);
 
     const fetchSystemStats = async () => {
@@ -99,6 +119,17 @@ const SuperAdminDashboard = () => {
             setReferenceCodes(data);
         } catch {
             toast.error('Failed to load admin reference codes');
+        }
+    };
+
+    const fetchAdmins = async () => {
+        try {
+            const res = await authFetch(`${config.API_BASE_URL}/super-admin/admins`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            setAdmins(data);
+        } catch {
+            toast.error('Failed to load admins');
         }
     };
 
@@ -147,6 +178,86 @@ const SuperAdminDashboard = () => {
             fetchSystemStats();
         } catch {
             toast.error('Failed to delete reference code');
+        }
+    };
+
+    const handleCreateAdminUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!newAdminUsername || !newAdminPassword || !selectedYurtId) {
+            toast.error('All fields are required');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const res = await authFetch(`${config.API_BASE_URL}/super-admin/create-admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: newAdminUsername,
+                    password: newAdminPassword,
+                    yurtid: selectedYurtId
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to create admin user');
+            }
+
+            toast.success('✅ Admin user created successfully');
+            setShowCreateAdminModal(false);
+            setNewAdminUsername('');
+            setNewAdminPassword('');
+            setSelectedYurtId('');
+            fetchYurts();
+            fetchSystemStats();
+            fetchAdmins();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to create admin user');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAssignAdmin = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!selectedAdminId || !assignYurtId) {
+            toast.error('Please select both admin and yurt');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const res = await authFetch(`${config.API_BASE_URL}/super-admin/assign-admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    accountid: selectedAdminId,
+                    yurtid: assignYurtId,
+                    isPrimary: isPrimary
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Failed to assign admin');
+            }
+
+            toast.success('✅ Admin assigned to yurt successfully');
+            setShowAssignAdminModal(false);
+            setSelectedAdminId('');
+            setAssignYurtId('');
+            setIsPrimary(false);
+            fetchYurts();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to assign admin');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -307,11 +418,29 @@ const SuperAdminDashboard = () => {
 
                 {/* Yurts Overview Section */}
                 <div className="card border-0 shadow-sm" style={{ borderRadius: '12px' }}>
-                    <div className="card-header bg-white border-0" style={{ padding: '20px' }}>
+                    <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center" style={{ padding: '20px' }}>
                         <h5 className="mb-0 fw-bold" style={{ color: '#7c3aed' }}>
                             <Building className="me-2" />
                             All Yurts
                         </h5>
+                        <div className="d-flex gap-2">
+                            <button
+                                className="btn btn-outline-primary btn-sm"
+                                onClick={() => setShowAssignAdminModal(true)}
+                                style={{ borderRadius: '8px', fontWeight: '500' }}
+                            >
+                                <PersonBadge className="me-1" size={16} />
+                                Assign Admin to Yurt
+                            </button>
+                            <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => setShowCreateAdminModal(true)}
+                                style={{ borderRadius: '8px', fontWeight: '500' }}
+                            >
+                                <Plus className="me-1" size={16} />
+                                Create Admin User
+                            </button>
+                        </div>
                     </div>
                     <div className="card-body" style={{ padding: '20px' }}>
                         {yurts.length === 0 ? (
@@ -413,6 +542,156 @@ const SuperAdminDashboard = () => {
                                     </button>
                                     <button type="submit" className="btn btn-primary" disabled={loading}>
                                         {loading ? 'Creating...' : 'Create Reference Code'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Admin User Modal */}
+            {showCreateAdminModal && (
+                <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowCreateAdminModal(false)}>
+                    <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-content" style={{ borderRadius: '12px' }}>
+                            <div className="modal-header border-0">
+                                <h5 className="modal-title fw-bold">Create Admin User</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowCreateAdminModal(false)}></button>
+                            </div>
+                            <form onSubmit={handleCreateAdminUser}>
+                                <div className="modal-body">
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Username</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={newAdminUsername}
+                                            onChange={(e) => setNewAdminUsername(e.target.value)}
+                                            required
+                                            placeholder="Enter username"
+                                            autoComplete="off"
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Password</label>
+                                        <input
+                                            type="password"
+                                            className="form-control"
+                                            value={newAdminPassword}
+                                            onChange={(e) => setNewAdminPassword(e.target.value)}
+                                            required
+                                            placeholder="Enter password"
+                                            minLength={6}
+                                            autoComplete="new-password"
+                                        />
+                                        <small className="text-muted">Minimum 6 characters</small>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Assign to Yurt</label>
+                                        <select
+                                            className="form-select"
+                                            value={selectedYurtId}
+                                            onChange={(e) => setSelectedYurtId(Number(e.target.value))}
+                                            required
+                                        >
+                                            <option value="">Select a yurt...</option>
+                                            {yurts.map((yurt) => (
+                                                <option key={yurt.yurtid} value={yurt.yurtid}>
+                                                    {yurt.yurt_name} {yurt.location ? `(${yurt.location})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="alert alert-info d-flex align-items-start gap-2 mb-0">
+                                        <PersonBadge size={20} className="flex-shrink-0 mt-1" />
+                                        <small>
+                                            This admin user will be created immediately and assigned to the selected yurt with full admin privileges.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowCreateAdminModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                                        {loading ? 'Creating...' : 'Create Admin User'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Assign Admin to Yurt Modal */}
+            {showAssignAdminModal && (
+                <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowAssignAdminModal(false)}>
+                    <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-content" style={{ borderRadius: '12px' }}>
+                            <div className="modal-header border-0">
+                                <h5 className="modal-title fw-bold">Assign Existing Admin to Yurt</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowAssignAdminModal(false)}></button>
+                            </div>
+                            <form onSubmit={handleAssignAdmin}>
+                                <div className="modal-body">
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Select Admin User</label>
+                                        <select
+                                            className="form-select"
+                                            value={selectedAdminId}
+                                            onChange={(e) => setSelectedAdminId(Number(e.target.value))}
+                                            required
+                                        >
+                                            <option value="">Select an admin...</option>
+                                            {admins.map((admin) => (
+                                                <option key={admin.accountid} value={admin.accountid}>
+                                                    {admin.username}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Assign to Yurt</label>
+                                        <select
+                                            className="form-select"
+                                            value={assignYurtId}
+                                            onChange={(e) => setAssignYurtId(Number(e.target.value))}
+                                            required
+                                        >
+                                            <option value="">Select a yurt...</option>
+                                            {yurts.map((yurt) => (
+                                                <option key={yurt.yurtid} value={yurt.yurtid}>
+                                                    {yurt.yurt_name} {yurt.location ? `(${yurt.location})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mb-3 form-check">
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            id="isPrimary"
+                                            checked={isPrimary}
+                                            onChange={(e) => setIsPrimary(e.target.checked)}
+                                        />
+                                        <label className="form-check-label" htmlFor="isPrimary">
+                                            Set as primary yurt for this admin
+                                        </label>
+                                    </div>
+                                    <div className="alert alert-info d-flex align-items-start gap-2 mb-0">
+                                        <PersonBadge size={20} className="flex-shrink-0 mt-1" />
+                                        <small>
+                                            This will assign the selected admin to the chosen yurt. If set as primary, it will be the admin's default yurt.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowAssignAdminModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                                        {loading ? 'Assigning...' : 'Assign Admin'}
                                     </button>
                                 </div>
                             </form>

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 import { sequelize } from '../data/sequelize';
 
 // Generate a unique reference code
@@ -240,6 +241,191 @@ export const getSystemStatistics = async (req: Request, res: Response) => {
         res.json(statistics);
     } catch (error: any) {
         console.error('❌ Error fetching system statistics:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+/**
+ * Create an admin user directly (Super-admin only)
+ * Allows super-admin to create admins and assign them to any yurt
+ */
+export const createAdminUser = async (req: Request, res: Response) => {
+    try {
+        const { username, password, yurtid } = req.body;
+        const superAdmin = (req as any).user;
+
+        console.log('👤 Super-admin creating admin user:');
+        console.log('   - Username:', username);
+        console.log('   - Yurt ID:', yurtid);
+        console.log('   - Created by:', superAdmin.username);
+
+        // Validate required fields
+        if (!username || !password || !yurtid) {
+            return res.status(400).json({ message: 'Username, password, and yurtid are required' });
+        }
+
+        const User = sequelize.models.UserSequelize;
+        const UserYurt = sequelize.models.UserYurt;
+        const Yurt = sequelize.models.YurtSequelize;
+
+        // Check if username already exists
+        const existingUser = await User.findOne({ where: { username } });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username already exists' });
+        }
+
+        // Verify yurt exists
+        const yurt = await Yurt.findByPk(yurtid);
+        if (!yurt) {
+            return res.status(404).json({ message: 'Yurt not found' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create admin user
+        const newUser: any = await User.create({
+            username,
+            password: hashedPassword,
+            role_name: 'admin',
+            studentid: null
+        });
+
+        // Assign user to yurt as primary
+        await UserYurt.create({
+            accountid: newUser.accountid,
+            yurtid: yurtid,
+            is_primary: true,
+            assigned_by: superAdmin.accountid,
+            assigned_at: new Date()
+        });
+
+        console.log('✅ Admin user created:', {
+            accountid: newUser.accountid,
+            username: newUser.username,
+            yurtid: yurtid
+        });
+
+        res.status(201).json({
+            message: 'Admin user created successfully',
+            user: {
+                accountid: newUser.accountid,
+                username: newUser.username,
+                role: 'admin',
+                yurtid: yurtid
+            }
+        });
+    } catch (error: any) {
+        console.error('❌ Error creating admin user:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+/**
+ * Assign an existing admin user to a yurt (Super-admin only)
+ * Allows super-admin to assign existing admins to any yurt
+ */
+export const assignAdminToYurt = async (req: Request, res: Response) => {
+    try {
+        const { accountid, yurtid, isPrimary } = req.body;
+        const superAdmin = (req as any).user;
+
+        console.log('👤 Super-admin assigning admin to yurt:');
+        console.log('   - Admin accountid:', accountid);
+        console.log('   - Yurt ID:', yurtid);
+        console.log('   - Set as primary:', isPrimary);
+        console.log('   - Assigned by:', superAdmin.username);
+
+        // Validate required fields
+        if (!accountid || !yurtid) {
+            return res.status(400).json({ message: 'Account ID and yurtid are required' });
+        }
+
+        const User = sequelize.models.UserSequelize;
+        const UserYurt = sequelize.models.UserYurt;
+        const Yurt = sequelize.models.YurtSequelize;
+
+        // Verify user exists and is an admin
+        const user = await User.findByPk(accountid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userData = user as any;
+        if (userData.role_name !== 'admin') {
+            return res.status(400).json({ message: 'User must be an admin to be assigned to a yurt' });
+        }
+
+        // Verify yurt exists
+        const yurt = await Yurt.findByPk(yurtid);
+        if (!yurt) {
+            return res.status(404).json({ message: 'Yurt not found' });
+        }
+
+        // Check if assignment already exists
+        const existingAssignment = await UserYurt.findOne({
+            where: { accountid, yurtid }
+        });
+
+        if (existingAssignment) {
+            return res.status(400).json({ message: 'Admin is already assigned to this yurt' });
+        }
+
+        // If setting as primary, remove primary status from other assignments for this user
+        if (isPrimary) {
+            await UserYurt.update(
+                { is_primary: false },
+                { where: { accountid } }
+            );
+        }
+
+        // Create assignment
+        await UserYurt.create({
+            accountid,
+            yurtid,
+            is_primary: isPrimary || false,
+            assigned_by: superAdmin.accountid,
+            assigned_at: new Date()
+        });
+
+        console.log('✅ Admin assigned to yurt:', {
+            accountid,
+            yurtid,
+            isPrimary: isPrimary || false
+        });
+
+        res.json({
+            message: 'Admin assigned to yurt successfully',
+            assignment: {
+                accountid,
+                yurtid,
+                isPrimary: isPrimary || false
+            }
+        });
+    } catch (error: any) {
+        console.error('❌ Error assigning admin to yurt:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+/**
+ * Get all admin users (Super-admin only)
+ * Returns list of all users with admin role
+ */
+export const getAllAdmins = async (req: Request, res: Response) => {
+    try {
+        const User = sequelize.models.UserSequelize;
+
+        const admins = await User.findAll({
+            where: { role_name: 'admin' },
+            attributes: ['accountid', 'username', 'role_name'],
+            order: [['username', 'ASC']]
+        });
+
+        console.log('📋 Fetched', admins.length, 'admin users');
+        res.json(admins);
+    } catch (error: any) {
+        console.error('❌ Error fetching admins:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

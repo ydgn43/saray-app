@@ -39,7 +39,7 @@ __decorate([
 ], SeasonSequelize.prototype, "yurt", void 0);
 SeasonSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Season',
+        tableName: 'season',
         timestamps: false
     })
 ], SeasonSequelize);

@@ -78,7 +78,12 @@ export default function Login() {
                     setYurtsData([], null);
                 }
 
-                navigate('/');
+                // Redirect based on user role
+                if (data.user.role === 'super-admin') {
+                    navigate('/super-admin');
+                } else {
+                    navigate('/');
+                }
             } else {
                 const data = await res.json();
                 setError(data.message || 'Login failed');

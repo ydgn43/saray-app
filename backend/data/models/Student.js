@@ -94,7 +94,7 @@ __decorate([
 ], StudentSequelize.prototype, "yurt", void 0);
 StudentSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Student',
+        tableName: 'student',
         timestamps: false
     })
 ], StudentSequelize);

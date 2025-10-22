@@ -79,7 +79,7 @@ __decorate([
 ], UserSequelize.prototype, "yurt", void 0);
 UserSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'User',
+        tableName: 'user',
         timestamps: false
     })
 ], UserSequelize);

@@ -22,7 +22,7 @@ __decorate([
 ], RoleSequelize.prototype, "role_name", void 0);
 RoleSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'Role',
+        tableName: 'role',
         timestamps: false
     })
 ], RoleSequelize);

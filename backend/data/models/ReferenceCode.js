@@ -120,7 +120,7 @@ __decorate([
 ], ReferenceCode.prototype, "updatedAt", void 0);
 ReferenceCode = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: 'ReferenceCodes',
+        tableName: 'referencecodes',
         timestamps: true
     })
 ], ReferenceCode);

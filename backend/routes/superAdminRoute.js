@@ -60,4 +60,21 @@ router.get('/yurts', superAdminController.getAllYurtsWithAdmins);
  * Get system-wide statistics
  */
 router.get('/statistics', superAdminController.getSystemStatistics);
+/**
+ * POST /super-admin/create-admin
+ * Create an admin user directly and assign to a yurt
+ * Body: { username, password, yurtid }
+ */
+router.post('/create-admin', superAdminController.createAdminUser);
+/**
+ * POST /super-admin/assign-admin
+ * Assign an existing admin user to a yurt
+ * Body: { accountid, yurtid, isPrimary }
+ */
+router.post('/assign-admin', superAdminController.assignAdminToYurt);
+/**
+ * GET /super-admin/admins
+ * Get all admin users
+ */
+router.get('/admins', superAdminController.getAllAdmins);
 exports.default = router;

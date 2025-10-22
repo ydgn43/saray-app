@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import PrivateRoute from './auth/PrivateRoute';
 import Login from './pages/Login';
@@ -25,6 +25,23 @@ function RequireRole({ roles, children }: { roles: string[]; children: React.Rea
     return <div className="alert alert-danger">Erişiminiz yok</div>;
   }
   return children;
+}
+
+// Component to handle role-based home page redirect
+function HomeRedirect() {
+  const { user } = useAuth();
+
+  if (user?.role === 'super-admin') {
+    return <Navigate to="/super-admin" replace />;
+  }
+
+  return (
+    <Layout>
+      <PageTransition>
+        <Home />
+      </PageTransition>
+    </Layout>
+  );
 }
 
 function App() {
@@ -76,11 +93,7 @@ function App() {
             path="/"
             element={
               <PrivateRoute>
-                <Layout>
-                  <PageTransition>
-                    <Home />
-                  </PageTransition>
-                </Layout>
+                <HomeRedirect />
               </PrivateRoute>
             }
           />
