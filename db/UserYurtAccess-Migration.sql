@@ -18,23 +18,30 @@ CREATE TABLE IF NOT EXISTS UserYurt (
     UNIQUE KEY unique_user_yurt (accountid, yurtid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User-Yurt access control table';
 
+---
 -- Step 2: Create index for fast access lookups
 CREATE INDEX IF NOT EXISTS idx_user_yurt_access ON UserYurt(accountid, yurtid);
 CREATE INDEX IF NOT EXISTS idx_yurt_users ON UserYurt(yurtid, accountid);
 
+---
 -- Step 3: Migrate existing users to UserYurt table
 -- All existing users get access to their current yurt as primary
 INSERT IGNORE INTO UserYurt (accountid, yurtid, is_primary)
 SELECT accountid, yurtid, TRUE FROM User;
 
+---
 -- Step 4: Grant super-admins access to all yurts
 -- Super-admins should have access to all existing yurts
 INSERT IGNORE INTO UserYurt (accountid, yurtid, is_primary)
-SELECT u.accountid, y.yurtid, (u.yurtid = y.yurtid) as is_primary
+SELECT 
+    u.accountid, 
+    y.yurtid, 
+    (u.yurtid = y.yurtid) -- FIX: Removed 'as is_primary' alias
 FROM User u
 CROSS JOIN Yurt y
 WHERE u.role_name = 'super-admin';
 
+---
 -- Step 5: Create admin approval table for signup requests
 CREATE TABLE IF NOT EXISTS AdminSignupRequest (
     request_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -50,6 +57,7 @@ CREATE TABLE IF NOT EXISTS AdminSignupRequest (
     FOREIGN KEY (reviewed_by) REFERENCES User(accountid) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Admin signup approval queue';
 
+---
 -- Step 6: Create index for pending requests
 CREATE INDEX IF NOT EXISTS idx_signup_status ON AdminSignupRequest(status, requested_at);
 
