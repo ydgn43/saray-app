@@ -54,24 +54,31 @@ export const login = async (req: Request, res: Response) => {
             { expiresIn: '7d' }
         );
 
-        // Get user's yurt information
-        const UserYurt = sequelize.models.UserYurt;
-        const userYurts: any = await UserYurt.findAll({
-            where: { accountid: user.accountid },
-            include: [{
-                model: sequelize.models.YurtSequelize,
-                as: 'yurt'
-            }],
-            order: [['is_primary', 'DESC'], ['assigned_at', 'ASC']]
+        // Get user's yurt information using raw query to avoid association issues
+        const [userYurtsRaw]: any = await sequelize.query(`
+            SELECT 
+                uy.yurtid,
+                uy.is_primary,
+                uy.assigned_at,
+                y.yurt_name,
+                y.location,
+                y.description,
+                y.is_active
+            FROM UserYurt uy
+            JOIN Yurt y ON uy.yurtid = y.yurtid
+            WHERE uy.accountid = ?
+            ORDER BY uy.is_primary DESC, uy.assigned_at ASC
+        `, {
+            replacements: [user.accountid]
         });
 
-        const availableYurts = userYurts.map((uy: any) => ({
+        const availableYurts = userYurtsRaw.map((uy: any) => ({
             yurtId: uy.yurtid,
-            yurtName: uy.yurt?.yurt_name,
-            location: uy.yurt?.location,
-            description: uy.yurt?.description,
-            isActive: uy.yurt?.is_active,
-            isPrimary: uy.is_primary,
+            yurtName: uy.yurt_name,
+            location: uy.location,
+            description: uy.description,
+            isActive: uy.is_active === 1,
+            isPrimary: uy.is_primary === 1,
             assignedAt: uy.assigned_at
         }));
 
