@@ -4,7 +4,7 @@ import User from './User';
 import Yurt from './Yurt';
 
 @Table({
-    tableName: 'AdminSignupRequest',
+    tableName: 'adminsignuprequest',
     timestamps: false
 })
 export default class AdminSignupRequest extends Model {

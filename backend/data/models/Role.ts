@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript';
 
 @Table({
-    tableName: 'Role',
+    tableName: 'role',
     timestamps: false
 })
 export default class RoleSequelize extends Model {

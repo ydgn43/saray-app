@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript';
 
 @Table({
-    tableName: 'Yurt',
+    tableName: 'yurt',
     timestamps: false
 })
 export default class YurtSequelize extends Model {

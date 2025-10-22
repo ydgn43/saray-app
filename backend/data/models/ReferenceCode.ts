@@ -1,7 +1,7 @@
 import { Table, Column, Model, DataType, CreatedAt, UpdatedAt } from 'sequelize-typescript';
 
 @Table({
-    tableName: 'ReferenceCodes',
+    tableName: 'referencecodes',
     timestamps: true
 })
 export default class ReferenceCode extends Model {

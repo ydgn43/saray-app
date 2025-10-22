@@ -4,7 +4,7 @@ import Student from './Student';
 import Yurt from './Yurt';
 
 @Table({
-    tableName: 'User',
+    tableName: 'user',
     timestamps: false
 })
 export default class UserSequelize extends Model {

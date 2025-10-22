@@ -152,9 +152,9 @@ export const getAllYurtsWithAdmins = async (req: Request, res: Response) => {
                         ',"role_name":"', u.role_name, '"}'
                     ) SEPARATOR ','
                 ) as admins_json
-            FROM Yurt y
-            LEFT JOIN UserYurt uy ON y.yurtid = uy.yurtid
-            LEFT JOIN User u ON uy.accountid = u.accountid AND u.role_name = 'admin'
+            FROM yurt y
+            LEFT JOIN useryurt uy ON y.yurtid = uy.yurtid
+            LEFT JOIN user u ON uy.accountid = u.accountid AND u.role_name = 'admin'
             WHERE y.is_active = 1
             GROUP BY y.yurtid, y.yurt_name, y.location, y.description, y.is_active, y.created_at
             ORDER BY y.created_at DESC

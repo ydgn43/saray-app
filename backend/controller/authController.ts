@@ -64,8 +64,8 @@ export const login = async (req: Request, res: Response) => {
                 y.location,
                 y.description,
                 y.is_active
-            FROM UserYurt uy
-            JOIN Yurt y ON uy.yurtid = y.yurtid
+            FROM useryurt uy
+            JOIN yurt y ON uy.yurtid = y.yurtid
             WHERE uy.accountid = ?
             ORDER BY uy.is_primary DESC, uy.assigned_at ASC
         `, {
@@ -257,8 +257,8 @@ export const signup = async (req: Request, res: Response) => {
                 y.location,
                 y.description,
                 y.is_active
-            FROM UserYurt uy
-            JOIN Yurt y ON uy.yurtid = y.yurtid
+            FROM useryurt uy
+            JOIN yurt y ON uy.yurtid = y.yurtid
             WHERE uy.accountid = ?
             ORDER BY uy.is_primary DESC, uy.assigned_at ASC
         `, {

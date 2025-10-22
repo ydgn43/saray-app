@@ -5,7 +5,7 @@ import Program from './Program';
 import Yurt from './Yurt';
 
 @Table({
-    tableName: 'Attendance',
+    tableName: 'attendance',
     timestamps: false,
     indexes: [
         {

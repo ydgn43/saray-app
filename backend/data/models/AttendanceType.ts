@@ -2,7 +2,7 @@ import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize
 import Yurt from './Yurt';
 
 @Table({
-    tableName: 'AttendanceType',
+    tableName: 'attendancetype',
     timestamps: false,
 })
 export default class AttendanceTypeSequelize extends Model {
