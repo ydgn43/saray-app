@@ -7,6 +7,34 @@ import autoTable from 'jspdf-autotable';
 import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
 import config from '../config';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+} from 'chart.js';
+import { Bar, Line, Doughnut } from 'react-chartjs-2';
+
+// Register ChartJS components
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend,
+    Filler
+);
 
 interface StatisticEntry {
     studentid: number;
@@ -69,6 +97,56 @@ const Statistics = () => {
     const [selectedProgram, setSelectedProgram] = useState('genel');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
+    // Pastel color styles for badges
+    const pastelStyles = {
+        success: {
+            backgroundColor: 'rgba(134, 239, 172, 0.5)',
+            color: '#166534'
+        },
+        warning: {
+            backgroundColor: 'rgba(253, 224, 71, 0.5)',
+            color: '#713f12'
+        },
+        danger: {
+            backgroundColor: 'rgba(252, 165, 165, 0.5)',
+            color: '#991b1b'
+        }
+    };
+
+    // Modern badge styles
+    const modernBadgeStyles = {
+        success: {
+            backgroundColor: 'rgba(134, 239, 172, 0.3)',
+            color: '#166534',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            display: 'inline-block',
+            border: '1px solid rgba(134, 239, 172, 0.5)'
+        },
+        warning: {
+            backgroundColor: 'rgba(253, 224, 71, 0.3)',
+            color: '#713f12',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            display: 'inline-block',
+            border: '1px solid rgba(253, 224, 71, 0.5)'
+        },
+        danger: {
+            backgroundColor: 'rgba(252, 165, 165, 0.3)',
+            color: '#991b1b',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            display: 'inline-block',
+            border: '1px solid rgba(252, 165, 165, 0.5)'
+        }
+    };
+
     // Get all unique normalized program names from attendanceRecords and statistics
     const allPrograms = PROGRAM_ORDER.filter(p =>
         statistics.length === 0 ||
@@ -118,6 +196,16 @@ const Statistics = () => {
         const valid = programSums.filter(x => typeof x === 'number');
         const genel = valid.length ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
         return { programSums, genel };
+    };
+
+    // Helper function to get percentage for a specific program or general
+    const getPercentageForProgram = (stat: StatisticEntry, program: string): number => {
+        if (program === 'genel') {
+            return getProgramSums(stat).genel;
+        }
+        const programPercentages = computeProgramPercentages(stat, attendanceRecords);
+        const prog = programPercentages[program] || { var: 0, izinli: 0 };
+        return prog.var + prog.izinli;
     };
 
     useEffect(() => {
@@ -496,160 +584,608 @@ const Statistics = () => {
                             </div>
                         </div>
 
-                        <div className="table-responsive shadow-sm rounded-3" style={{ background: '#fff' }}>
-                            <table className="table table-bordered table-striped align-middle text-center mb-0">
-                                <thead className="table-light">
-                                    <tr>
-                                        <th
-                                            style={{ cursor: 'pointer' }}
-                                            onClick={() =>
-                                                setSortConfig((prev) =>
-                                                    prev?.key === 'rownum'
-                                                        ? { key: 'rownum', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                        : { key: 'rownum', direction: 'asc' }
-                                                )
-                                            }
-                                        >
-                                            #
-                                        </th>
-                                        <th
-                                            style={{ cursor: 'pointer' }}
-                                            onClick={() =>
-                                                setSortConfig((prev) =>
-                                                    prev?.key === 'name'
-                                                        ? { key: 'name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                        : { key: 'name', direction: 'asc' }
-                                                )
-                                            }
-                                        >
-                                            İsim {getSortIcon('name')}
-                                        </th>
-                                        <th
-                                            style={{ cursor: 'pointer' }}
-                                            onClick={() =>
-                                                setSortConfig((prev) =>
-                                                    prev?.key === 'class_name'
-                                                        ? { key: 'class_name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                        : { key: 'class_name', direction: 'asc' }
-                                                )
-                                            }
-                                        >
-                                            Dahili Seviye {getSortIcon('class_name')}
-                                        </th>
-                                        {selectedProgram === 'genel'
-                                            ? allPrograms.map((p) => (
-                                                <th key={p} style={{ cursor: 'pointer' }}
-                                                    onClick={() =>
-                                                        setSortConfig((prev) =>
-                                                            prev?.key === p
-                                                                ? { key: p, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                                : { key: p, direction: 'desc' }
-                                                        )
+                        {/* Charts Section */}
+                        {filteredStats.length > 0 && (
+                            <div className="row g-3 mb-4">
+                                {/* Attendance Distribution Bar Chart */}
+                                <div className="col-md-6">
+                                    <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                        <div className="card-body">
+                                            <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
+                                                Yoklama Dağılımı
+                                            </h6>
+                                            <Bar
+                                                data={{
+                                                    labels: ['İyi (>80%)', 'Orta (60-80%)', 'Zayıf (<60%)'],
+                                                    datasets: [{
+                                                        label: 'Talebe Sayısı',
+                                                        data: [
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) > 80).length,
+                                                            filteredStats.filter(s => {
+                                                                const p = getPercentageForProgram(s, selectedProgram);
+                                                                return p >= 60 && p <= 80;
+                                                            }).length,
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) < 60).length
+                                                        ],
+                                                        backgroundColor: [
+                                                            'rgba(134, 239, 172, 0.8)',
+                                                            'rgba(253, 224, 71, 0.8)',
+                                                            'rgba(252, 165, 165, 0.8)'
+                                                        ],
+                                                        borderColor: [
+                                                            'rgb(134, 239, 172)',
+                                                            'rgb(253, 224, 71)',
+                                                            'rgb(252, 165, 165)'
+                                                        ],
+                                                        borderWidth: 2,
+                                                        borderRadius: 8
+                                                    }]
+                                                }}
+                                                options={{
+                                                    responsive: true,
+                                                    maintainAspectRatio: true,
+                                                    aspectRatio: 1.5,
+                                                    plugins: {
+                                                        legend: { display: false },
+                                                        tooltip: {
+                                                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                                            padding: 12,
+                                                            titleFont: { size: 14 },
+                                                            bodyFont: { size: 13 }
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        y: {
+                                                            beginAtZero: true,
+                                                            ticks: { stepSize: 1 },
+                                                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                                                        },
+                                                        x: {
+                                                            grid: { display: false }
+                                                        }
                                                     }
-                                                >
-                                                    {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')} {getSortIcon(p)}
-                                                </th>
-                                            ))
-                                            : (
-                                                <th
-                                                    style={{ cursor: 'pointer' }}
-                                                    onClick={() =>
-                                                        setSortConfig((prev) =>
-                                                            prev?.key === selectedProgram
-                                                                ? { key: selectedProgram, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                                : { key: selectedProgram, direction: 'desc' }
-                                                        )
-                                                    }
-                                                >
-                                                    {PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
-                                                </th>
-                                            )
-                                        }
-                                        <th
-                                            style={{ cursor: 'pointer' }}
-                                            onClick={() =>
-                                                setSortConfig((prev) =>
-                                                    prev?.key === 'genel'
-                                                        ? { key: 'genel', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                        : { key: 'genel', direction: 'desc' }
-                                                )
-                                            }
-                                        >
-                                            Genel {getSortIcon('genel')}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {sortedStats.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={selectedProgram === 'genel' ? 4 + allPrograms.length : 5} className="text-center text-muted py-4">
-                                                Sonuç bulunamadı.
-                                            </td>
-                                        </tr>
-                                    ) : sortedStats.map((s, i) => {
-                                        const { programSums, genel } = getProgramSums(s);
-                                        if (selectedProgram === 'genel') {
-                                            return (
-                                                <tr key={s.studentid}>
-                                                    <td>{i + 1}</td>
-                                                    <td className="text-start">{s.name}</td>
-                                                    <td>{getTurkishClassName(s.class_name)}</td>
-                                                    {programSums.map((val, idx) => {
-                                                        let bg = '';
-                                                        if (val < 60) bg = 'bg-danger text-white';
-                                                        else if (val < 80) bg = 'bg-warning text-dark';
-                                                        else bg = 'bg-success text-white';
-                                                        return (
-                                                            <td key={idx} className={bg}>{val}%</td>
-                                                        );
-                                                    })}
-                                                    <td className={
-                                                        genel < 60
-                                                            ? 'bg-danger text-white'
-                                                            : genel < 80
-                                                                ? 'bg-warning text-dark'
-                                                                : 'bg-success text-white'
-                                                    }>
-                                                        {genel}%
-                                                    </td>
-                                                </tr>
-                                            );
-                                        } else {
-                                            const programIdx = allPrograms.indexOf(selectedProgram);
-                                            const val = programSums[programIdx] ?? 0;
-                                            let bg = '';
-                                            if (val < 60) bg = 'bg-danger text-white';
-                                            else if (val < 75) bg = 'bg-warning text-dark';
-                                            else bg = 'bg-success text-white';
-                                            return (
-                                                <tr key={s.studentid}>
-                                                    <td>{i + 1}</td>
-                                                    <td className="text-start">{s.name}</td>
-                                                    <td>{getTurkishClassName(s.class_name)}</td>
-                                                    <td className={bg}>{val}%</td>
-                                                    <td className={
-                                                        genel < 60
-                                                            ? 'bg-danger text-white'
-                                                            : genel < 75
-                                                                ? 'bg-warning text-dark'
-                                                                : 'bg-success text-white'
-                                                    }>
-                                                        {genel}%
-                                                    </td>
-                                                </tr>
-                                            );
-                                        }
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                        {loading && (
-                            <div className="text-center my-4">
-                                <div className="spinner-border text-primary" role="status">
-                                    <span className="visually-hidden">Yükleniyor...</span>
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Performance Percentage Doughnut Chart */}
+                                <div className="col-md-6">
+                                    <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                        <div className="card-body">
+                                            <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
+                                                Performans Dağılımı (%)
+                                            </h6>
+                                            <Doughnut
+                                                data={{
+                                                    labels: ['İyi', 'Orta', 'Zayıf'],
+                                                    datasets: [{
+                                                        data: [
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) > 80).length,
+                                                            filteredStats.filter(s => {
+                                                                const p = getPercentageForProgram(s, selectedProgram);
+                                                                return p >= 60 && p <= 80;
+                                                            }).length,
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) < 60).length
+                                                        ],
+                                                        backgroundColor: [
+                                                            'rgba(134, 239, 172, 0.85)',
+                                                            'rgba(253, 224, 71, 0.85)',
+                                                            'rgba(252, 165, 165, 0.85)'
+                                                        ],
+                                                        borderColor: ['#fff', '#fff', '#fff'],
+                                                        borderWidth: 3,
+                                                        hoverOffset: 10
+                                                    }]
+                                                }}
+                                                options={{
+                                                    responsive: true,
+                                                    maintainAspectRatio: true,
+                                                    aspectRatio: 1.5,
+                                                    plugins: {
+                                                        legend: {
+                                                            position: 'bottom',
+                                                            labels: {
+                                                                padding: 15,
+                                                                font: { size: 12, weight: 'bold' as const },
+                                                                usePointStyle: true,
+                                                                pointStyle: 'circle'
+                                                            }
+                                                        },
+                                                        tooltip: {
+                                                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                                            padding: 12,
+                                                            callbacks: {
+                                                                label: function (context) {
+                                                                    const label = context.label || '';
+                                                                    const value = context.parsed || 0;
+                                                                    const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                                                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                                                    return `${label}: ${value} talebe (${percentage}%)`;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Program-wise Performance Bar Chart */}
+                                {selectedProgram === 'genel' && allPrograms.length > 0 && (
+                                    <div className="col-12">
+                                        <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                            <div className="card-body">
+                                                <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
+                                                    Program Bazında Ortalama Katılım
+                                                </h6>
+                                                <Bar
+                                                    data={{
+                                                        labels: allPrograms.map(p => PROGRAM_TURKISH_MAP[p] || p),
+                                                        datasets: [{
+                                                            label: 'Ortalama Katılım (%)',
+                                                            data: allPrograms.map(prog => {
+                                                                const programStats = filteredStats.map(stat => {
+                                                                    const programPercentages = computeProgramPercentages(stat, attendanceRecords);
+                                                                    return programPercentages[prog]?.var || 0;
+                                                                });
+                                                                const avg = programStats.length > 0
+                                                                    ? programStats.reduce((a, b) => a + b, 0) / programStats.length
+                                                                    : 0;
+                                                                return avg;
+                                                            }),
+                                                            backgroundColor: 'rgba(30, 64, 175, 0.7)',
+                                                            borderColor: 'rgb(30, 64, 175)',
+                                                            borderWidth: 2,
+                                                            borderRadius: 8
+                                                        }]
+                                                    }}
+                                                    options={{
+                                                        responsive: true,
+                                                        maintainAspectRatio: true,
+                                                        aspectRatio: 2.5,
+                                                        plugins: {
+                                                            legend: { display: false },
+                                                            tooltip: {
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                                                padding: 12,
+                                                                callbacks: {
+                                                                    label: function (context) {
+                                                                        const yValue = context.parsed?.y ?? 0;
+                                                                        return `Ortalama: ${yValue.toFixed(1)}%`;
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            y: {
+                                                                beginAtZero: true,
+                                                                max: 100,
+                                                                ticks: {
+                                                                    callback: function (value) {
+                                                                        return value + '%';
+                                                                    }
+                                                                },
+                                                                grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                                                            },
+                                                            x: {
+                                                                grid: { display: false }
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Attendance Trend Line Chart */}
+                                {attendanceRecords.length > 0 && (
+                                    <div className="col-12">
+                                        <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                            <div className="card-body">
+                                                <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
+                                                    Zaman İçinde Katılım Trendi
+                                                </h6>
+                                                <Line
+                                                    data={{
+                                                        labels: (() => {
+                                                            // Get unique dates from attendance records
+                                                            const dates = [...new Set(attendanceRecords.map(r => r.date))].sort();
+                                                            // Format dates
+                                                            return dates.map(date => {
+                                                                const d = new Date(date);
+                                                                return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+                                                            });
+                                                        })(),
+                                                        datasets: (() => {
+                                                            const dates = [...new Set(attendanceRecords.map(r => r.date))].sort();
+
+                                                            // Calculate attendance percentages for each date
+                                                            const varData = dates.map(date => {
+                                                                const dayRecords = attendanceRecords.filter(r => r.date === date);
+                                                                const varCount = dayRecords.filter(r => r.attendance_type_name === 'var').length;
+                                                                return dayRecords.length > 0 ? (varCount / dayRecords.length) * 100 : 0;
+                                                            });
+
+                                                            const izinliData = dates.map(date => {
+                                                                const dayRecords = attendanceRecords.filter(r => r.date === date);
+                                                                const izinliCount = dayRecords.filter(r => r.attendance_type_name === 'izinli').length;
+                                                                return dayRecords.length > 0 ? (izinliCount / dayRecords.length) * 100 : 0;
+                                                            });
+
+                                                            const yokData = dates.map(date => {
+                                                                const dayRecords = attendanceRecords.filter(r => r.date === date);
+                                                                const yokCount = dayRecords.filter(r => r.attendance_type_name === 'yok').length;
+                                                                return dayRecords.length > 0 ? (yokCount / dayRecords.length) * 100 : 0;
+                                                            });
+
+                                                            return [
+                                                                {
+                                                                    label: 'Var',
+                                                                    data: varData,
+                                                                    borderColor: 'rgb(134, 239, 172)',
+                                                                    backgroundColor: 'rgba(134, 239, 172, 0.2)',
+                                                                    borderWidth: 3,
+                                                                    tension: 0.4,
+                                                                    fill: true,
+                                                                    pointRadius: 4,
+                                                                    pointHoverRadius: 6,
+                                                                    pointBackgroundColor: 'rgb(134, 239, 172)',
+                                                                    pointBorderColor: '#fff',
+                                                                    pointBorderWidth: 2
+                                                                },
+                                                                {
+                                                                    label: 'İzinli',
+                                                                    data: izinliData,
+                                                                    borderColor: 'rgb(253, 224, 71)',
+                                                                    backgroundColor: 'rgba(253, 224, 71, 0.2)',
+                                                                    borderWidth: 3,
+                                                                    tension: 0.4,
+                                                                    fill: true,
+                                                                    pointRadius: 4,
+                                                                    pointHoverRadius: 6,
+                                                                    pointBackgroundColor: 'rgb(253, 224, 71)',
+                                                                    pointBorderColor: '#fff',
+                                                                    pointBorderWidth: 2
+                                                                },
+                                                                {
+                                                                    label: 'Yok',
+                                                                    data: yokData,
+                                                                    borderColor: 'rgb(252, 165, 165)',
+                                                                    backgroundColor: 'rgba(252, 165, 165, 0.2)',
+                                                                    borderWidth: 3,
+                                                                    tension: 0.4,
+                                                                    fill: true,
+                                                                    pointRadius: 4,
+                                                                    pointHoverRadius: 6,
+                                                                    pointBackgroundColor: 'rgb(252, 165, 165)',
+                                                                    pointBorderColor: '#fff',
+                                                                    pointBorderWidth: 2
+                                                                }
+                                                            ];
+                                                        })()
+                                                    }}
+                                                    options={{
+                                                        responsive: true,
+                                                        maintainAspectRatio: true,
+                                                        aspectRatio: 2.5,
+                                                        interaction: {
+                                                            mode: 'index',
+                                                            intersect: false
+                                                        },
+                                                        plugins: {
+                                                            legend: {
+                                                                position: 'top',
+                                                                align: 'end',
+                                                                labels: {
+                                                                    padding: 15,
+                                                                    font: { size: 12, weight: 'bold' as const },
+                                                                    usePointStyle: true,
+                                                                    pointStyle: 'circle',
+                                                                    boxWidth: 8,
+                                                                    boxHeight: 8
+                                                                }
+                                                            },
+                                                            tooltip: {
+                                                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                                                padding: 12,
+                                                                titleFont: { size: 14 },
+                                                                bodyFont: { size: 13 },
+                                                                callbacks: {
+                                                                    label: function (context) {
+                                                                        const label = context.dataset.label || '';
+                                                                        const value = context.parsed?.y ?? 0;
+                                                                        return `${label}: ${value.toFixed(1)}%`;
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            y: {
+                                                                beginAtZero: true,
+                                                                max: 100,
+                                                                ticks: {
+                                                                    callback: function (value) {
+                                                                        return value + '%';
+                                                                    }
+                                                                },
+                                                                grid: {
+                                                                    color: 'rgba(0, 0, 0, 0.05)'
+                                                                },
+                                                                title: {
+                                                                    display: true,
+                                                                    text: 'Katılım Yüzdesi',
+                                                                    font: { size: 12, weight: 'bold' as const }
+                                                                }
+                                                            },
+                                                            x: {
+                                                                grid: {
+                                                                    display: false
+                                                                },
+                                                                title: {
+                                                                    display: true,
+                                                                    text: 'Tarih',
+                                                                    font: { size: 12, weight: 'bold' as const }
+                                                                }
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
+
+                        <div className="card shadow-sm border-0" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+                            <div style={{ overflowX: 'auto' }}>
+                                <table className="table align-middle mb-0" style={{ minWidth: '800px' }}>
+                                    <thead style={{
+                                        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                                        borderBottom: '2px solid #e2e8f0'
+                                    }}>
+                                        <tr>
+                                            <th
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    padding: '16px',
+                                                    fontWeight: '600',
+                                                    color: '#475569',
+                                                    fontSize: '0.875rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em',
+                                                    textAlign: 'center'
+                                                }}
+                                                onClick={() =>
+                                                    setSortConfig((prev) =>
+                                                        prev?.key === 'rownum'
+                                                            ? { key: 'rownum', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                            : { key: 'rownum', direction: 'asc' }
+                                                    )
+                                                }
+                                            >
+                                                #
+                                            </th>
+                                            <th
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    padding: '16px',
+                                                    fontWeight: '600',
+                                                    color: '#475569',
+                                                    fontSize: '0.875rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em',
+                                                    textAlign: 'left'
+                                                }}
+                                                onClick={() =>
+                                                    setSortConfig((prev) =>
+                                                        prev?.key === 'name'
+                                                            ? { key: 'name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                            : { key: 'name', direction: 'asc' }
+                                                    )
+                                                }
+                                            >
+                                                İsim {getSortIcon('name')}
+                                            </th>
+                                            <th
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    padding: '16px',
+                                                    fontWeight: '600',
+                                                    color: '#475569',
+                                                    fontSize: '0.875rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em',
+                                                    textAlign: 'center'
+                                                }}
+                                                onClick={() =>
+                                                    setSortConfig((prev) =>
+                                                        prev?.key === 'class_name'
+                                                            ? { key: 'class_name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                            : { key: 'class_name', direction: 'asc' }
+                                                    )
+                                                }
+                                            >
+                                                Dahili Seviye {getSortIcon('class_name')}
+                                            </th>
+                                            {selectedProgram === 'genel'
+                                                ? allPrograms.map((p) => (
+                                                    <th key={p} style={{
+                                                        cursor: 'pointer',
+                                                        padding: '16px',
+                                                        fontWeight: '600',
+                                                        color: '#475569',
+                                                        fontSize: '0.875rem',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.05em',
+                                                        textAlign: 'center'
+                                                    }}
+                                                        onClick={() =>
+                                                            setSortConfig((prev) =>
+                                                                prev?.key === p
+                                                                    ? { key: p, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                                    : { key: p, direction: 'desc' }
+                                                            )
+                                                        }
+                                                    >
+                                                        {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')} {getSortIcon(p)}
+                                                    </th>
+                                                ))
+                                                : (
+                                                    <th
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            padding: '16px',
+                                                            fontWeight: '600',
+                                                            color: '#475569',
+                                                            fontSize: '0.875rem',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.05em',
+                                                            textAlign: 'center'
+                                                        }}
+                                                        onClick={() =>
+                                                            setSortConfig((prev) =>
+                                                                prev?.key === selectedProgram
+                                                                    ? { key: selectedProgram, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                                    : { key: selectedProgram, direction: 'desc' }
+                                                            )
+                                                        }
+                                                    >
+                                                        {PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
+                                                    </th>
+                                                )
+                                            }
+                                            <th
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    padding: '16px',
+                                                    fontWeight: '600',
+                                                    color: '#475569',
+                                                    fontSize: '0.875rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em',
+                                                    textAlign: 'center'
+                                                }}
+                                                onClick={() =>
+                                                    setSortConfig((prev) =>
+                                                        prev?.key === 'genel'
+                                                            ? { key: 'genel', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                            : { key: 'genel', direction: 'desc' }
+                                                    )
+                                                }
+                                            >
+                                                Genel {getSortIcon('genel')}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {sortedStats.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={selectedProgram === 'genel' ? 4 + allPrograms.length : 5}
+                                                    className="text-center text-muted"
+                                                    style={{ padding: '40px', fontSize: '0.95rem' }}>
+                                                    Sonuç bulunamadı.
+                                                </td>
+                                            </tr>
+                                        ) : sortedStats.map((s, i) => {
+                                            const { programSums, genel } = getProgramSums(s);
+                                            if (selectedProgram === 'genel') {
+                                                return (
+                                                    <tr key={s.studentid} style={{
+                                                        borderBottom: '1px solid #f1f5f9',
+                                                        transition: 'background-color 0.2s ease'
+                                                    }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                    >
+                                                        <td style={{ padding: '16px', textAlign: 'center', color: '#64748b', fontWeight: '500' }}>
+                                                            {i + 1}
+                                                        </td>
+                                                        <td style={{ padding: '16px', textAlign: 'left', color: '#1e293b', fontWeight: '500' }}>
+                                                            {s.name}
+                                                        </td>
+                                                        <td style={{ padding: '16px', textAlign: 'center', color: '#475569' }}>
+                                                            {getTurkishClassName(s.class_name)}
+                                                        </td>
+                                                        {programSums.map((val, idx) => {
+                                                            let badgeStyle = modernBadgeStyles.success;
+                                                            if (val < 60) badgeStyle = modernBadgeStyles.danger;
+                                                            else if (val < 80) badgeStyle = modernBadgeStyles.warning;
+                                                            return (
+                                                                <td key={idx} style={{ padding: '16px', textAlign: 'center' }}>
+                                                                    <span style={badgeStyle}>{val}%</span>
+                                                                </td>
+                                                            );
+                                                        })}
+                                                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                            <span style={
+                                                                genel < 60
+                                                                    ? modernBadgeStyles.danger
+                                                                    : genel < 80
+                                                                        ? modernBadgeStyles.warning
+                                                                        : modernBadgeStyles.success
+                                                            }>
+                                                                {genel}%
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            } else {
+                                                const programIdx = allPrograms.indexOf(selectedProgram);
+                                                const val = programSums[programIdx] ?? 0;
+                                                let badgeStyle = modernBadgeStyles.success;
+                                                if (val < 60) badgeStyle = modernBadgeStyles.danger;
+                                                else if (val < 75) badgeStyle = modernBadgeStyles.warning;
+                                                return (
+                                                    <tr key={s.studentid} style={{
+                                                        borderBottom: '1px solid #f1f5f9',
+                                                        transition: 'background-color 0.2s ease'
+                                                    }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                    >
+                                                        <td style={{ padding: '16px', textAlign: 'center', color: '#64748b', fontWeight: '500' }}>
+                                                            {i + 1}
+                                                        </td>
+                                                        <td style={{ padding: '16px', textAlign: 'left', color: '#1e293b', fontWeight: '500' }}>
+                                                            {s.name}
+                                                        </td>
+                                                        <td style={{ padding: '16px', textAlign: 'center', color: '#475569' }}>
+                                                            {getTurkishClassName(s.class_name)}
+                                                        </td>
+                                                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                            <span style={badgeStyle}>{val}%</span>
+                                                        </td>
+                                                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                            <span style={
+                                                                genel < 60
+                                                                    ? modernBadgeStyles.danger
+                                                                    : genel < 75
+                                                                        ? modernBadgeStyles.warning
+                                                                        : modernBadgeStyles.success
+                                                            }>
+                                                                {genel}%
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            }
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {loading && (
+                                <div className="text-center my-4">
+                                    <div className="spinner-border text-primary" role="status">
+                                        <span className="visually-hidden">Yükleniyor...</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
