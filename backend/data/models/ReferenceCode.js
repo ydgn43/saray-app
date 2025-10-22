@@ -103,6 +103,14 @@ __decorate([
     __metadata("design:type", String)
 ], ReferenceCode.prototype, "description", void 0);
 __decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER,
+        allowNull: true,
+        comment: 'Yurt ID that this reference code belongs to'
+    }),
+    __metadata("design:type", Number)
+], ReferenceCode.prototype, "yurtid", void 0);
+__decorate([
     sequelize_typescript_1.CreatedAt,
     __metadata("design:type", Date)
 ], ReferenceCode.prototype, "createdAt", void 0);

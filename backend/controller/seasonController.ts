@@ -5,7 +5,10 @@ import Season from '../data/models/Season';
 export const seasonController = {
     async getAll(req: Request, res: Response) {
         try {
-            const seasons = await Season.findAll();
+            const yurtid = req.selectedYurtId!;
+            const seasons = await Season.findAll({
+                where: { yurtid }
+            });
             res.json(seasons);
         } catch {
             res.status(500).json({ message: 'Sezonlar alınamadı.' });
@@ -13,15 +16,18 @@ export const seasonController = {
     },
 
     async create(req: Request, res: Response) {
-        if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+        if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
         const { season_year } = req.body;
+        const yurtid = req.selectedYurtId!;
         if (!season_year) return res.status(400).json({ message: 'Sezon bilgisi eksik.' });
 
         try {
-            const exists = await Season.findByPk(season_year);
+            const exists = await Season.findOne({
+                where: { season_year, yurtid }
+            });
             if (exists) return res.status(409).json({ message: 'Sezon zaten mevcut.' });
 
-            await Season.create({ season_year });
+            await Season.create({ season_year, yurtid });
             res.status(201).json({ message: 'Sezon oluşturuldu.' });
         } catch {
             res.status(500).json({ message: 'Sezon oluşturulamadı.' });
@@ -29,10 +35,13 @@ export const seasonController = {
     },
 
     async delete(req: Request, res: Response) {
-        if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+        if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+        const yurtid = req.selectedYurtId!;
 
         try {
-            const season = await Season.findByPk(req.params.season_year);
+            const season = await Season.findOne({
+                where: { season_year: req.params.season_year, yurtid }
+            });
             if (!season) return res.status(404).json({ message: 'Sezon bulunamadı.' });
 
             await season.destroy();

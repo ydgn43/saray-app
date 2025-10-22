@@ -10,7 +10,8 @@ export class StudentController {
 
     public async getAllStudents(req: Request, res: Response) {
         try {
-            const students: StudentSequelize[] = await this.studentService.getAllStudents();
+            const yurtid = req.selectedYurtId!;
+            const students: StudentSequelize[] = await this.studentService.getAllStudents(yurtid);
             res.status(202).json(students);
         } catch (error) {
             res.status(404).end();
@@ -20,8 +21,9 @@ export class StudentController {
     public async getAllStudentsBySeason(req: Request, res: Response) {
         try {
             const season: string = req.query.season as string;
+            const yurtid = req.selectedYurtId!;
 
-            const students: StudentSequelize[] = await this.studentService.getAllStudentsBySeason(season);
+            const students: StudentSequelize[] = await this.studentService.getAllStudentsBySeason(season, yurtid);
             res.status(202).json(students);
         } catch (error) {
             res.status(404).end();
@@ -32,8 +34,9 @@ export class StudentController {
         try {
             const season: string = req.query.season as string;
             const className: string = req.query.className as string;
+            const yurtid = req.selectedYurtId!;
 
-            const students: StudentSequelize[] = await this.studentService.getAllStudentsBySeasonAndClass(season, className);
+            const students: StudentSequelize[] = await this.studentService.getAllStudentsBySeasonAndClass(season, className, yurtid);
             res.status(202).json(students);
         } catch (error) {
             res.status(404).end();
@@ -42,7 +45,16 @@ export class StudentController {
 
     public async createStudent(req: Request, res: Response) {
         try {
-            const student: Student = new Student(undefined, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name)
+            const yurtid = req.selectedYurtId!;
+            const student: Student = new Student(
+                undefined,
+                req.body.first_name,
+                req.body.last_name,
+                req.body.birth_date,
+                req.body.season_year,
+                req.body.class_name,
+                yurtid
+            );
 
             const createdResponse: string = await this.studentService.createStudent(student);
 
@@ -61,16 +73,18 @@ export class StudentController {
 
     public async updateStudent(req: Request, res: Response) {
         try {
+            const yurtid = req.selectedYurtId!;
             const student: Student = new Student(
                 req.body.studentid,
                 req.body.first_name,
                 req.body.last_name,
                 req.body.birth_date,
                 req.body.season_year,
-                req.body.class_name
+                req.body.class_name,
+                yurtid
             );
 
-            const result = await this.studentService.updateStudent(student);
+            const result = await this.studentService.updateStudent(student, yurtid);
 
             if (result) {
                 res.status(200).json({ message: "Student updated successfully" });
@@ -86,7 +100,8 @@ export class StudentController {
 
     public async deleteStudent(req: Request, res: Response) {
         try {
-            await this.studentService.deleteStudent(+(req.query.studentid as string));
+            const yurtid = req.selectedYurtId!;
+            await this.studentService.deleteStudent(+(req.query.studentid as string), yurtid);
             res.status(202).json({ message: "Student succesfully deleted" });
         } catch (error) {
             console.error('Error deleting student:', error);
@@ -98,7 +113,8 @@ export class StudentController {
     public async getStudentById(req: Request, res: Response) {
         try {
             const id = +req.params.id;
-            const student = await this.studentService.getStudentById(id);
+            const yurtid = req.selectedYurtId!;
+            const student = await this.studentService.getStudentById(id, yurtid);
 
             if (!student) {
                 return res.status(404).json({ message: 'Student not found' });

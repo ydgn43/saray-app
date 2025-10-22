@@ -17,7 +17,7 @@ import config from '../config';
 import logo from '../images/logo.png';
 
 export default function Login() {
-    const { login } = useAuth();
+    const { login, setYurtName, loadUserYurts, setYurtsData } = useAuth();
     const navigate = useNavigate();
 
     const [username, setUsername] = useState('');
@@ -48,6 +48,36 @@ export default function Login() {
             if (res.ok) {
                 const data = await res.json();
                 login(data.user, data.token);
+
+                // Store yurt information (returned for all users now)
+                if (data.availableYurts && data.availableYurts.length > 0) {
+                    const yurts = data.availableYurts;
+                    const primaryYurt = data.selectedYurt || yurts.find((y: any) => y.isPrimary) || yurts[0];
+
+                    console.log('📋 Loaded yurts on login:', yurts.length, 'Primary:', primaryYurt?.yurtName);
+
+                    // Store in localStorage
+                    localStorage.setItem('availableYurts', JSON.stringify(yurts));
+                    localStorage.setItem('selectedYurt', JSON.stringify(primaryYurt));
+                    localStorage.setItem('yurtName', primaryYurt.yurtName);
+
+                    // Update AuthContext state immediately
+                    setYurtName(primaryYurt.yurtName);
+                    setYurtsData(yurts, primaryYurt);
+                } else if (data.yurtName) {
+                    // Fallback: if only yurtName is provided
+                    setYurtName(data.yurtName);
+                    localStorage.setItem('yurtName', data.yurtName);
+                } else {
+                    // No yurts assigned - clear any old data
+                    console.log('⚠️ No yurts assigned to user');
+                    localStorage.removeItem('yurtName');
+                    localStorage.removeItem('selectedYurt');
+                    localStorage.removeItem('availableYurts');
+                    setYurtName(null);
+                    setYurtsData([], null);
+                }
+
                 navigate('/');
             } else {
                 const data = await res.json();

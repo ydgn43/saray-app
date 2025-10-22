@@ -26,6 +26,9 @@ const programRoute_1 = require("./routes/programRoute");
 const classRoute_1 = require("./routes/classRoute");
 const referenceCodeRoute_1 = __importDefault(require("./routes/referenceCodeRoute"));
 const activityLogRoute_1 = require("./routes/activityLogRoute");
+const yurtRoute_1 = __importDefault(require("./routes/yurtRoute"));
+const yurtManagementRoute_1 = __importDefault(require("./routes/yurtManagementRoute"));
+const superAdminRoute_1 = __importDefault(require("./routes/superAdminRoute"));
 const app = (0, express_1.default)();
 const port = Number(process.env.PORT_HTTP) || 3001;
 const host = '0.0.0.0';
@@ -60,6 +63,9 @@ app.use('/program', programRoute_1.programRouter);
 app.use('/class', classRoute_1.classRouter);
 app.use('/reference-codes', referenceCodeRoute_1.default);
 app.use('/activity-logs', activityLogRoute_1.activityLogRouter);
+app.use('/yurts', yurtRoute_1.default);
+app.use('/yurt-management', yurtManagementRoute_1.default);
+app.use('/super-admin', superAdminRoute_1.default);
 // Health check endpoint
 app.get('/health', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

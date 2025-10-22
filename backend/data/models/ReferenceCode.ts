@@ -84,6 +84,13 @@ export default class ReferenceCode extends Model {
     })
     declare description?: string;
 
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: true,
+        comment: 'Yurt ID that this reference code belongs to'
+    })
+    declare yurtid?: number;
+
     @CreatedAt
     declare createdAt: Date;
 

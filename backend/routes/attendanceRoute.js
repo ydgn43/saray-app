@@ -18,6 +18,7 @@ const attendanceController_1 = require("../controller/attendanceController");
 const attendanceService_1 = require("../business/services/attendanceService");
 const attendanceData_1 = __importDefault(require("../data/attendanceData"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const validateYurtAccess_1 = require("../middleware/validateYurtAccess");
 const Attendance_1 = __importDefault(require("../data/models/Attendance"));
 const activityLogRoute_1 = require("./activityLogRoute");
 const Student_1 = __importDefault(require("../data/models/Student"));
@@ -26,6 +27,7 @@ const attendanceData = new attendanceData_1.default();
 const attendanceService = new attendanceService_1.AttendanceService(attendanceData);
 const attendanceController = new attendanceController_1.AttendanceController(attendanceService);
 exports.attendanceRouter.use(authMiddleware_1.authenticateJWT);
+exports.attendanceRouter.use(validateYurtAccess_1.validateYurtAccess); // Add yurt access validation
 // Test route to verify DELETE is working at all
 exports.attendanceRouter.delete('/test', (req, res) => {
     console.log('🧪 TEST DELETE route hit');
@@ -74,6 +76,7 @@ exports.attendanceRouter.delete('/delete', (0, authMiddleware_1.requireRoles)(['
                     description: `${studentName} - ${previousStatus} kaydı silindi`
                 }),
                 ip_address: req.ip || req.socket.remoteAddress || null,
+                yurtid: req.user.yurtid,
             });
         }
     }
@@ -133,6 +136,7 @@ exports.attendanceRouter.post('/create', (0, authMiddleware_1.requireRoles)(['ad
                         records: recordsWithNames
                     }),
                     ip_address: req.ip || req.socket.remoteAddress || null,
+                    yurtid: req.user.yurtid,
                 });
             }
         }
@@ -182,6 +186,7 @@ exports.attendanceRouter.put('/put', (0, authMiddleware_1.requireRoles)(['admin'
                     description: changeDescription
                 }),
                 ip_address: req.ip || req.socket.remoteAddress || null,
+                yurtid: req.user.yurtid,
             });
         }
     }
@@ -241,6 +246,7 @@ exports.attendanceRouter.post('/izinli', (0, authMiddleware_1.requireRoles)(['ad
                 description: changeDescription
             }),
             ip_address: req.ip || req.socket.remoteAddress || null,
+            yurtid: req.user.yurtid,
         });
         res.status(201).json({ message: 'İzinli kaydı eklendi.' });
     }
@@ -251,10 +257,11 @@ exports.attendanceRouter.post('/izinli', (0, authMiddleware_1.requireRoles)(['ad
 exports.attendanceRouter.get('/izinli', (0, authMiddleware_1.requireRoles)(['admin', 'hoca', 'yoklamaci']), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { date, program_name } = req.query;
+        const yurtid = req.user.yurtid;
         if (!date || !program_name) {
             return res.status(400).json({ message: 'Eksik bilgi.' });
         }
-        const records = yield attendanceService.getAttendanceByDateAndProgram(date, program_name);
+        const records = yield attendanceService.getAttendanceByDateAndProgram(date, program_name, yurtid);
         const izinliler = records.filter(r => r.attendance_type_name === 'izinli');
         res.json(izinliler);
     }

@@ -9,11 +9,13 @@ const studentController_1 = require("../controller/studentController");
 const studentService_1 = require("../business/services/studentService");
 const studentData_1 = require("../data/studentData");
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const validateYurtAccess_1 = require("../middleware/validateYurtAccess");
 exports.studentRouter = express_1.default.Router();
 const studentData = new studentData_1.StudentData();
 const studentService = new studentService_1.StudentService(studentData);
 const studentController = new studentController_1.StudentController(studentService);
 exports.studentRouter.use(authMiddleware_1.authenticateJWT);
+exports.studentRouter.use(validateYurtAccess_1.validateYurtAccess); // Add yurt access validation
 exports.studentRouter.get('/', (req, res) => {
     studentController.getAllStudents(req, res);
 });

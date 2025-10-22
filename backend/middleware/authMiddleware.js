@@ -14,12 +14,12 @@ const authenticateJWT = (req, res, next) => {
     if (!token) {
         return res.status(401).json({ message: 'Malformed token' });
     }
-    jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'supersecretkey', (err, user) => {
+    jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'supersecretkey', (err, decoded) => {
         if (err) {
             return res.status(403).json({ message: 'Invalid or expired token' });
         }
         // Attach user info to the request
-        req.user = user;
+        req.user = decoded;
         next();
     });
 };

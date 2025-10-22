@@ -52,7 +52,9 @@ function updateMe(req, res) {
 function getAllUsers(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const yurtid = req.selectedYurtId;
             const users = yield User_1.default.findAll({
+                where: { yurtid },
                 attributes: ['accountid', 'username', 'role_name', 'studentid']
             });
             res.json(users); // This sends a JSON array!

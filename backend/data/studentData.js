@@ -16,28 +16,34 @@ exports.StudentData = void 0;
 const Student_1 = __importDefault(require("./models/Student"));
 const Attendance_1 = __importDefault(require("./models/Attendance"));
 class StudentData {
-    getAllStudents() {
+    getAllStudents(yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            const allStudents = yield Student_1.default.findAll();
+            const allStudents = yield Student_1.default.findAll({
+                where: {
+                    yurtid: yurtid
+                }
+            });
             return allStudents;
         });
     }
-    getAllStudentsBySeason(seasonYear) {
+    getAllStudentsBySeason(seasonYear, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             const allStudentsBySeason = yield Student_1.default.findAll({
                 where: {
-                    season_year: seasonYear
+                    season_year: seasonYear,
+                    yurtid: yurtid
                 }
             });
             return allStudentsBySeason;
         });
     }
-    getAllStudentsBySeasonAndClass(season, className) {
+    getAllStudentsBySeasonAndClass(season, className, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             const allStudentsBySeasonAndClass = yield Student_1.default.findAll({
                 where: {
                     season_year: season,
-                    class_name: className
+                    class_name: className,
+                    yurtid: yurtid
                 }
             });
             return allStudentsBySeasonAndClass;
@@ -56,14 +62,16 @@ class StudentData {
                         last_name: student.lastName,
                         birth_date: student.birthDate,
                         season_year: student.seasonYear,
-                        class_name: student.className
+                        class_name: student.className,
+                        yurtid: student.yurtId
                     }, defaults: {
                         first_name: student.firstName,
                         last_name: student.lastName,
                         birth_date: student.birthDate,
                         season_year: student.seasonYear,
                         class_name: student.className,
-                        reference_code: referenceCode
+                        reference_code: referenceCode,
+                        yurtid: student.yurtId
                     }
                 });
                 if (created) {
@@ -96,9 +104,14 @@ class StudentData {
         }
         return code;
     }
-    updateStudent(student) {
+    updateStudent(student, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            const existing = yield Student_1.default.findByPk(student.studentId);
+            const existing = yield Student_1.default.findOne({
+                where: {
+                    studentid: student.studentId,
+                    yurtid: yurtid
+                }
+            });
             if (!existing)
                 return false;
             existing.first_name = student.firstName;
@@ -110,29 +123,36 @@ class StudentData {
             return true;
         });
     }
-    deleteStudent(studentId) {
+    deleteStudent(studentId, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             const test = yield Student_1.default.destroy({
                 where: {
-                    studentid: studentId
+                    studentid: studentId,
+                    yurtid: yurtid
                 }
             });
             console.log(test);
         });
     }
-    deleteAttendanceByStudentId(studentId) {
+    deleteAttendanceByStudentId(studentId, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             const deleted = yield Attendance_1.default.destroy({
                 where: {
-                    studentid: studentId
+                    studentid: studentId,
+                    yurtid: yurtid
                 }
             });
             console.log(`Deleted ${deleted} attendance records for studentid=${studentId}`);
         });
     }
-    getStudentById(id) {
+    getStudentById(id, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield Student_1.default.findByPk(id);
+            return yield Student_1.default.findOne({
+                where: {
+                    studentid: id,
+                    yurtid: yurtid
+                }
+            });
         });
     }
 }

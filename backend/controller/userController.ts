@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 async function getMe(req: Request, res: Response) {
     try {
-        const user = await User.findByPk(req.user.accountid, {
+        const user = await User.findByPk(req.user!.accountid, {
             attributes: ['accountid', 'username', 'role_name']
         });
         if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
@@ -17,7 +17,7 @@ async function getMe(req: Request, res: Response) {
 
 async function updateMe(req: Request, res: Response) {
     try {
-        const user = await User.findByPk(req.user.accountid);
+        const user = await User.findByPk(req.user!.accountid);
         if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
 
         const { username, password } = req.body;
@@ -33,7 +33,9 @@ async function updateMe(req: Request, res: Response) {
 
 async function getAllUsers(req: Request, res: Response) {
     try {
+        const yurtid = req.selectedYurtId!;
         const users = await User.findAll({
+            where: { yurtid },
             attributes: ['accountid', 'username', 'role_name', 'studentid']
         });
         res.json(users); // This sends a JSON array!
@@ -43,7 +45,7 @@ async function getAllUsers(req: Request, res: Response) {
 }
 
 async function getUserById(req: Request, res: Response) {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+    if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
     try {
         const user = await User.findByPk(req.params.id, { attributes: ['accountid', 'username', 'role_name'] });
         if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
@@ -54,7 +56,7 @@ async function getUserById(req: Request, res: Response) {
 }
 
 async function createUser(req: Request, res: Response) {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+    if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
     const { username, password, role_name } = req.body;
     if (!username || !password || !role_name)
         return res.status(400).json({ message: 'Eksik bilgi.' });
@@ -66,7 +68,7 @@ async function createUser(req: Request, res: Response) {
 }
 
 async function updateUserById(req: Request, res: Response) {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+    if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
     const { username, password, role_name } = req.body;
@@ -78,7 +80,7 @@ async function updateUserById(req: Request, res: Response) {
 }
 
 async function deleteUserById(req: Request, res: Response) {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
+    if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.' });
     await user.destroy();

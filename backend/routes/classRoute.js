@@ -8,8 +8,10 @@ exports.classRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const classController_1 = require("../controller/classController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const validateYurtAccess_1 = require("../middleware/validateYurtAccess");
 exports.classRouter = express_1.default.Router();
 exports.classRouter.use(authMiddleware_1.authenticateJWT);
+exports.classRouter.use(validateYurtAccess_1.validateYurtAccess); // Add yurt access validation
 exports.classRouter.get('/', classController_1.classController.getAll); // Allow all authenticated users
 exports.classRouter.post('/create', (0, authMiddleware_1.requireRoles)(['admin']), classController_1.classController.create);
 exports.classRouter.delete('/delete/:class_name', (0, authMiddleware_1.requireRoles)(['admin']), classController_1.classController.delete);

@@ -3,6 +3,7 @@ import { AttendanceController } from '../controller/attendanceController';
 import { AttendanceService } from '../business/services/attendanceService';
 import AttendanceData from '../data/attendanceData';
 import { authenticateJWT, requireRoles } from '../middleware/authMiddleware';
+import { validateYurtAccess } from '../middleware/validateYurtAccess';
 import Attendance from '../data/models/Attendance';
 import { activityLogService } from './activityLogRoute';
 import Student from '../data/models/Student';
@@ -14,6 +15,7 @@ const attendanceService = new AttendanceService(attendanceData);
 const attendanceController = new AttendanceController(attendanceService);
 
 attendanceRouter.use(authenticateJWT);
+attendanceRouter.use(validateYurtAccess); // Add yurt access validation
 
 // Test route to verify DELETE is working at all
 attendanceRouter.delete('/test', (req: Request, res: Response) => {
@@ -59,8 +61,8 @@ attendanceRouter.delete('/delete', requireRoles(['admin', 'hoca', 'yoklamaci']),
         // Log the activity after successful delete
         if (res.statusCode === 200) {
             await activityLogService.createLog({
-                userid: req.user.accountid,
-                username: req.user.username,
+                userid: req.user!.accountid,
+                username: req.user!.username,
                 action: 'delete',
                 entity_type: 'izinli',
                 entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
@@ -70,6 +72,7 @@ attendanceRouter.delete('/delete', requireRoles(['admin', 'hoca', 'yoklamaci']),
                     description: `${studentName} - ${previousStatus} kaydı silindi`
                 }),
                 ip_address: req.ip || req.socket.remoteAddress || null,
+                yurtid: req.user!.yurtid,
             });
         }
     } catch (error) {
@@ -122,8 +125,8 @@ attendanceRouter.post('/create', requireRoles(['admin', 'hoca', 'yoklamaci']), a
                     .join(', ');
 
                 await activityLogService.createLog({
-                    userid: req.user.accountid,
-                    username: req.user.username,
+                    userid: req.user!.accountid,
+                    username: req.user!.username,
                     action: 'create',
                     entity_type: 'attendance',
                     entity_id: JSON.stringify(recordsWithNames.map(r => ({
@@ -138,6 +141,7 @@ attendanceRouter.post('/create', requireRoles(['admin', 'hoca', 'yoklamaci']), a
                         records: recordsWithNames
                     }),
                     ip_address: req.ip || req.socket.remoteAddress || null,
+                    yurtid: req.user!.yurtid,
                 });
             }
         }
@@ -180,8 +184,8 @@ attendanceRouter.put('/put', requireRoles(['admin', 'hoca', 'yoklamaci']), async
                 : `${studentName} - ${attendance_type_name}`;
 
             await activityLogService.createLog({
-                userid: req.user.accountid,
-                username: req.user.username,
+                userid: req.user!.accountid,
+                username: req.user!.username,
                 action: 'update',
                 entity_type: 'attendance',
                 entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
@@ -192,6 +196,7 @@ attendanceRouter.put('/put', requireRoles(['admin', 'hoca', 'yoklamaci']), async
                     description: changeDescription
                 }),
                 ip_address: req.ip || req.socket.remoteAddress || null,
+                yurtid: req.user!.yurtid,
             });
         }
     } catch (error) {
@@ -244,8 +249,8 @@ attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, re
             : `${studentName} - Yeni izinli kaydı`;
 
         await activityLogService.createLog({
-            userid: req.user.accountid,
-            username: req.user.username,
+            userid: req.user!.accountid,
+            username: req.user!.username,
             action: previousStatus ? 'update' : 'create',
             entity_type: 'izinli',
             entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
@@ -257,6 +262,7 @@ attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, re
                 description: changeDescription
             }),
             ip_address: req.ip || req.socket.remoteAddress || null,
+            yurtid: req.user!.yurtid,
         });
 
         res.status(201).json({ message: 'İzinli kaydı eklendi.' });
@@ -268,10 +274,11 @@ attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, re
 attendanceRouter.get('/izinli', requireRoles(['admin', 'hoca', 'yoklamaci']), async (req, res) => {
     try {
         const { date, program_name } = req.query;
+        const yurtid = req.user!.yurtid;
         if (!date || !program_name) {
             return res.status(400).json({ message: 'Eksik bilgi.' });
         }
-        const records = await attendanceService.getAttendanceByDateAndProgram(date as string, program_name as string);
+        const records = await attendanceService.getAttendanceByDateAndProgram(date as string, program_name as string, yurtid);
         const izinliler = records.filter(r => r.attendance_type_name === 'izinli');
         res.json(izinliler);
     } catch (err) {

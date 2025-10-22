@@ -18,7 +18,8 @@ class StudentController {
     getAllStudents(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const students = yield this.studentService.getAllStudents();
+                const yurtid = req.selectedYurtId;
+                const students = yield this.studentService.getAllStudents(yurtid);
                 res.status(202).json(students);
             }
             catch (error) {
@@ -30,7 +31,8 @@ class StudentController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const season = req.query.season;
-                const students = yield this.studentService.getAllStudentsBySeason(season);
+                const yurtid = req.selectedYurtId;
+                const students = yield this.studentService.getAllStudentsBySeason(season, yurtid);
                 res.status(202).json(students);
             }
             catch (error) {
@@ -43,7 +45,8 @@ class StudentController {
             try {
                 const season = req.query.season;
                 const className = req.query.className;
-                const students = yield this.studentService.getAllStudentsBySeasonAndClass(season, className);
+                const yurtid = req.selectedYurtId;
+                const students = yield this.studentService.getAllStudentsBySeasonAndClass(season, className, yurtid);
                 res.status(202).json(students);
             }
             catch (error) {
@@ -54,7 +57,8 @@ class StudentController {
     createStudent(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const student = new Student_1.Student(undefined, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name);
+                const yurtid = req.selectedYurtId;
+                const student = new Student_1.Student(undefined, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name, yurtid);
                 const createdResponse = yield this.studentService.createStudent(student);
                 console.log('📤 Sending response to frontend:', createdResponse);
                 res.status(202).json({ message: createdResponse });
@@ -73,8 +77,9 @@ class StudentController {
     updateStudent(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const student = new Student_1.Student(req.body.studentid, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name);
-                const result = yield this.studentService.updateStudent(student);
+                const yurtid = req.selectedYurtId;
+                const student = new Student_1.Student(req.body.studentid, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name, yurtid);
+                const result = yield this.studentService.updateStudent(student, yurtid);
                 if (result) {
                     res.status(200).json({ message: "Student updated successfully" });
                 }
@@ -91,7 +96,8 @@ class StudentController {
     deleteStudent(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield this.studentService.deleteStudent(+req.query.studentid);
+                const yurtid = req.selectedYurtId;
+                yield this.studentService.deleteStudent(+req.query.studentid, yurtid);
                 res.status(202).json({ message: "Student succesfully deleted" });
             }
             catch (error) {
@@ -104,7 +110,8 @@ class StudentController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const id = +req.params.id;
-                const student = yield this.studentService.getStudentById(id);
+                const yurtid = req.selectedYurtId;
+                const student = yield this.studentService.getStudentById(id, yurtid);
                 if (!student) {
                     return res.status(404).json({ message: 'Student not found' });
                 }

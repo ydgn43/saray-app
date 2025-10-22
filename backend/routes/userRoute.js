@@ -7,8 +7,10 @@ exports.userRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const userController_1 = require("../controller/userController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const validateYurtAccess_1 = require("../middleware/validateYurtAccess");
 exports.userRouter = express_1.default.Router();
 exports.userRouter.use(authMiddleware_1.authenticateJWT);
+exports.userRouter.use(validateYurtAccess_1.validateYurtAccess); // Add yurt access validation
 // ...existing /me routes
 exports.userRouter.get('/me', userController_1.userController.getMe);
 exports.userRouter.put('/me', userController_1.userController.updateMe);

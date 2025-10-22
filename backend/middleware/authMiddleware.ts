@@ -1,14 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
+export interface UserPayload {
+    accountid: number;
+    username: string;
+    role: string;
+    yurtid: number;
+    studentid?: number | null;
+}
+
 export interface AuthRequest extends Request {
-    user?: any; // You can define a UserPayload type for stronger typing
+    user?: UserPayload;
 }
 
 declare global {
     namespace Express {
         interface Request {
-            user?: any;
+            user?: UserPayload;
         }
     }
 }
@@ -24,12 +32,12 @@ export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunct
         return res.status(401).json({ message: 'Malformed token' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey', (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey', (err, decoded) => {
         if (err) {
             return res.status(403).json({ message: 'Invalid or expired token' });
         }
         // Attach user info to the request
-        req.user = user;
+        req.user = decoded as UserPayload;
         next();
     });
 };

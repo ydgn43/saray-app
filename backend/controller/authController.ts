@@ -25,7 +25,8 @@ export const login = async (req: Request, res: Response) => {
             accountid: user.accountid,
             username: user.username,
             role_name: user.role_name,
-            studentid: user.studentid
+            studentid: user.studentid,
+            yurtid: user.yurtid
         });
 
         // 2. Compare password with hashed password
@@ -43,10 +44,38 @@ export const login = async (req: Request, res: Response) => {
             throw new Error('JWT_SECRET environment variable is not defined.');
         }
         const token = jwt.sign(
-            { accountid: user.accountid, username: user.username, role: user.role_name },
+            {
+                accountid: user.accountid,
+                username: user.username,
+                role: user.role_name,
+                yurtid: user.yurtid
+            },
             jwtSecret,
             { expiresIn: '7d' }
         );
+
+        // Get user's yurt information
+        const UserYurt = sequelize.models.UserYurt;
+        const userYurts: any = await UserYurt.findAll({
+            where: { accountid: user.accountid },
+            include: [{
+                model: sequelize.models.YurtSequelize,
+                as: 'yurt'
+            }],
+            order: [['is_primary', 'DESC'], ['assigned_at', 'ASC']]
+        });
+
+        const availableYurts = userYurts.map((uy: any) => ({
+            yurtId: uy.yurtid,
+            yurtName: uy.yurt?.yurt_name,
+            location: uy.yurt?.location,
+            description: uy.yurt?.description,
+            isActive: uy.yurt?.is_active,
+            isPrimary: uy.is_primary,
+            assignedAt: uy.assigned_at
+        }));
+
+        const primaryYurt = availableYurts.find((y: any) => y.isPrimary) || availableYurts[0] || null;
 
         const responseData = {
             token,
@@ -54,8 +83,12 @@ export const login = async (req: Request, res: Response) => {
                 accountid: user.accountid,
                 username: user.username,
                 role: user.role_name,
-                studentid: user.studentid || null
-            }
+                studentid: user.studentid || null,
+                yurtid: primaryYurt?.yurtId || user.yurtid
+            },
+            yurtName: primaryYurt?.yurtName || null,
+            availableYurts: availableYurts,
+            selectedYurt: primaryYurt
         };
 
         console.log('✅ Login response:', responseData);
@@ -100,23 +133,26 @@ export const signup = async (req: Request, res: Response) => {
         console.log('Student found:', student ? {
             studentid: student.studentid,
             name: `${student.first_name} ${student.last_name}`,
-            reference_code: student.reference_code
+            reference_code: student.reference_code,
+            yurtid: student.yurtid
         } : 'NOT FOUND');
 
         let roleToAssign = 'talebe'; // Default for student codes
         let linkedStudentId = null;
+        let assignedYurtId = null;
 
         if (student) {
             // This is a student-specific code
-            console.log('✅ Student reference code detected:', { studentId: student.studentid, code: referenceCode });
+            console.log('✅ Student reference code detected:', { studentId: student.studentid, code: referenceCode, yurtid: student.yurtid });
             linkedStudentId = student.studentid;
+            assignedYurtId = student.yurtid;
         } else {
             // 3b. Check if it's a regular reference code (for other roles)
             const refCode: any = await ReferenceCode.findOne({
                 where: { code: referenceCode.toUpperCase() },
             });
 
-            console.log('Reference code found:', refCode ? { code: refCode.code, roleId: refCode.roleId } : 'NOT FOUND');
+            console.log('Reference code found:', refCode ? { code: refCode.code, roleId: refCode.roleId, yurtid: refCode.yurtid } : 'NOT FOUND');
 
             if (!refCode) {
                 console.log('Invalid reference code');
@@ -146,6 +182,7 @@ export const signup = async (req: Request, res: Response) => {
             }
 
             roleToAssign = refCode.roleId;
+            assignedYurtId = refCode.yurtid;
         }
 
         // 5. Hash password
@@ -159,27 +196,101 @@ export const signup = async (req: Request, res: Response) => {
             studentid: linkedStudentId
         });
 
-        console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId });
+        console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId, yurtid: assignedYurtId });
 
-        // 7. Mark reference code as used (only for non-student codes)
+        // 7. Special handling for admin users: Create a yurt automatically
+        if (roleToAssign === 'admin') {
+            console.log('🏢 Creating yurt for new admin:', newUser.username);
+
+            const Yurt = sequelize.models.YurtSequelize;
+            const newYurt: any = await Yurt.create({
+                yurt_name: `${newUser.username}_yurt`,
+                location: null,
+                description: `Yurt for admin ${newUser.username}`,
+                is_active: true
+            });
+
+            assignedYurtId = newYurt.yurtid;
+            console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+        }
+
+        // 8. Assign user to yurt
+        const UserYurt = sequelize.models.UserYurt;
+        if (assignedYurtId) {
+            await UserYurt.create({
+                accountid: newUser.accountid,
+                yurtid: assignedYurtId,
+                is_primary: true,
+                assigned_at: new Date()
+            });
+            console.log('✅ User assigned to yurt:', assignedYurtId);
+        } else {
+            // Fallback: assign to default yurt (ID 1) if no yurt specified
+            await UserYurt.create({
+                accountid: newUser.accountid,
+                yurtid: 1, // Default yurt
+                is_primary: true,
+                assigned_at: new Date()
+            });
+            console.log('⚠️ No yurt specified, assigned to default yurt (ID 1)');
+        }
+
+        // 9. Mark reference code as used (only for non-student codes)
         if (!student) {
             await markCodeAsUsed(referenceCode.toUpperCase(), newUser.accountid);
         }
 
-        // 8. Create JWT token
+        // 10. Get user's yurt information using raw query to avoid association issues
+        const [userYurtsRaw]: any = await sequelize.query(`
+            SELECT 
+                uy.yurtid,
+                uy.is_primary,
+                uy.assigned_at,
+                y.yurt_name,
+                y.location,
+                y.description,
+                y.is_active
+            FROM UserYurt uy
+            JOIN Yurt y ON uy.yurtid = y.yurtid
+            WHERE uy.accountid = ?
+            ORDER BY uy.is_primary DESC, uy.assigned_at ASC
+        `, {
+            replacements: [newUser.accountid]
+        });
+
+        const availableYurts = userYurtsRaw.map((uy: any) => ({
+            yurtId: uy.yurtid,
+            yurtName: uy.yurt_name,
+            location: uy.location,
+            description: uy.description,
+            isActive: uy.is_active === 1,
+            isPrimary: uy.is_primary === 1,
+            assignedAt: uy.assigned_at
+        }));
+
+        const primaryYurt = availableYurts.find((y: any) => y.isPrimary) || availableYurts[0];
+
+        // 10. Create JWT token
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
             throw new Error('JWT_SECRET environment variable is not defined.');
         }
 
         const token = jwt.sign(
-            { accountid: newUser.accountid, username: newUser.username, role: newUser.role_name },
+            { accountid: newUser.accountid, username: newUser.username, role: newUser.role_name, yurtid: primaryYurt?.yurtId },
             jwtSecret,
             { expiresIn: '7d' }
         );
 
-        // 9. Send response
-        console.log('Signup successful! Sending response...');
+        // 11. Send response
+        console.log('✅ Signup successful! Response data:', {
+            username: newUser.username,
+            role: newUser.role_name,
+            yurtName: primaryYurt?.yurtName,
+            availableYurtsCount: availableYurts.length,
+            availableYurts: availableYurts,
+            primaryYurt: primaryYurt
+        });
         res.status(201).json({
             message: 'User created successfully',
             token,
@@ -187,8 +298,12 @@ export const signup = async (req: Request, res: Response) => {
                 accountid: newUser.accountid,
                 username: newUser.username,
                 role: newUser.role_name,
-                studentid: newUser.studentid || null
+                studentid: newUser.studentid || null,
+                yurtid: primaryYurt?.yurtId
             },
+            yurtName: primaryYurt?.yurtName,
+            availableYurts: availableYurts,
+            selectedYurt: primaryYurt
         });
     } catch (error) {
         console.error('Signup error:', error);

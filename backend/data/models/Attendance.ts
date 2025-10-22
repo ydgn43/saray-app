@@ -2,6 +2,7 @@ import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize
 import Student from './Student';
 import AttendanceType from './AttendanceType';
 import Program from './Program';
+import Yurt from './Yurt';
 
 @Table({
     tableName: 'Attendance',
@@ -21,6 +22,14 @@ export default class AttendanceSequelize extends Model {
         primaryKey: true,
     })
     declare studentid: number;
+
+    @ForeignKey(() => Yurt)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    })
+    declare yurtid: number;
 
     @Column({
         type: DataType.DATEONLY,
@@ -58,4 +67,7 @@ export default class AttendanceSequelize extends Model {
 
     @BelongsTo(() => Program)
     program!: Program;
+
+    @BelongsTo(() => Yurt)
+    yurt!: Yurt;
 }

@@ -2,12 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Attendance = void 0;
 class Attendance {
-    constructor(studentId, date, attendanceTypeName, programName) {
+    constructor(studentId, date, attendanceTypeName, programName, yurtId) {
         this._sebep = null;
         this.studentId = studentId; // Use setter
         this.date = date; // Use setter
         this.attendanceTypeName = attendanceTypeName; // Use setter
         this.programName = programName; // Use setter
+        this.yurtId = yurtId; // Use setter
     }
     get studentId() {
         return this._studentId;
@@ -49,6 +50,12 @@ class Attendance {
     }
     set sebep(value) {
         this._sebep = value;
+    }
+    get yurtId() {
+        return this._yurtId;
+    }
+    set yurtId(value) {
+        this._yurtId = value;
     }
 }
 exports.Attendance = Attendance;

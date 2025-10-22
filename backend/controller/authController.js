@@ -33,7 +33,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             accountid: user.accountid,
             username: user.username,
             role_name: user.role_name,
-            studentid: user.studentid
+            studentid: user.studentid,
+            yurtid: user.yurtid
         });
         // 2. Compare password with hashed password
         const valid = yield bcrypt_1.default.compare(password, user.password);
@@ -47,15 +48,47 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!jwtSecret) {
             throw new Error('JWT_SECRET environment variable is not defined.');
         }
-        const token = jsonwebtoken_1.default.sign({ accountid: user.accountid, username: user.username, role: user.role_name }, jwtSecret, { expiresIn: '7d' });
+        const token = jsonwebtoken_1.default.sign({
+            accountid: user.accountid,
+            username: user.username,
+            role: user.role_name,
+            yurtid: user.yurtid
+        }, jwtSecret, { expiresIn: '7d' });
+        // Get user's yurt information
+        const UserYurt = sequelize_1.sequelize.models.UserYurt;
+        const userYurts = yield UserYurt.findAll({
+            where: { accountid: user.accountid },
+            include: [{
+                    model: sequelize_1.sequelize.models.YurtSequelize,
+                    as: 'yurt'
+                }],
+            order: [['is_primary', 'DESC'], ['assigned_at', 'ASC']]
+        });
+        const availableYurts = userYurts.map((uy) => {
+            var _a, _b, _c, _d;
+            return ({
+                yurtId: uy.yurtid,
+                yurtName: (_a = uy.yurt) === null || _a === void 0 ? void 0 : _a.yurt_name,
+                location: (_b = uy.yurt) === null || _b === void 0 ? void 0 : _b.location,
+                description: (_c = uy.yurt) === null || _c === void 0 ? void 0 : _c.description,
+                isActive: (_d = uy.yurt) === null || _d === void 0 ? void 0 : _d.is_active,
+                isPrimary: uy.is_primary,
+                assignedAt: uy.assigned_at
+            });
+        });
+        const primaryYurt = availableYurts.find((y) => y.isPrimary) || availableYurts[0] || null;
         const responseData = {
             token,
             user: {
                 accountid: user.accountid,
                 username: user.username,
                 role: user.role_name,
-                studentid: user.studentid || null
-            }
+                studentid: user.studentid || null,
+                yurtid: (primaryYurt === null || primaryYurt === void 0 ? void 0 : primaryYurt.yurtId) || user.yurtid
+            },
+            yurtName: (primaryYurt === null || primaryYurt === void 0 ? void 0 : primaryYurt.yurtName) || null,
+            availableYurts: availableYurts,
+            selectedYurt: primaryYurt
         };
         console.log('✅ Login response:', responseData);
         // 4. Send token and user info
@@ -93,21 +126,24 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log('Student found:', student ? {
             studentid: student.studentid,
             name: `${student.first_name} ${student.last_name}`,
-            reference_code: student.reference_code
+            reference_code: student.reference_code,
+            yurtid: student.yurtid
         } : 'NOT FOUND');
         let roleToAssign = 'talebe'; // Default for student codes
         let linkedStudentId = null;
+        let assignedYurtId = null;
         if (student) {
             // This is a student-specific code
-            console.log('✅ Student reference code detected:', { studentId: student.studentid, code: referenceCode });
+            console.log('✅ Student reference code detected:', { studentId: student.studentid, code: referenceCode, yurtid: student.yurtid });
             linkedStudentId = student.studentid;
+            assignedYurtId = student.yurtid;
         }
         else {
             // 3b. Check if it's a regular reference code (for other roles)
             const refCode = yield ReferenceCode.findOne({
                 where: { code: referenceCode.toUpperCase() },
             });
-            console.log('Reference code found:', refCode ? { code: refCode.code, roleId: refCode.roleId } : 'NOT FOUND');
+            console.log('Reference code found:', refCode ? { code: refCode.code, roleId: refCode.roleId, yurtid: refCode.yurtid } : 'NOT FOUND');
             if (!refCode) {
                 console.log('Invalid reference code');
                 return res.status(400).json({ message: 'Invalid reference code' });
@@ -131,6 +167,7 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return res.status(400).json({ message: 'Invalid role associated with reference code' });
             }
             roleToAssign = refCode.roleId;
+            assignedYurtId = refCode.yurtid;
         }
         // 5. Hash password
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
@@ -141,19 +178,87 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             role_name: roleToAssign,
             studentid: linkedStudentId
         });
-        console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId });
-        // 7. Mark reference code as used (only for non-student codes)
+        console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId, yurtid: assignedYurtId });
+        // 7. Special handling for admin users: Create a yurt automatically
+        if (roleToAssign === 'admin') {
+            console.log('🏢 Creating yurt for new admin:', newUser.username);
+            const Yurt = sequelize_1.sequelize.models.YurtSequelize;
+            const newYurt = yield Yurt.create({
+                yurt_name: `${newUser.username}_yurt`,
+                location: null,
+                description: `Yurt for admin ${newUser.username}`,
+                is_active: true
+            });
+            assignedYurtId = newYurt.yurtid;
+            console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+        }
+        // 8. Assign user to yurt
+        const UserYurt = sequelize_1.sequelize.models.UserYurt;
+        if (assignedYurtId) {
+            yield UserYurt.create({
+                accountid: newUser.accountid,
+                yurtid: assignedYurtId,
+                is_primary: true,
+                assigned_at: new Date()
+            });
+            console.log('✅ User assigned to yurt:', assignedYurtId);
+        }
+        else {
+            // Fallback: assign to default yurt (ID 1) if no yurt specified
+            yield UserYurt.create({
+                accountid: newUser.accountid,
+                yurtid: 1,
+                is_primary: true,
+                assigned_at: new Date()
+            });
+            console.log('⚠️ No yurt specified, assigned to default yurt (ID 1)');
+        }
+        // 9. Mark reference code as used (only for non-student codes)
         if (!student) {
             yield (0, referenceCodeController_1.markCodeAsUsed)(referenceCode.toUpperCase(), newUser.accountid);
         }
-        // 8. Create JWT token
+        // 10. Get user's yurt information using raw query to avoid association issues
+        const [userYurtsRaw] = yield sequelize_1.sequelize.query(`
+            SELECT 
+                uy.yurtid,
+                uy.is_primary,
+                uy.assigned_at,
+                y.yurt_name,
+                y.location,
+                y.description,
+                y.is_active
+            FROM UserYurt uy
+            JOIN Yurt y ON uy.yurtid = y.yurtid
+            WHERE uy.accountid = ?
+            ORDER BY uy.is_primary DESC, uy.assigned_at ASC
+        `, {
+            replacements: [newUser.accountid]
+        });
+        const availableYurts = userYurtsRaw.map((uy) => ({
+            yurtId: uy.yurtid,
+            yurtName: uy.yurt_name,
+            location: uy.location,
+            description: uy.description,
+            isActive: uy.is_active === 1,
+            isPrimary: uy.is_primary === 1,
+            assignedAt: uy.assigned_at
+        }));
+        const primaryYurt = availableYurts.find((y) => y.isPrimary) || availableYurts[0];
+        // 10. Create JWT token
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
             throw new Error('JWT_SECRET environment variable is not defined.');
         }
-        const token = jsonwebtoken_1.default.sign({ accountid: newUser.accountid, username: newUser.username, role: newUser.role_name }, jwtSecret, { expiresIn: '7d' });
-        // 9. Send response
-        console.log('Signup successful! Sending response...');
+        const token = jsonwebtoken_1.default.sign({ accountid: newUser.accountid, username: newUser.username, role: newUser.role_name, yurtid: primaryYurt === null || primaryYurt === void 0 ? void 0 : primaryYurt.yurtId }, jwtSecret, { expiresIn: '7d' });
+        // 11. Send response
+        console.log('✅ Signup successful! Response data:', {
+            username: newUser.username,
+            role: newUser.role_name,
+            yurtName: primaryYurt === null || primaryYurt === void 0 ? void 0 : primaryYurt.yurtName,
+            availableYurtsCount: availableYurts.length,
+            availableYurts: availableYurts,
+            primaryYurt: primaryYurt
+        });
         res.status(201).json({
             message: 'User created successfully',
             token,
@@ -161,8 +266,12 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 accountid: newUser.accountid,
                 username: newUser.username,
                 role: newUser.role_name,
-                studentid: newUser.studentid || null
+                studentid: newUser.studentid || null,
+                yurtid: primaryYurt === null || primaryYurt === void 0 ? void 0 : primaryYurt.yurtId
             },
+            yurtName: primaryYurt === null || primaryYurt === void 0 ? void 0 : primaryYurt.yurtName,
+            availableYurts: availableYurts,
+            selectedYurt: primaryYurt
         });
     }
     catch (error) {

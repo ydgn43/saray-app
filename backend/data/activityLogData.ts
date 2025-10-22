@@ -9,6 +9,7 @@ export interface CreateActivityLogParams {
     entity_id: string;
     details?: string | null;
     ip_address?: string | null;
+    yurtid: number;
 }
 
 export default class ActivityLogData {
@@ -22,6 +23,7 @@ export default class ActivityLogData {
                 entity_id: params.entity_id,
                 details: params.details || null,
                 ip_address: params.ip_address || null,
+                yurtid: params.yurtid,
             });
         } catch (error) {
             console.error('Failed to create activity log:', error);

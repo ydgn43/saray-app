@@ -16,12 +16,16 @@ const Attendance_1 = __importDefault(require("../data/models/Attendance"));
 const Student_1 = __importDefault(require("../data/models/Student"));
 const sequelize_1 = require("sequelize");
 class AttendanceData {
-    getAllAttendance() {
+    getAllAttendance(yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Attendance_1.default.findAll();
+            return Attendance_1.default.findAll({
+                where: {
+                    yurtid: yurtid
+                }
+            });
         });
     }
-    getAttendance(attendanceData) {
+    getAttendance(attendanceData, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield Attendance_1.default.findOne({
@@ -29,6 +33,7 @@ class AttendanceData {
                         studentid: attendanceData.studentId,
                         date: attendanceData.date,
                         program_name: attendanceData.programName,
+                        yurtid: yurtid
                     },
                 });
             }
@@ -37,13 +42,14 @@ class AttendanceData {
             }
         });
     }
-    getAttendanceStatisticsByDateRange(start, end) {
+    getAttendanceStatisticsByDateRange(start, end, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             const records = yield Attendance_1.default.findAll({
                 where: {
                     date: {
                         [sequelize_1.Op.between]: [start, end],
                     },
+                    yurtid: yurtid
                 },
             });
             const grouped = {};
@@ -76,11 +82,15 @@ class AttendanceData {
             return result;
         });
     }
-    getAttendanceByDateAndProgram(date, programName) {
+    getAttendanceByDateAndProgram(date, programName, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 return yield Attendance_1.default.findAll({
-                    where: { date, program_name: programName },
+                    where: {
+                        date,
+                        program_name: programName,
+                        yurtid: yurtid
+                    },
                 });
             }
             catch (error) {
@@ -98,6 +108,7 @@ class AttendanceData {
                     attendance_type_name: attendance.attendanceTypeName,
                     program_name: attendance.programName,
                     sebep: attendance.sebep || null,
+                    yurtid: attendance.yurtId
                 });
             }
             catch (error) {
@@ -114,7 +125,7 @@ class AttendanceData {
             }
         });
     }
-    updateAttendance(attendance) {
+    updateAttendance(attendance, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield Attendance_1.default.update({
@@ -125,6 +136,7 @@ class AttendanceData {
                         studentid: attendance.studentId,
                         date: attendance.date,
                         program_name: attendance.programName,
+                        yurtid: yurtid
                     },
                 });
             }
@@ -141,10 +153,12 @@ class AttendanceData {
                     studentid: attendance.studentId,
                     date: attendance.date,
                     program_name: attendance.programName,
+                    yurtid: attendance.yurtId
                 },
                 defaults: {
                     attendance_type_name: attendance.attendanceTypeName,
                     sebep: attendance.sebep || null,
+                    yurtid: attendance.yurtId
                 }
             });
             if (!created) {
@@ -155,15 +169,16 @@ class AttendanceData {
             }
         });
     }
-    deleteAttendance(studentId, date, programName) {
+    deleteAttendance(studentId, date, programName, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log(`📊 Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}`);
+                console.log(`📊 Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}, yurtid=${yurtid}`);
                 // First, let's check what records exist for this student and date
                 const existing = yield Attendance_1.default.findAll({
                     where: {
                         studentid: studentId,
-                        date: date
+                        date: date,
+                        yurtid: yurtid
                     }
                 });
                 console.log(`📊 Found ${existing.length} records for student ${studentId} on ${date}:`, existing.map(r => ({ program: r.program_name, type: r.attendance_type_name })));
@@ -172,6 +187,7 @@ class AttendanceData {
                         studentid: studentId,
                         date: date,
                         program_name: programName,
+                        yurtid: yurtid
                     },
                 });
                 console.log(`📊 Rows deleted: ${deleted}`);

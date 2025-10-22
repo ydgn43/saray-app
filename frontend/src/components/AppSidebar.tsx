@@ -2,11 +2,12 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate, FaHistory } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate, FaHistory, FaShieldAlt } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
 import { useAuth } from '../auth/AuthContext'; // <-- Add this import
+import { YurtSelector } from './YurtSelector'; // <-- Add YurtSelector
 import './AppSidebar.css';
 
 const APP_VERSION = packageJson.version;
@@ -27,12 +28,13 @@ const IconComponent = ({ icon: Icon }: { icon: IconType }) => {
 const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode }) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { logout, user } = useAuth(); // <-- Use the logout function and user
+    const { logout, user, yurtName } = useAuth(); // <-- Added yurtName
     const [showUserModal, setShowUserModal] = React.useState(false);
 
     // Map role names to Turkish display names
     const getRoleDisplayName = (role: string): string => {
         const roleMap: { [key: string]: string } = {
+            'super-admin': 'Super Admin',
             'admin': 'Admin',
             'hoca': 'Hoca',
             'yoklamaci': 'Yoklamacı',
@@ -99,97 +101,119 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                 {/* Menu */}
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                     <Menu>
-                        <MenuItem
-                            active={location.pathname === '/'}
-                            icon={<IconComponent icon={FaHome} />}
-                            component={<Link to="/" />}
-                            onClick={mobileMode ? onToggle : undefined}
-                        >
-                            Ana Sayfa
-                        </MenuItem>
-                        {/* --- Student Portal: Only for talebe --- */}
-                        {user?.role === 'talebe' && (
+                        {/* --- Super Admin Only: Single Menu Item --- */}
+                        {user?.role === 'super-admin' ? (
                             <MenuItem
-                                active={location.pathname === '/student-portal'}
-                                icon={<IconComponent icon={FaUserGraduate} />}
-                                component={<Link to="/student-portal" />}
+                                active={location.pathname === '/super-admin'}
+                                icon={<IconComponent icon={FaShieldAlt} />}
+                                component={<Link to="/super-admin" />}
                                 onClick={mobileMode ? onToggle : undefined}
                             >
-                                İstatistiklerim
+                                Super Admin
                             </MenuItem>
-                        )}
-                        {/* --- Regular Menu Items: For admin, hoca, and yoklamaci --- */}
-                        {(user?.role === 'admin' || user?.role === 'hoca' || user?.role === 'yoklamaci') && (
+                        ) : (
                             <>
+                                {/* --- Regular Users: Show all menu items --- */}
                                 <MenuItem
-                                    active={location.pathname === '/attendance'}
-                                    icon={<IconComponent icon={FaListAlt} />}
-                                    component={<Link to="/attendance" />}
+                                    active={location.pathname === '/'}
+                                    icon={<IconComponent icon={FaHome} />}
+                                    component={<Link to="/" />}
                                     onClick={mobileMode ? onToggle : undefined}
                                 >
-                                    Yoklama
+                                    Ana Sayfa
                                 </MenuItem>
-                                <MenuItem
-                                    active={location.pathname === '/statistics'}
-                                    icon={<IconComponent icon={FaChartBar} />}
-                                    component={<Link to="/statistics" />}
-                                    onClick={mobileMode ? onToggle : undefined}
-                                >
-                                    İstatistik
-                                </MenuItem>
-                            </>
-                        )}
-                        {user?.role === 'admin' && (
-                            <MenuItem
-                                active={location.pathname === '/talebeler'}
-                                icon={<IconComponent icon={FaUser} />}
-                                component={<Link to="/talebeler" />}
-                                onClick={mobileMode ? onToggle : undefined}
-                            >
-                                Talebeler
-                            </MenuItem>
-                        )}
-                        {/* İzinli Talebeler - Hidden from talebe role */}
-                        {user?.role !== 'talebe' && (
-                            <MenuItem
-                                icon={<IconComponent icon={FaUserCheck} />}
-                                component={<Link to="/izinli-talebeler" />}
-                                onClick={mobileMode ? onToggle : undefined}
-                            >
-                                İzinli Talebeler
-                            </MenuItem>
-                        )}
-                        {/* --- Admin Only: Reference Code Management --- */}
-                        {user?.role === 'admin' && (
-                            <>
-                                <MenuItem
-                                    active={location.pathname === '/reference-codes'}
-                                    icon={<IconComponent icon={FaKey} />}
-                                    component={<Link to="/reference-codes" />}
-                                    onClick={mobileMode ? onToggle : undefined}
-                                >
-                                    Referans Kodları
-                                </MenuItem>
-                                <MenuItem
-                                    active={location.pathname === '/activity-logs'}
-                                    icon={<IconComponent icon={FaHistory} />}
-                                    component={<Link to="/activity-logs" />}
-                                    onClick={mobileMode ? onToggle : undefined}
-                                >
-                                    Aktivite Logları
-                                </MenuItem>
-                                <MenuItem
-                                    active={location.pathname === '/settings'}
-                                    icon={<IconComponent icon={FaCog} />}
-                                    component={<Link to="/settings" />}
-                                    onClick={mobileMode ? onToggle : undefined}
-                                >
-                                    Ayarlar
-                                </MenuItem>
+                                {/* --- Student Portal: Only for talebe --- */}
+                                {user?.role === 'talebe' && (
+                                    <MenuItem
+                                        active={location.pathname === '/student-portal'}
+                                        icon={<IconComponent icon={FaUserGraduate} />}
+                                        component={<Link to="/student-portal" />}
+                                        onClick={mobileMode ? onToggle : undefined}
+                                    >
+                                        İstatistiklerim
+                                    </MenuItem>
+                                )}
+                                {/* --- Regular Menu Items: For admin, hoca, and yoklamaci --- */}
+                                {(user?.role === 'admin' || user?.role === 'hoca' || user?.role === 'yoklamaci') && (
+                                    <>
+                                        <MenuItem
+                                            active={location.pathname === '/attendance'}
+                                            icon={<IconComponent icon={FaListAlt} />}
+                                            component={<Link to="/attendance" />}
+                                            onClick={mobileMode ? onToggle : undefined}
+                                        >
+                                            Yoklama
+                                        </MenuItem>
+                                        <MenuItem
+                                            active={location.pathname === '/statistics'}
+                                            icon={<IconComponent icon={FaChartBar} />}
+                                            component={<Link to="/statistics" />}
+                                            onClick={mobileMode ? onToggle : undefined}
+                                        >
+                                            İstatistik
+                                        </MenuItem>
+                                    </>
+                                )}
+                                {user?.role === 'admin' && (
+                                    <MenuItem
+                                        active={location.pathname === '/talebeler'}
+                                        icon={<IconComponent icon={FaUser} />}
+                                        component={<Link to="/talebeler" />}
+                                        onClick={mobileMode ? onToggle : undefined}
+                                    >
+                                        Talebeler
+                                    </MenuItem>
+                                )}
+                                {/* İzinli Talebeler - Hidden from talebe role */}
+                                {user?.role !== 'talebe' && (
+                                    <MenuItem
+                                        icon={<IconComponent icon={FaUserCheck} />}
+                                        component={<Link to="/izinli-talebeler" />}
+                                        onClick={mobileMode ? onToggle : undefined}
+                                    >
+                                        İzinli Talebeler
+                                    </MenuItem>
+                                )}
+                                {/* --- Admin Only: Reference Code Management --- */}
+                                {user?.role === 'admin' && (
+                                    <>
+                                        <MenuItem
+                                            active={location.pathname === '/reference-codes'}
+                                            icon={<IconComponent icon={FaKey} />}
+                                            component={<Link to="/reference-codes" />}
+                                            onClick={mobileMode ? onToggle : undefined}
+                                        >
+                                            Referans Kodları
+                                        </MenuItem>
+                                        <MenuItem
+                                            active={location.pathname === '/activity-logs'}
+                                            icon={<IconComponent icon={FaHistory} />}
+                                            component={<Link to="/activity-logs" />}
+                                            onClick={mobileMode ? onToggle : undefined}
+                                        >
+                                            Aktivite Logları
+                                        </MenuItem>
+                                        <MenuItem
+                                            active={location.pathname === '/settings'}
+                                            icon={<IconComponent icon={FaCog} />}
+                                            component={<Link to="/settings" />}
+                                            onClick={mobileMode ? onToggle : undefined}
+                                        >
+                                            Ayarlar
+                                        </MenuItem>
+                                    </>
+                                )}
                             </>
                         )}
                     </Menu>
                 </div>
+
+                {/* Yurt Selector - For admins with multiple yurts (NOT for super-admin) */}
+                {user?.role !== 'super-admin' && (
+                    <div style={{ padding: '12px 16px' }}>
+                        <YurtSelector />
+                    </div>
+                )}
 
                 {/* User Profile Section - Inside Sidebar */}
                 {user && (
@@ -210,6 +234,16 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                             <div className="user-role">
                                 {getRoleDisplayName(user.role)}
                             </div>
+                            {yurtName && user.role !== 'super-admin' && (
+                                <div className="user-yurt" style={{
+                                    fontSize: '11px',
+                                    color: '#0d6efd',
+                                    marginTop: '2px',
+                                    fontWeight: 500
+                                }}>
+                                    📍 {yurtName}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

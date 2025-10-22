@@ -18,7 +18,10 @@ exports.seasonController = {
     getAll(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const seasons = yield Season_1.default.findAll();
+                const yurtid = req.selectedYurtId;
+                const seasons = yield Season_1.default.findAll({
+                    where: { yurtid }
+                });
                 res.json(seasons);
             }
             catch (_a) {
@@ -31,13 +34,16 @@ exports.seasonController = {
             if (req.user.role !== 'admin')
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
             const { season_year } = req.body;
+            const yurtid = req.selectedYurtId;
             if (!season_year)
                 return res.status(400).json({ message: 'Sezon bilgisi eksik.' });
             try {
-                const exists = yield Season_1.default.findByPk(season_year);
+                const exists = yield Season_1.default.findOne({
+                    where: { season_year, yurtid }
+                });
                 if (exists)
                     return res.status(409).json({ message: 'Sezon zaten mevcut.' });
-                yield Season_1.default.create({ season_year });
+                yield Season_1.default.create({ season_year, yurtid });
                 res.status(201).json({ message: 'Sezon oluşturuldu.' });
             }
             catch (_a) {
@@ -49,8 +55,11 @@ exports.seasonController = {
         return __awaiter(this, void 0, void 0, function* () {
             if (req.user.role !== 'admin')
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
+            const yurtid = req.selectedYurtId;
             try {
-                const season = yield Season_1.default.findByPk(req.params.season_year);
+                const season = yield Season_1.default.findOne({
+                    where: { season_year: req.params.season_year, yurtid }
+                });
                 if (!season)
                     return res.status(404).json({ message: 'Sezon bulunamadı.' });
                 yield season.destroy();

@@ -67,6 +67,29 @@ export default function Signup() {
 
             if (res.ok) {
                 const data = await res.json();
+
+                console.log('📦 Signup response received:', {
+                    yurtName: data.yurtName,
+                    availableYurtsCount: data.availableYurts?.length,
+                    availableYurts: data.availableYurts,
+                    selectedYurt: data.selectedYurt
+                });
+
+                // Store yurt information
+                if (data.yurtName) {
+                    localStorage.setItem('yurtName', data.yurtName);
+                    console.log('✅ Stored yurtName:', data.yurtName);
+                }
+                if (data.availableYurts) {
+                    localStorage.setItem('availableYurts', JSON.stringify(data.availableYurts));
+                    console.log('✅ Stored availableYurts:', data.availableYurts.length, 'yurts');
+                }
+                if (data.selectedYurt) {
+                    localStorage.setItem('selectedYurt', JSON.stringify(data.selectedYurt));
+                    console.log('✅ Stored selectedYurt:', data.selectedYurt.yurtName);
+                }
+
+                console.log('🔐 Calling login...');
                 login(data.user, data.token);
                 navigate('/');
             } else {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import * as FiIcons from 'react-icons/fi';
 import { useAuth } from '../auth/AuthContext';
+import { authFetch } from '../utils/authFetch';
 import config from '../config';
 import './ReferenceCodeManagement.css';
 
@@ -55,11 +56,7 @@ const ReferenceCodeManagement: React.FC = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await fetch(`${API_BASE_URL}/reference-codes`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await authFetch(`${API_BASE_URL}/reference-codes`);
 
             if (!response.ok) {
                 throw new Error('Referans kodları yüklenemedi');
@@ -83,11 +80,10 @@ const ReferenceCodeManagement: React.FC = () => {
         console.log('Creating reference code with formData:', formData);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/reference-codes`, {
+            const response = await authFetch(`${API_BASE_URL}/reference-codes`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(formData)
             });
@@ -125,11 +121,8 @@ const ReferenceCodeManagement: React.FC = () => {
 
         setError('');
         try {
-            const response = await fetch(`${API_BASE_URL}/reference-codes/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await authFetch(`${API_BASE_URL}/reference-codes/${id}`, {
+                method: 'DELETE'
             });
 
             if (!response.ok) {

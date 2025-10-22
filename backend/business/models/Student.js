@@ -2,13 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Student = void 0;
 class Student {
-    constructor(studentId, firstName, lastName, birthDate, seasonYear, className) {
+    constructor(studentId, firstName, lastName, birthDate, seasonYear, className, yurtId) {
         this.studentId = studentId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.seasonYear = seasonYear;
         this.className = className;
+        this.yurtId = yurtId;
     }
     get studentId() {
         return this._studentId;
@@ -61,6 +62,12 @@ class Student {
             throw new Error('Too many characters.');
         }
         this._className = className;
+    }
+    get yurtId() {
+        return this._yurtId;
+    }
+    set yurtId(yurtId) {
+        this._yurtId = yurtId;
     }
 }
 exports.Student = Student;

@@ -14,19 +14,19 @@ class StudentService {
     constructor(studentData) {
         this.studentData = studentData;
     }
-    getAllStudents() {
+    getAllStudents(yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.studentData.getAllStudents();
+            return yield this.studentData.getAllStudents(yurtid);
         });
     }
-    getAllStudentsBySeason(season) {
+    getAllStudentsBySeason(season, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.studentData.getAllStudentsBySeason(season);
+            return yield this.studentData.getAllStudentsBySeason(season, yurtid);
         });
     }
-    getAllStudentsBySeasonAndClass(season, className) {
+    getAllStudentsBySeasonAndClass(season, className, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.studentData.getAllStudentsBySeasonAndClass(season, className);
+            return yield this.studentData.getAllStudentsBySeasonAndClass(season, className, yurtid);
         });
     }
     createStudent(student) {
@@ -34,20 +34,20 @@ class StudentService {
             return yield this.studentData.createStudent(student);
         });
     }
-    deleteStudent(studentId) {
+    deleteStudent(studentId, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.studentData.deleteAttendanceByStudentId(studentId);
-            return yield this.studentData.deleteStudent(studentId);
+            yield this.studentData.deleteAttendanceByStudentId(studentId, yurtid);
+            return yield this.studentData.deleteStudent(studentId, yurtid);
         });
     }
-    getStudentById(id) {
+    getStudentById(id, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.studentData.getStudentById(id);
+            return this.studentData.getStudentById(id, yurtid);
         });
     }
-    updateStudent(student) {
+    updateStudent(student, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.studentData.updateStudent(student);
+            return yield this.studentData.updateStudent(student, yurtid);
         });
     }
 }

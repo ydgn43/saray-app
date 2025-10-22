@@ -8,8 +8,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_typescript_1 = require("sequelize-typescript");
+const Yurt_1 = __importDefault(require("./Yurt"));
 let AttendanceTypeSequelize = class AttendanceTypeSequelize extends sequelize_typescript_1.Model {
 };
 __decorate([
@@ -20,6 +24,19 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], AttendanceTypeSequelize.prototype, "attendance_type_name", void 0);
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => Yurt_1.default),
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    }),
+    __metadata("design:type", Number)
+], AttendanceTypeSequelize.prototype, "yurtid", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => Yurt_1.default),
+    __metadata("design:type", Yurt_1.default)
+], AttendanceTypeSequelize.prototype, "yurt", void 0);
 AttendanceTypeSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
         tableName: 'AttendanceType',

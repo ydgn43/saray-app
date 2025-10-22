@@ -24,6 +24,11 @@ const generateUniqueCode = () => {
 const createReferenceCode = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { roleId, expiresAt, maxUses, description } = req.body;
+        const yurtid = req.headers['x-yurt-id'] ? Number(req.headers['x-yurt-id']) : null;
+        console.log('📝 Creating reference code:');
+        console.log('   - x-yurt-id header:', req.headers['x-yurt-id']);
+        console.log('   - Parsed yurtid:', yurtid);
+        console.log('   - roleId from body:', roleId);
         const ReferenceCode = sequelize_2.sequelize.models.ReferenceCode;
         const Role = sequelize_2.sequelize.models.RoleSequelize;
         // Map frontend role names to database role names
@@ -34,7 +39,7 @@ const createReferenceCode = (req, res) => __awaiter(void 0, void 0, void 0, func
             'Admin': 'admin'
         };
         const dbRoleName = roleMapping[roleId] || roleId.toLowerCase();
-        console.log('Creating reference code with roleId:', roleId, '-> dbRoleName:', dbRoleName);
+        console.log('   - Mapped role:', roleId, '→', dbRoleName);
         // Validate role exists
         const role = yield Role.findOne({ where: { role_name: dbRoleName } });
         if (!role) {
@@ -62,8 +67,12 @@ const createReferenceCode = (req, res) => __awaiter(void 0, void 0, void 0, func
             currentUses: 0,
             description: description || '',
             isUsed: false,
+            yurtid: yurtid,
         });
-        console.log('Reference code created with roleId:', referenceCode.get('roleId'));
+        console.log('✅ Reference code created successfully:');
+        console.log('   - Code:', referenceCode.get('code'));
+        console.log('   - Role:', referenceCode.get('roleId'));
+        console.log('   - Yurt ID:', referenceCode.get('yurtid'));
         res.status(201).json(referenceCode);
     }
     catch (error) {

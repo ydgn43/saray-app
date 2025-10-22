@@ -16,6 +16,7 @@ const sequelize_typescript_1 = require("sequelize-typescript");
 const Student_1 = __importDefault(require("./Student"));
 const AttendanceType_1 = __importDefault(require("./AttendanceType"));
 const Program_1 = __importDefault(require("./Program"));
+const Yurt_1 = __importDefault(require("./Yurt"));
 let AttendanceSequelize = class AttendanceSequelize extends sequelize_typescript_1.Model {
 };
 __decorate([
@@ -27,6 +28,15 @@ __decorate([
     }),
     __metadata("design:type", Number)
 ], AttendanceSequelize.prototype, "studentid", void 0);
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => Yurt_1.default),
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    }),
+    __metadata("design:type", Number)
+], AttendanceSequelize.prototype, "yurtid", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({
         type: sequelize_typescript_1.DataType.DATEONLY,
@@ -71,6 +81,10 @@ __decorate([
     (0, sequelize_typescript_1.BelongsTo)(() => Program_1.default),
     __metadata("design:type", Program_1.default)
 ], AttendanceSequelize.prototype, "program", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => Yurt_1.default),
+    __metadata("design:type", Yurt_1.default)
+], AttendanceSequelize.prototype, "yurt", void 0);
 AttendanceSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
         tableName: 'Attendance',

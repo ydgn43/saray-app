@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import Yurt from './Yurt';
 
 @Table({
     tableName: 'Class',
@@ -11,4 +12,15 @@ export default class ClassSequelize extends Model {
         primaryKey: true
     })
     declare class_name: string;
+
+    @ForeignKey(() => Yurt)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    })
+    declare yurtid: number;
+
+    @BelongsTo(() => Yurt)
+    yurt!: Yurt;
 }

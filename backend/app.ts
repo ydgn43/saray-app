@@ -13,6 +13,9 @@ import { programRouter } from './routes/programRoute';
 import { classRouter } from './routes/classRoute';
 import referenceCodeRouter from './routes/referenceCodeRoute';
 import { activityLogRouter } from './routes/activityLogRoute';
+import yurtRouter from './routes/yurtRoute';
+import yurtManagementRouter from './routes/yurtManagementRoute';
+import superAdminRouter from './routes/superAdminRoute';
 
 const app = express();
 const port = Number(process.env.PORT_HTTP) || 3001;
@@ -51,6 +54,9 @@ app.use('/program', programRouter);
 app.use('/class', classRouter);
 app.use('/reference-codes', referenceCodeRouter);
 app.use('/activity-logs', activityLogRouter);
+app.use('/yurts', yurtRouter);
+app.use('/yurt-management', yurtManagementRouter);
+app.use('/super-admin', superAdminRouter);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

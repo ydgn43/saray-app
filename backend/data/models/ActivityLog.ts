@@ -1,4 +1,5 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import Yurt from './Yurt';
 
 @Table({
     tableName: 'ActivityLog',
@@ -11,6 +12,14 @@ export default class ActivityLog extends Model {
         primaryKey: true
     })
     declare logid: number;
+
+    @ForeignKey(() => Yurt)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    })
+    declare yurtid: number;
 
     @Column({
         type: DataType.INTEGER,
@@ -60,4 +69,7 @@ export default class ActivityLog extends Model {
         defaultValue: DataType.NOW
     })
     declare created_at: Date;
+
+    @BelongsTo(() => Yurt)
+    yurt!: Yurt;
 }

@@ -9,31 +9,31 @@ export class AttendanceService {
         this.attendanceData = attendanceData;
     }
 
-    public async getAllAttendance(): Promise<AttendanceSequelize[]> {
-        return this.attendanceData.getAllAttendance();
+    public async getAllAttendance(yurtid: number): Promise<AttendanceSequelize[]> {
+        return this.attendanceData.getAllAttendance(yurtid);
     }
 
-    public async getAttendance(attendance: Attendance): Promise<AttendanceSequelize | null> {
-        return this.attendanceData.getAttendance(attendance);
+    public async getAttendance(attendance: Attendance, yurtid: number): Promise<AttendanceSequelize | null> {
+        return this.attendanceData.getAttendance(attendance, yurtid);
     }
 
-    public async getAttendanceStatisticsByDateRange(start: string, end: string) {
-        return this.attendanceData.getAttendanceStatisticsByDateRange(start, end);
+    public async getAttendanceStatisticsByDateRange(start: string, end: string, yurtid: number) {
+        return this.attendanceData.getAttendanceStatisticsByDateRange(start, end, yurtid);
     }
 
-    public async getAttendanceByDateAndProgram(date: string, programName: string): Promise<AttendanceSequelize[]> {
-        return this.attendanceData.getAttendanceByDateAndProgram(date, programName);
+    public async getAttendanceByDateAndProgram(date: string, programName: string, yurtid: number): Promise<AttendanceSequelize[]> {
+        return this.attendanceData.getAttendanceByDateAndProgram(date, programName, yurtid);
     }
 
     public async createOrUpdateAttendance(attendance: Attendance): Promise<void> {
         return this.attendanceData.createOrUpdateAttendance(attendance);
     }
 
-    public async updateAttendance(attendance: Attendance): Promise<void> {
-        return this.attendanceData.updateAttendance(attendance);
+    public async updateAttendance(attendance: Attendance, yurtid: number): Promise<void> {
+        return this.attendanceData.updateAttendance(attendance, yurtid);
     }
 
-    public async deleteAttendance(studentId: number, date: string, programName: string): Promise<boolean> {
-        return this.attendanceData.deleteAttendance(studentId, date, programName);
+    public async deleteAttendance(studentId: number, date: string, programName: string, yurtid: number): Promise<boolean> {
+        return this.attendanceData.deleteAttendance(studentId, date, programName, yurtid);
     }
 }

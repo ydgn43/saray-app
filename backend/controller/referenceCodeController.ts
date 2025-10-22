@@ -12,6 +12,12 @@ const generateUniqueCode = (): string => {
 export const createReferenceCode = async (req: Request, res: Response) => {
     try {
         const { roleId, expiresAt, maxUses, description } = req.body;
+        const yurtid = req.headers['x-yurt-id'] ? Number(req.headers['x-yurt-id']) : null;
+
+        console.log('📝 Creating reference code:');
+        console.log('   - x-yurt-id header:', req.headers['x-yurt-id']);
+        console.log('   - Parsed yurtid:', yurtid);
+        console.log('   - roleId from body:', roleId);
 
         const ReferenceCode = sequelize.models.ReferenceCode;
         const Role = sequelize.models.RoleSequelize;
@@ -26,7 +32,7 @@ export const createReferenceCode = async (req: Request, res: Response) => {
 
         const dbRoleName = roleMapping[roleId] || roleId.toLowerCase();
 
-        console.log('Creating reference code with roleId:', roleId, '-> dbRoleName:', dbRoleName);
+        console.log('   - Mapped role:', roleId, '→', dbRoleName);
 
         // Validate role exists
         const role = await Role.findOne({ where: { role_name: dbRoleName } });
@@ -60,9 +66,13 @@ export const createReferenceCode = async (req: Request, res: Response) => {
             currentUses: 0,
             description: description || '',
             isUsed: false,
+            yurtid: yurtid,
         });
 
-        console.log('Reference code created with roleId:', referenceCode.get('roleId'));
+        console.log('✅ Reference code created successfully:');
+        console.log('   - Code:', referenceCode.get('code'));
+        console.log('   - Role:', referenceCode.get('roleId'));
+        console.log('   - Yurt ID:', referenceCode.get('yurtid'));
 
         res.status(201).json(referenceCode);
     } catch (error: any) {

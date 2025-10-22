@@ -4,17 +4,22 @@ import { Attendance } from '../business/models/Attendance';
 import { Op } from 'sequelize';
 
 export default class AttendanceData {
-    public async getAllAttendance(): Promise<AttendanceSequelize[]> {
-        return AttendanceSequelize.findAll();
+    public async getAllAttendance(yurtid: number): Promise<AttendanceSequelize[]> {
+        return AttendanceSequelize.findAll({
+            where: {
+                yurtid: yurtid
+            }
+        });
     }
 
-    public async getAttendance(attendanceData: Attendance): Promise<AttendanceSequelize | null> {
+    public async getAttendance(attendanceData: Attendance, yurtid: number): Promise<AttendanceSequelize | null> {
         try {
             return await AttendanceSequelize.findOne({
                 where: {
                     studentid: attendanceData.studentId,
                     date: attendanceData.date,
                     program_name: attendanceData.programName,
+                    yurtid: yurtid
                 },
             });
         } catch {
@@ -22,12 +27,13 @@ export default class AttendanceData {
         }
     }
 
-    public async getAttendanceStatisticsByDateRange(start: string, end: string) {
+    public async getAttendanceStatisticsByDateRange(start: string, end: string, yurtid: number) {
         const records = await AttendanceSequelize.findAll({
             where: {
                 date: {
                     [Op.between]: [start, end],
                 },
+                yurtid: yurtid
             },
         });
 
@@ -68,10 +74,14 @@ export default class AttendanceData {
         return result;
     }
 
-    public async getAttendanceByDateAndProgram(date: string, programName: string) {
+    public async getAttendanceByDateAndProgram(date: string, programName: string, yurtid: number) {
         try {
             return await AttendanceSequelize.findAll({
-                where: { date, program_name: programName },
+                where: {
+                    date,
+                    program_name: programName,
+                    yurtid: yurtid
+                },
             });
         } catch (error) {
             console.error("Database error while fetching attendance:", error);
@@ -87,6 +97,7 @@ export default class AttendanceData {
                 attendance_type_name: attendance.attendanceTypeName,
                 program_name: attendance.programName,
                 sebep: attendance.sebep || null,
+                yurtid: attendance.yurtId
             });
         } catch (error) {
             // Add more specific error handling for foreign key constraint
@@ -104,7 +115,7 @@ export default class AttendanceData {
         }
     }
 
-    public async updateAttendance(attendance: Attendance): Promise<void> {
+    public async updateAttendance(attendance: Attendance, yurtid: number): Promise<void> {
         try {
             await AttendanceSequelize.update(
                 {
@@ -116,6 +127,7 @@ export default class AttendanceData {
                         studentid: attendance.studentId,
                         date: attendance.date,
                         program_name: attendance.programName,
+                        yurtid: yurtid
                     },
                 }
             );
@@ -131,10 +143,12 @@ export default class AttendanceData {
                 studentid: attendance.studentId,
                 date: attendance.date,
                 program_name: attendance.programName,
+                yurtid: attendance.yurtId
             },
             defaults: {
                 attendance_type_name: attendance.attendanceTypeName,
                 sebep: attendance.sebep || null,
+                yurtid: attendance.yurtId
             }
         });
         if (!created) {
@@ -145,15 +159,16 @@ export default class AttendanceData {
         }
     }
 
-    public async deleteAttendance(studentId: number, date: string, programName: string): Promise<boolean> {
+    public async deleteAttendance(studentId: number, date: string, programName: string, yurtid: number): Promise<boolean> {
         try {
-            console.log(`📊 Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}`);
+            console.log(`📊 Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}, yurtid=${yurtid}`);
 
             // First, let's check what records exist for this student and date
             const existing = await AttendanceSequelize.findAll({
                 where: {
                     studentid: studentId,
-                    date: date
+                    date: date,
+                    yurtid: yurtid
                 }
             });
             console.log(`📊 Found ${existing.length} records for student ${studentId} on ${date}:`,
@@ -164,6 +179,7 @@ export default class AttendanceData {
                     studentid: studentId,
                     date: date,
                     program_name: programName,
+                    yurtid: yurtid
                 },
             });
             console.log(`📊 Rows deleted: ${deleted}`);

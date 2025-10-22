@@ -5,25 +5,31 @@ import AttendanceSequelize from "./models/Attendance";
 import { Request, Response } from 'express';
 
 export class StudentData {
-    public async getAllStudents() {
-        const allStudents = await StudentSequelize.findAll();
+    public async getAllStudents(yurtid: number) {
+        const allStudents = await StudentSequelize.findAll({
+            where: {
+                yurtid: yurtid
+            }
+        });
         return allStudents;
     }
 
-    public async getAllStudentsBySeason(seasonYear: string) {
+    public async getAllStudentsBySeason(seasonYear: string, yurtid: number) {
         const allStudentsBySeason = await StudentSequelize.findAll({
             where: {
-                season_year: seasonYear
+                season_year: seasonYear,
+                yurtid: yurtid
             }
         });
         return allStudentsBySeason;
     }
 
-    public async getAllStudentsBySeasonAndClass(season: string, className: string) {
+    public async getAllStudentsBySeasonAndClass(season: string, className: string, yurtid: number) {
         const allStudentsBySeasonAndClass = await StudentSequelize.findAll({
             where: {
                 season_year: season,
-                class_name: className
+                class_name: className,
+                yurtid: yurtid
             }
         });
         return allStudentsBySeasonAndClass;
@@ -42,14 +48,16 @@ export class StudentData {
                     last_name: student.lastName,
                     birth_date: student.birthDate,
                     season_year: student.seasonYear,
-                    class_name: student.className
+                    class_name: student.className,
+                    yurtid: student.yurtId
                 }, defaults: {
                     first_name: student.firstName,
                     last_name: student.lastName,
                     birth_date: student.birthDate,
                     season_year: student.seasonYear,
                     class_name: student.className,
-                    reference_code: referenceCode
+                    reference_code: referenceCode,
+                    yurtid: student.yurtId
                 }
             });
 
@@ -84,8 +92,13 @@ export class StudentData {
         return code;
     }
 
-    public async updateStudent(student: Student): Promise<boolean> {
-        const existing = await StudentSequelize.findByPk(student.studentId);
+    public async updateStudent(student: Student, yurtid: number): Promise<boolean> {
+        const existing = await StudentSequelize.findOne({
+            where: {
+                studentid: student.studentId,
+                yurtid: yurtid
+            }
+        });
         if (!existing) return false;
 
         existing.first_name = student.firstName;
@@ -99,26 +112,33 @@ export class StudentData {
     }
 
 
-    public async deleteStudent(studentId: number): Promise<void> {
+    public async deleteStudent(studentId: number, yurtid: number): Promise<void> {
         const test = await StudentSequelize.destroy({
             where: {
-                studentid: studentId
+                studentid: studentId,
+                yurtid: yurtid
             }
         });
         console.log(test);
     }
 
-    public async deleteAttendanceByStudentId(studentId: number): Promise<void> {
+    public async deleteAttendanceByStudentId(studentId: number, yurtid: number): Promise<void> {
         const deleted = await AttendanceSequelize.destroy({
             where: {
-                studentid: studentId
+                studentid: studentId,
+                yurtid: yurtid
             }
         });
         console.log(`Deleted ${deleted} attendance records for studentid=${studentId}`);
     }
 
-    public async getStudentById(id: number) {
-        return await StudentSequelize.findByPk(id);
+    public async getStudentById(id: number, yurtid: number) {
+        return await StudentSequelize.findOne({
+            where: {
+                studentid: id,
+                yurtid: yurtid
+            }
+        });
     }
 
 

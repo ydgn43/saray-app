@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_typescript_1 = require("sequelize-typescript");
 const Role_1 = __importDefault(require("./Role"));
 const Student_1 = __importDefault(require("./Student"));
+const Yurt_1 = __importDefault(require("./Yurt"));
 let UserSequelize = class UserSequelize extends sequelize_typescript_1.Model {
 };
 __decorate([
@@ -25,6 +26,15 @@ __decorate([
     }),
     __metadata("design:type", Number)
 ], UserSequelize.prototype, "accountid", void 0);
+__decorate([
+    (0, sequelize_typescript_1.ForeignKey)(() => Yurt_1.default),
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    }),
+    __metadata("design:type", Number)
+], UserSequelize.prototype, "yurtid", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({
         type: sequelize_typescript_1.DataType.STRING(45),
@@ -63,6 +73,10 @@ __decorate([
     (0, sequelize_typescript_1.BelongsTo)(() => Student_1.default),
     __metadata("design:type", Student_1.default)
 ], UserSequelize.prototype, "student", void 0);
+__decorate([
+    (0, sequelize_typescript_1.BelongsTo)(() => Yurt_1.default),
+    __metadata("design:type", Yurt_1.default)
+], UserSequelize.prototype, "yurt", void 0);
 UserSequelize = __decorate([
     (0, sequelize_typescript_1.Table)({
         tableName: 'User',

@@ -18,7 +18,10 @@ exports.classController = {
     getAll(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const classes = yield Class_1.default.findAll();
+                const yurtid = req.selectedYurtId;
+                const classes = yield Class_1.default.findAll({
+                    where: { yurtid }
+                });
                 res.json(classes);
             }
             catch (_a) {
@@ -31,13 +34,16 @@ exports.classController = {
             if (req.user.role !== 'admin')
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
             const { class_name } = req.body;
+            const yurtid = req.selectedYurtId;
             if (!class_name)
                 return res.status(400).json({ message: 'Dahili Seviye adı eksik.' });
             try {
-                const exists = yield Class_1.default.findByPk(class_name);
+                const exists = yield Class_1.default.findOne({
+                    where: { class_name, yurtid }
+                });
                 if (exists)
                     return res.status(409).json({ message: 'Dahili Seviye zaten mevcut.' });
-                yield Class_1.default.create({ class_name });
+                yield Class_1.default.create({ class_name, yurtid });
                 res.status(201).json({ message: 'Dahili Seviye oluşturuldu.' });
             }
             catch (_a) {
@@ -49,8 +55,11 @@ exports.classController = {
         return __awaiter(this, void 0, void 0, function* () {
             if (req.user.role !== 'admin')
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
+            const yurtid = req.selectedYurtId;
             try {
-                const cls = yield Class_1.default.findByPk(req.params.class_name);
+                const cls = yield Class_1.default.findOne({
+                    where: { class_name: req.params.class_name, yurtid }
+                });
                 if (!cls)
                     return res.status(404).json({ message: 'Dahili Seviye bulunamadı.' });
                 yield cls.destroy();

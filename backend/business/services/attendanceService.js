@@ -14,24 +14,24 @@ class AttendanceService {
     constructor(attendanceData) {
         this.attendanceData = attendanceData;
     }
-    getAllAttendance() {
+    getAllAttendance(yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.attendanceData.getAllAttendance();
+            return this.attendanceData.getAllAttendance(yurtid);
         });
     }
-    getAttendance(attendance) {
+    getAttendance(attendance, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.attendanceData.getAttendance(attendance);
+            return this.attendanceData.getAttendance(attendance, yurtid);
         });
     }
-    getAttendanceStatisticsByDateRange(start, end) {
+    getAttendanceStatisticsByDateRange(start, end, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.attendanceData.getAttendanceStatisticsByDateRange(start, end);
+            return this.attendanceData.getAttendanceStatisticsByDateRange(start, end, yurtid);
         });
     }
-    getAttendanceByDateAndProgram(date, programName) {
+    getAttendanceByDateAndProgram(date, programName, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.attendanceData.getAttendanceByDateAndProgram(date, programName);
+            return this.attendanceData.getAttendanceByDateAndProgram(date, programName, yurtid);
         });
     }
     createOrUpdateAttendance(attendance) {
@@ -39,14 +39,14 @@ class AttendanceService {
             return this.attendanceData.createOrUpdateAttendance(attendance);
         });
     }
-    updateAttendance(attendance) {
+    updateAttendance(attendance, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.attendanceData.updateAttendance(attendance);
+            return this.attendanceData.updateAttendance(attendance, yurtid);
         });
     }
-    deleteAttendance(studentId, date, programName) {
+    deleteAttendance(studentId, date, programName, yurtid) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.attendanceData.deleteAttendance(studentId, date, programName);
+            return this.attendanceData.deleteAttendance(studentId, date, programName, yurtid);
         });
     }
 }

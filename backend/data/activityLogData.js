@@ -26,6 +26,7 @@ class ActivityLogData {
                     entity_id: params.entity_id,
                     details: params.details || null,
                     ip_address: params.ip_address || null,
+                    yurtid: params.yurtid,
                 });
             }
             catch (error) {

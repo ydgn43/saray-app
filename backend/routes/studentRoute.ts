@@ -3,6 +3,7 @@ import { StudentController } from '../controller/studentController';
 import { StudentService } from '../business/services/studentService';
 import { StudentData } from '../data/studentData';
 import { authenticateJWT, requireRoles } from '../middleware/authMiddleware';
+import { validateYurtAccess } from '../middleware/validateYurtAccess';
 
 export const studentRouter = express.Router();
 
@@ -11,6 +12,7 @@ const studentService = new StudentService(studentData);
 const studentController = new StudentController(studentService);
 
 studentRouter.use(authenticateJWT);
+studentRouter.use(validateYurtAccess); // Add yurt access validation
 
 studentRouter.get('/', (req: Request, res: Response) => {
     studentController.getAllStudents(req, res);

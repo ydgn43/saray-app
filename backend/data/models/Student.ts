@@ -1,6 +1,7 @@
 import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
 import Season from './Season';
 import Class from './Class';
+import Yurt from './Yurt';
 
 @Table({
     tableName: 'Student',
@@ -13,6 +14,14 @@ export default class StudentSequelize extends Model {
         primaryKey: true
     })
     declare studentid: number;
+
+    @ForeignKey(() => Yurt)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    })
+    declare yurtid: number;
 
     @Column({
         type: DataType.STRING(45),
@@ -58,4 +67,7 @@ export default class StudentSequelize extends Model {
 
     @BelongsTo(() => Class)
     class!: Class;
+
+    @BelongsTo(() => Yurt)
+    yurt!: Yurt;
 }

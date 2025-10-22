@@ -16,6 +16,7 @@ import IzinliTalebeler from './pages/IzinliTalebeler';
 import ReferenceCodeManagement from './pages/ReferenceCodeManagement';
 import StudentPortal from './pages/StudentPortal';
 import ActivityLogs from './pages/ActivityLogs';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -157,6 +158,20 @@ function App() {
                   <Layout>
                     <PageTransition>
                       <StudentPortal />
+                    </PageTransition>
+                  </Layout>
+                </RequireRole>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/super-admin"
+            element={
+              <PrivateRoute>
+                <RequireRole roles={['super-admin']}>
+                  <Layout>
+                    <PageTransition>
+                      <SuperAdminDashboard />
                     </PageTransition>
                   </Layout>
                 </RequireRole>

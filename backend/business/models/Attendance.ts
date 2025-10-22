@@ -4,12 +4,14 @@ export class Attendance {
     private _attendanceTypeName: string | undefined;
     private _programName!: string;
     private _sebep: string | null = null;
+    private _yurtId!: number;
 
-    constructor(studentId: number, date: Date, attendanceTypeName: string | undefined, programName: string) {
+    constructor(studentId: number, date: Date, attendanceTypeName: string | undefined, programName: string, yurtId: number) {
         this.studentId = studentId; // Use setter
         this.date = date; // Use setter
         this.attendanceTypeName = attendanceTypeName; // Use setter
         this.programName = programName; // Use setter
+        this.yurtId = yurtId; // Use setter
     }
 
     public get studentId(): number {
@@ -61,5 +63,13 @@ export class Attendance {
 
     public set sebep(value: string | null) {
         this._sebep = value;
+    }
+
+    public get yurtId(): number {
+        return this._yurtId;
+    }
+
+    public set yurtId(value: number) {
+        this._yurtId = value;
     }
 }

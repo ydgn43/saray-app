@@ -1,10 +1,12 @@
 import express, { Request, Response } from 'express';
 import { userController } from '../controller/userController';
 import { authenticateJWT } from '../middleware/authMiddleware';
+import { validateYurtAccess } from '../middleware/validateYurtAccess';
 
 export const userRouter = express.Router();
 
 userRouter.use(authenticateJWT);
+userRouter.use(validateYurtAccess); // Add yurt access validation
 
 // ...existing /me routes
 userRouter.get('/me', userController.getMe);

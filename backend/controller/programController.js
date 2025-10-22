@@ -18,7 +18,10 @@ exports.programController = {
     getAll(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const programs = yield Program_1.default.findAll();
+                const yurtid = req.selectedYurtId;
+                const programs = yield Program_1.default.findAll({
+                    where: { yurtid }
+                });
                 res.json(programs);
             }
             catch (_a) {
@@ -31,13 +34,16 @@ exports.programController = {
             if (req.user.role !== 'admin')
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
             const { program_name } = req.body;
+            const yurtid = req.selectedYurtId;
             if (!program_name)
                 return res.status(400).json({ message: 'Program adı eksik.' });
             try {
-                const exists = yield Program_1.default.findByPk(program_name);
+                const exists = yield Program_1.default.findOne({
+                    where: { program_name, yurtid }
+                });
                 if (exists)
                     return res.status(409).json({ message: 'Program zaten mevcut.' });
-                yield Program_1.default.create({ program_name });
+                yield Program_1.default.create({ program_name, yurtid });
                 res.status(201).json({ message: 'Program oluşturuldu.' });
             }
             catch (_a) {
@@ -51,20 +57,25 @@ exports.programController = {
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
             const oldName = req.params.program_name;
             const { program_name: newName } = req.body;
+            const yurtid = req.selectedYurtId;
             if (!newName)
                 return res.status(400).json({ message: 'Yeni program adı eksik.' });
             try {
-                const program = yield Program_1.default.findByPk(oldName);
+                const program = yield Program_1.default.findOne({
+                    where: { program_name: oldName, yurtid }
+                });
                 if (!program)
                     return res.status(404).json({ message: 'Program bulunamadı.' });
                 // If name is changing, check if new name already exists
                 if (oldName !== newName) {
-                    const exists = yield Program_1.default.findByPk(newName);
+                    const exists = yield Program_1.default.findOne({
+                        where: { program_name: newName, yurtid }
+                    });
                     if (exists)
                         return res.status(409).json({ message: 'Bu program adı zaten mevcut.' });
-                    // Since program_name is the primary key, we need to delete old and create new
+                    // Since program_name is part of composite key, we need to delete old and create new
                     yield program.destroy();
-                    yield Program_1.default.create({ program_name: newName });
+                    yield Program_1.default.create({ program_name: newName, yurtid });
                 }
                 res.json({ message: 'Program güncellendi.' });
             }
@@ -77,8 +88,11 @@ exports.programController = {
         return __awaiter(this, void 0, void 0, function* () {
             if (req.user.role !== 'admin')
                 return res.status(403).json({ message: 'Yetkiniz yok.' });
+            const yurtid = req.selectedYurtId;
             try {
-                const program = yield Program_1.default.findByPk(req.params.program_name);
+                const program = yield Program_1.default.findOne({
+                    where: { program_name: req.params.program_name, yurtid }
+                });
                 if (!program)
                     return res.status(404).json({ message: 'Program bulunamadı.' });
                 yield program.destroy();

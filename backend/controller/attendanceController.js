@@ -18,7 +18,8 @@ class AttendanceController {
     getAllAttendance(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const attendance = yield this.attendanceService.getAllAttendance();
+                const yurtid = req.selectedYurtId;
+                const attendance = yield this.attendanceService.getAllAttendance(yurtid);
                 res.status(202).json(attendance);
             }
             catch (_a) {
@@ -29,8 +30,9 @@ class AttendanceController {
     getAttendance(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const attendanceData = new Attendance_1.Attendance(+req.query.studentid, new Date(req.query.date), undefined, req.query.program_name);
-                const attendance = yield this.attendanceService.getAttendance(attendanceData);
+                const yurtid = req.selectedYurtId;
+                const attendanceData = new Attendance_1.Attendance(+req.query.studentid, new Date(req.query.date), undefined, req.query.program_name, yurtid);
+                const attendance = yield this.attendanceService.getAttendance(attendanceData, yurtid);
                 res.status(202).json(attendance);
             }
             catch (error) {
@@ -44,10 +46,11 @@ class AttendanceController {
             try {
                 const start = req.query.startDate;
                 const end = req.query.endDate;
+                const yurtid = req.selectedYurtId;
                 if (!start || !end) {
                     return res.status(400).json({ message: 'start and end date required' });
                 }
-                const stats = yield this.attendanceService.getAttendanceStatisticsByDateRange(start, end);
+                const stats = yield this.attendanceService.getAttendanceStatisticsByDateRange(start, end, yurtid);
                 res.status(200).json(stats);
             }
             catch (err) {
@@ -61,7 +64,8 @@ class AttendanceController {
             try {
                 const date = req.query.date;
                 const programName = req.query.program_name;
-                const attendance = yield this.attendanceService.getAttendanceByDateAndProgram(date, programName);
+                const yurtid = req.selectedYurtId;
+                const attendance = yield this.attendanceService.getAttendanceByDateAndProgram(date, programName, yurtid);
                 res.status(202).json(attendance);
             }
             catch (error) {
@@ -73,6 +77,7 @@ class AttendanceController {
     createAttendance(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const yurtid = req.selectedYurtId;
                 // Accept single record or array of records
                 const payloads = Array.isArray(req.body) ? req.body : [req.body];
                 for (const entry of payloads) {
@@ -80,7 +85,7 @@ class AttendanceController {
                     if (!studentid || !date || !program_name) {
                         return res.status(400).json({ message: 'Missing required fields' });
                     }
-                    const attendanceData = new Attendance_1.Attendance(studentid, new Date(date), attendance_type_name, program_name);
+                    const attendanceData = new Attendance_1.Attendance(studentid, new Date(date), attendance_type_name, program_name, yurtid);
                     attendanceData.sebep = sebep || null;
                     // Use upsert logic
                     yield this.attendanceService.createOrUpdateAttendance(attendanceData);
@@ -96,13 +101,14 @@ class AttendanceController {
     updateAttendance(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                const yurtid = req.selectedYurtId;
                 const { studentid, date, attendance_type_name, program_name, sebep } = req.body;
                 if (!studentid || !date || !program_name) {
                     return res.status(400).json({ message: 'Missing required fields' });
                 }
-                const attendanceData = new Attendance_1.Attendance(studentid, new Date(date), attendance_type_name, program_name);
+                const attendanceData = new Attendance_1.Attendance(studentid, new Date(date), attendance_type_name, program_name, yurtid);
                 attendanceData.sebep = sebep || null;
-                yield this.attendanceService.updateAttendance(attendanceData);
+                yield this.attendanceService.updateAttendance(attendanceData, yurtid);
                 res.status(202).json({ message: 'Attendance successfully updated' });
             }
             catch (error) {
@@ -116,16 +122,17 @@ class AttendanceController {
             try {
                 console.log('🗑️ DELETE /attendance/delete hit with query:', req.query);
                 const { studentid, date, program_name } = req.query;
+                const yurtid = req.selectedYurtId;
                 if (!studentid || !date || !program_name) {
                     console.log('❌ Missing required fields');
                     return res.status(400).json({ message: 'Missing required fields: studentid, date, program_name' });
                 }
-                console.log(`🔍 Attempting to delete: studentid=${studentid}, date=${date}, program=${program_name}`);
+                console.log(`🔍 Attempting to delete: studentid=${studentid}, date=${date}, program=${program_name}, yurtid=${yurtid}`);
                 // First, check if the record exists
-                const attendanceData = new Attendance_1.Attendance(Number(studentid), new Date(date), undefined, program_name);
-                const existing = yield this.attendanceService.getAttendance(attendanceData);
+                const attendanceData = new Attendance_1.Attendance(Number(studentid), new Date(date), undefined, program_name, yurtid);
+                const existing = yield this.attendanceService.getAttendance(attendanceData, yurtid);
                 console.log(`📋 Existing record:`, existing ? JSON.stringify(existing) : 'NOT FOUND');
-                const deleted = yield this.attendanceService.deleteAttendance(Number(studentid), date, program_name);
+                const deleted = yield this.attendanceService.deleteAttendance(Number(studentid), date, program_name, yurtid);
                 console.log(`✅ Delete result: ${deleted ? 'SUCCESS' : 'NOT FOUND'}`);
                 if (deleted) {
                     res.status(200).json({ message: 'Attendance successfully deleted' });
