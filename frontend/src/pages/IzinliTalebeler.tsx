@@ -26,6 +26,8 @@ const IzinliTalebeler = () => {
     const [sebep, setSebep] = useState('');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState<{ studentid: number; name: string; program: string } | null>(null);
     const [shareMenuOpen, setShareMenuOpen] = useState(false);
     const shareBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -140,6 +142,49 @@ const IzinliTalebeler = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDeleteIzinli = async () => {
+        if (!studentToDelete || !date) return;
+
+        try {
+            setLoading(true);
+            const allPrograms = PROGRAM_OPTIONS.filter(p => p.value !== 'tum_gun').map(p => p.value);
+
+            if (program === 'tum_gun') {
+                // Delete from all programs
+                await Promise.all(
+                    allPrograms.map(prog =>
+                        authFetch(`${config.API_BASE_URL}/attendance/delete?studentid=${studentToDelete.studentid}&date=${date}&program_name=${prog}`, {
+                            method: 'DELETE'
+                        })
+                    )
+                );
+            } else {
+                // Delete from single program
+                await authFetch(`${config.API_BASE_URL}/attendance/delete?studentid=${studentToDelete.studentid}&date=${date}&program_name=${program}`, {
+                    method: 'DELETE'
+                });
+            }
+
+            toast.success('İzinli kaydı silindi.');
+            setShowDeleteConfirm(false);
+            setStudentToDelete(null);
+            fetchIzinliler();
+        } catch {
+            toast.error('Silme işlemi başarısız.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openDeleteConfirm = (studentid: number, studentName: string) => {
+        setStudentToDelete({
+            studentid,
+            name: studentName,
+            program: PROGRAM_OPTIONS.find(p => p.value === program)?.label || program
+        });
+        setShowDeleteConfirm(true);
     };
 
     // Message formatting logic
@@ -482,6 +527,80 @@ const IzinliTalebeler = () => {
                 )}
             </AnimatePresence>
 
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {showDeleteConfirm && studentToDelete && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="modal show fade d-block"
+                        style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1055 }}
+                        onClick={() => setShowDeleteConfirm(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="modal-dialog modal-dialog-centered modal-sm"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="modal-content" style={{ borderRadius: '12px', border: 'none' }}>
+                                <div className="modal-header" style={{ borderBottom: '1px solid #eee', paddingBottom: '12px' }}>
+                                    <h5 className="modal-title" style={{ fontWeight: '600', color: '#dc2626', fontSize: '1rem' }}>
+                                        İzinli Kaydını Sil
+                                    </h5>
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                    ></button>
+                                </div>
+                                <div className="modal-body p-3">
+                                    <p style={{ fontSize: '0.9rem', marginBottom: '8px' }}>
+                                        <strong>{studentToDelete.name}</strong> adlı talebenin <strong>{studentToDelete.program}</strong> programındaki izinli kaydını silmek istediğinize emin misiniz?
+                                    </p>
+                                    <p className="text-muted mb-0" style={{ fontSize: '0.8rem' }}>
+                                        Bu işlem geri alınamaz.
+                                    </p>
+                                </div>
+                                <div className="modal-footer" style={{ borderTop: '1px solid #eee', padding: '12px' }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-light btn-sm"
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        style={{
+                                            borderRadius: '8px',
+                                            padding: '8px 16px',
+                                            fontWeight: '600',
+                                            fontSize: '0.85rem'
+                                        }}
+                                    >
+                                        İptal
+                                    </button>
+                                    <button
+                                        className="btn btn-sm"
+                                        onClick={handleDeleteIzinli}
+                                        disabled={loading}
+                                        style={{
+                                            borderRadius: '8px',
+                                            padding: '8px 16px',
+                                            fontWeight: '600',
+                                            fontSize: '0.85rem',
+                                            background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+                                            border: 'none',
+                                            color: 'white'
+                                        }}
+                                    >
+                                        {loading ? 'Siliniyor...' : 'Sil'}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Results Card */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -529,7 +648,7 @@ const IzinliTalebeler = () => {
                                                 }}
                                             >
                                                 <div className="d-flex align-items-center justify-content-between">
-                                                    <div>
+                                                    <div className="flex-grow-1">
                                                         <span style={{ fontWeight: '600', fontSize: '0.9rem', color: '#333' }}>
                                                             {index + 1}. {student?.first_name || 'Bilinmiyor'}{' '}
                                                             {student?.last_name || ''}
@@ -543,9 +662,38 @@ const IzinliTalebeler = () => {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <span className="badge bg-warning text-dark" style={{ fontSize: '0.7rem' }}>
-                                                        İzinli
-                                                    </span>
+                                                    <div className="d-flex align-items-center gap-2">
+                                                        <span className="badge bg-warning text-dark" style={{ fontSize: '0.7rem', padding: '4px 8px' }}>
+                                                            İzinli
+                                                        </span>
+                                                        {(user?.role === 'hoca' || user?.role === 'admin') && (
+                                                            <button
+                                                                className="btn btn-sm"
+                                                                style={{
+                                                                    background: 'rgba(239, 68, 68, 0.1)',
+                                                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                                    color: '#dc2626',
+                                                                    borderRadius: '6px',
+                                                                    padding: '4px 10px',
+                                                                    fontSize: '0.75rem',
+                                                                    fontWeight: '600',
+                                                                    transition: 'all 0.2s ease'
+                                                                }}
+                                                                onClick={() => openDeleteConfirm(r.studentid, `${student?.first_name || ''} ${student?.last_name || ''}`)}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                                                                    e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                                                    e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                                                                }}
+                                                                title="İzinli kaydını sil"
+                                                            >
+                                                                Sil
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                         );

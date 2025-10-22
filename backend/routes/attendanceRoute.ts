@@ -14,8 +14,20 @@ const attendanceController = new AttendanceController(attendanceService);
 
 attendanceRouter.use(authenticateJWT);
 
+// Test route to verify DELETE is working at all
+attendanceRouter.delete('/test', (req: Request, res: Response) => {
+    console.log('🧪 TEST DELETE route hit');
+    res.json({ message: 'DELETE test successful' });
+});
+
 attendanceRouter.get('/all', (req: Request, res: Response) => {
     attendanceController.getAllAttendance(req, res);
+});
+
+attendanceRouter.delete('/delete', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
+    console.log('🔥 DELETE /delete route HIT with query:', req.query);
+    console.log('🔥 User:', req.user);
+    attendanceController.deleteAttendance(req, res);
 });
 
 attendanceRouter.get('/', (req: Request, res: Response) => {
@@ -36,10 +48,6 @@ attendanceRouter.post('/create', requireRoles(['admin', 'hoca', 'yoklamaci']), (
 
 attendanceRouter.put('/put', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
     attendanceController.updateAttendance(req, res);
-});
-
-attendanceRouter.delete('/', requireRoles(['admin', 'hoca', 'yoklamaci']), (req: Request, res: Response) => {
-    res.status(501).json({ message: 'DELETE not implemented yet' });
 });
 
 attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, res) => {

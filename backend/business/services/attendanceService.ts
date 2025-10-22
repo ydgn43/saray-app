@@ -32,4 +32,8 @@ export class AttendanceService {
     public async updateAttendance(attendance: Attendance): Promise<void> {
         return this.attendanceData.updateAttendance(attendance);
     }
+
+    public async deleteAttendance(studentId: number, date: string, programName: string): Promise<boolean> {
+        return this.attendanceData.deleteAttendance(studentId, date, programName);
+    }
 }

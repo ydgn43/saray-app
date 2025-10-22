@@ -144,4 +144,33 @@ export default class AttendanceData {
             });
         }
     }
+
+    public async deleteAttendance(studentId: number, date: string, programName: string): Promise<boolean> {
+        try {
+            console.log(`📊 Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}`);
+
+            // First, let's check what records exist for this student and date
+            const existing = await AttendanceSequelize.findAll({
+                where: {
+                    studentid: studentId,
+                    date: date
+                }
+            });
+            console.log(`📊 Found ${existing.length} records for student ${studentId} on ${date}:`,
+                existing.map(r => ({ program: r.program_name, type: r.attendance_type_name })));
+
+            const deleted = await AttendanceSequelize.destroy({
+                where: {
+                    studentid: studentId,
+                    date: date,
+                    program_name: programName,
+                },
+            });
+            console.log(`📊 Rows deleted: ${deleted}`);
+            return deleted > 0;
+        } catch (error) {
+            console.error('❌ Delete failed:', error);
+            throw new Error('Could not delete attendance');
+        }
+    }
 }

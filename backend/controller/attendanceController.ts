@@ -116,4 +116,45 @@ export class AttendanceController {
         }
     }
 
+    public async deleteAttendance(req: Request, res: Response) {
+        try {
+            console.log('🗑️ DELETE /attendance/delete hit with query:', req.query);
+            const { studentid, date, program_name } = req.query;
+
+            if (!studentid || !date || !program_name) {
+                console.log('❌ Missing required fields');
+                return res.status(400).json({ message: 'Missing required fields: studentid, date, program_name' });
+            }
+
+            console.log(`🔍 Attempting to delete: studentid=${studentid}, date=${date}, program=${program_name}`);
+
+            // First, check if the record exists
+            const attendanceData = new Attendance(
+                Number(studentid),
+                new Date(date as string),
+                undefined,
+                program_name as string
+            );
+            const existing = await this.attendanceService.getAttendance(attendanceData);
+            console.log(`📋 Existing record:`, existing ? JSON.stringify(existing) : 'NOT FOUND');
+
+            const deleted = await this.attendanceService.deleteAttendance(
+                Number(studentid),
+                date as string,
+                program_name as string
+            );
+
+            console.log(`✅ Delete result: ${deleted ? 'SUCCESS' : 'NOT FOUND'}`);
+
+            if (deleted) {
+                res.status(200).json({ message: 'Attendance successfully deleted' });
+            } else {
+                res.status(404).json({ message: 'Attendance record not found' });
+            }
+        } catch (error) {
+            console.log('❌ Delete Attendance error:', error);
+            res.status(500).json({ message: 'Failed to delete attendance' });
+        }
+    }
+
 }
