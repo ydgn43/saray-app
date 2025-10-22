@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
 import config from '../config';
 
@@ -324,306 +325,336 @@ const Statistics = () => {
     return (
         <>
             <ToastContainer />
-            <div className="container py-4" style={{ maxWidth: 1200 }}>
-                <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
-                    <h1 className="mb-0" style={{ fontWeight: 700, color: '#0d6efd', letterSpacing: 1 }}>Yoklama İstatistikleri</h1>
-                    <div className="d-flex flex-wrap gap-2 align-items-center">
-                        <span className="badge bg-primary fs-6 px-3 py-2">
-                            Toplam Öğrenci: {filteredStats.length}
-                        </span>
-                        <button
-                            className="btn btn-outline-secondary btn-sm"
-                            onClick={() => {
-                                setSelectedColor('');
-                                setSelectedClass('');
-                                setSearchTerm('');
-                                setSelectedProgram('genel');
-                            }}
-                        >
-                            Temizle
-                        </button>
-                    </div>
+            <div className="container" style={{ padding: '0 12px', maxWidth: 1200 }}>
+                <PageHeader
+                    icon="📊"
+                    title="İstatistikler"
+                    subtitle="Talebe yoklama istatistiklerini görüntüleyin ve analiz edin"
+                    gradient="linear-gradient(135deg, #3494E6 0%, #EC6EAD 100%)"
+                />
+
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <span
+                        className="badge"
+                        style={{
+                            background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            fontSize: '0.9rem',
+                            fontWeight: '700'
+                        }}
+                    >
+                        Toplam: {filteredStats.length}
+                    </span>
+                    <button
+                        className="btn btn-light btn-sm"
+                        onClick={() => {
+                            setSelectedColor('');
+                            setSelectedClass('');
+                            setSearchTerm('');
+                            setSelectedProgram('genel');
+                        }}
+                        style={{
+                            borderRadius: '8px',
+                            padding: '6px 16px',
+                            fontWeight: '600',
+                            fontSize: '0.85rem'
+                        }}
+                    >
+                        🔄 Temizle
+                    </button>
                 </div>
 
-                <div className="row g-3 mb-3">
-                    <div className="col-md-3">
-                        <label className="form-label fw-semibold">Başlangıç Tarihi</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                        />
-                    </div>
-                    <div className="col-md-3">
-                        <label className="form-label fw-semibold">Bitiş Tarihi</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                        />
-                    </div>
-                    <div className="col-md-2">
-                        <label className="form-label fw-semibold">Program</label>
-                        <select
-                            className="form-select"
-                            value={selectedProgram}
-                            onChange={e => setSelectedProgram(e.target.value)}
-                        >
-                            <option value="genel">Genel</option>
-                            {allPrograms.map(p => (
-                                <option key={p} value={p}>
-                                    {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="col-md-2">
-                        <label className="form-label fw-semibold">Dahili Seviye</label>
-                        <select
-                            className="form-select"
-                            value={selectedClass}
-                            onChange={e => setSelectedClass(e.target.value)}
-                        >
-                            <option value="">Tümü</option>
-                            {Object.entries(CLASS_NAME_TURKISH_MAP).map(([key, label]) => (
-                                <option key={key} value={key}>
+                <div className="card shadow border-0 mb-3"
+                    style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '12px'
+                    }}
+                >
+                    <div className="card-body p-2 p-md-3">
+                        <div className="row g-2 mb-2">
+                            <div className="col-6 col-md-3">
+                                <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>📅 Başlangıç</label>
+                                <input
+                                    type="date"
+                                    className="form-control form-control-sm"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="col-md-3">
+                                <label className="form-label fw-semibold">Bitiş Tarihi</label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="col-md-2">
+                                <label className="form-label fw-semibold">Program</label>
+                                <select
+                                    className="form-select"
+                                    value={selectedProgram}
+                                    onChange={e => setSelectedProgram(e.target.value)}
+                                >
+                                    <option value="genel">Genel</option>
+                                    {allPrograms.map(p => (
+                                        <option key={p} value={p}>
+                                            {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-2">
+                                <label className="form-label fw-semibold">Dahili Seviye</label>
+                                <select
+                                    className="form-select"
+                                    value={selectedClass}
+                                    onChange={e => setSelectedClass(e.target.value)}
+                                >
+                                    <option value="">Tümü</option>
+                                    {Object.entries(CLASS_NAME_TURKISH_MAP).map(([key, label]) => (
+                                        <option key={key} value={key}>
+                                            {label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-2 d-flex align-items-end">
+                                <button
+                                    className="btn btn-primary w-100"
+                                    onClick={fetchStatistics}
+                                    style={{ transition: 'all 0.3s ease-in-out', fontWeight: 600 }}
+                                    onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
+                                    onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                                >
+                                    Verileri Getir
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mb-3 d-flex flex-wrap gap-2 align-items-center">
+                            {[
+                                { label: 'İyi', color: 'green', value: 'green', textColor: 'white' },
+                                { label: 'Orta', color: 'yellow', value: 'yellow', textColor: 'black' },
+                                { label: 'Zayıf', color: 'red', value: 'red', textColor: 'white' },
+                            ].map(({ label, color, value, textColor }) => (
+                                <span
+                                    key={value}
+                                    className="badge"
+                                    style={{
+                                        backgroundColor: color,
+                                        color: textColor,
+                                        opacity: selectedColor === value ? 1 : 0.5,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease-in-out',
+                                        transform: selectedColor === value ? 'scale(1.05)' : 'scale(1)',
+                                        fontSize: 16,
+                                        padding: '0.7em 1.2em',
+                                        border: selectedColor === value ? '2px solid #333' : undefined,
+                                        boxShadow: selectedColor === value ? '0 2px 8px rgba(0,0,0,0.08)' : undefined,
+                                    }}
+                                    onClick={() => setSelectedColor(selectedColor === value ? '' : value)}
+                                >
                                     {label}
-                                </option>
+                                </span>
                             ))}
-                        </select>
-                    </div>
-                    <div className="col-md-2 d-flex align-items-end">
-                        <button
-                            className="btn btn-primary w-100"
-                            onClick={fetchStatistics}
-                            style={{ transition: 'all 0.3s ease-in-out', fontWeight: 600 }}
-                            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
-                            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                        >
-                            Verileri Getir
-                        </button>
-                    </div>
-                </div>
 
-                <div className="mb-3 d-flex flex-wrap gap-2 align-items-center">
-                    {[
-                        { label: 'İyi', color: 'green', value: 'green', textColor: 'white' },
-                        { label: 'Orta', color: 'yellow', value: 'yellow', textColor: 'black' },
-                        { label: 'Zayıf', color: 'red', value: 'red', textColor: 'white' },
-                    ].map(({ label, color, value, textColor }) => (
-                        <span
-                            key={value}
-                            className="badge"
-                            style={{
-                                backgroundColor: color,
-                                color: textColor,
-                                opacity: selectedColor === value ? 1 : 0.5,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease-in-out',
-                                transform: selectedColor === value ? 'scale(1.05)' : 'scale(1)',
-                                fontSize: 16,
-                                padding: '0.7em 1.2em',
-                                border: selectedColor === value ? '2px solid #333' : undefined,
-                                boxShadow: selectedColor === value ? '0 2px 8px rgba(0,0,0,0.08)' : undefined,
-                            }}
-                            onClick={() => setSelectedColor(selectedColor === value ? '' : value)}
-                        >
-                            {label}
-                        </span>
-                    ))}
+                            <input
+                                className="form-control form-control-sm w-auto ms-2"
+                                type="text"
+                                placeholder="İsim ara..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{ minWidth: 180 }}
+                            />
+                            <div className="btn-group ms-2">
+                                <button
+                                    className="btn btn-outline-success btn-sm dropdown-toggle"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                    type="button"
+                                >
+                                    Farklı Kaydet
+                                </button>
+                                <ul className="dropdown-menu">
+                                    <li>
+                                        <button className="dropdown-item" onClick={handleExportToCSV}>CSV olarak indir</button>
+                                    </li>
+                                    <li>
+                                        <button className="dropdown-item" onClick={handleExportToExcel}>Excel olarak indir</button>
+                                    </li>
+                                    <li>
+                                        <button className="dropdown-item" onClick={handleExportToPDF}>PDF olarak indir</button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
 
-                    <input
-                        className="form-control form-control-sm w-auto ms-2"
-                        type="text"
-                        placeholder="İsim ara..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ minWidth: 180 }}
-                    />
-                    <div className="btn-group ms-2">
-                        <button
-                            className="btn btn-outline-success btn-sm dropdown-toggle"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                            type="button"
-                        >
-                            Farklı Kaydet
-                        </button>
-                        <ul className="dropdown-menu">
-                            <li>
-                                <button className="dropdown-item" onClick={handleExportToCSV}>CSV olarak indir</button>
-                            </li>
-                            <li>
-                                <button className="dropdown-item" onClick={handleExportToExcel}>Excel olarak indir</button>
-                            </li>
-                            <li>
-                                <button className="dropdown-item" onClick={handleExportToPDF}>PDF olarak indir</button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="table-responsive shadow-sm rounded-3" style={{ background: '#fff' }}>
-                    <table className="table table-bordered table-striped align-middle text-center mb-0">
-                        <thead className="table-light">
-                            <tr>
-                                <th
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() =>
-                                        setSortConfig((prev) =>
-                                            prev?.key === 'rownum'
-                                                ? { key: 'rownum', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                : { key: 'rownum', direction: 'asc' }
-                                        )
-                                    }
-                                >
-                                    #
-                                </th>
-                                <th
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() =>
-                                        setSortConfig((prev) =>
-                                            prev?.key === 'name'
-                                                ? { key: 'name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                : { key: 'name', direction: 'asc' }
-                                        )
-                                    }
-                                >
-                                    İsim {getSortIcon('name')}
-                                </th>
-                                <th
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() =>
-                                        setSortConfig((prev) =>
-                                            prev?.key === 'class_name'
-                                                ? { key: 'class_name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                : { key: 'class_name', direction: 'asc' }
-                                        )
-                                    }
-                                >
-                                    Dahili Seviye {getSortIcon('class_name')}
-                                </th>
-                                {selectedProgram === 'genel'
-                                    ? allPrograms.map((p) => (
-                                        <th key={p} style={{ cursor: 'pointer' }}
-                                            onClick={() =>
-                                                setSortConfig((prev) =>
-                                                    prev?.key === p
-                                                        ? { key: p, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                        : { key: p, direction: 'desc' }
-                                                )
-                                            }
-                                        >
-                                            {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')} {getSortIcon(p)}
-                                        </th>
-                                    ))
-                                    : (
+                        <div className="table-responsive shadow-sm rounded-3" style={{ background: '#fff' }}>
+                            <table className="table table-bordered table-striped align-middle text-center mb-0">
+                                <thead className="table-light">
+                                    <tr>
                                         <th
                                             style={{ cursor: 'pointer' }}
                                             onClick={() =>
                                                 setSortConfig((prev) =>
-                                                    prev?.key === selectedProgram
-                                                        ? { key: selectedProgram, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                        : { key: selectedProgram, direction: 'desc' }
+                                                    prev?.key === 'rownum'
+                                                        ? { key: 'rownum', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                        : { key: 'rownum', direction: 'asc' }
                                                 )
                                             }
                                         >
-                                            {PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
+                                            #
                                         </th>
-                                    )
-                                }
-                                <th
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() =>
-                                        setSortConfig((prev) =>
-                                            prev?.key === 'genel'
-                                                ? { key: 'genel', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                                                : { key: 'genel', direction: 'desc' }
-                                        )
-                                    }
-                                >
-                                    Genel {getSortIcon('genel')}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedStats.length === 0 ? (
-                                <tr>
-                                    <td colSpan={selectedProgram === 'genel' ? 4 + allPrograms.length : 5} className="text-center text-muted py-4">
-                                        Sonuç bulunamadı.
-                                    </td>
-                                </tr>
-                            ) : sortedStats.map((s, i) => {
-                                const { programSums, genel } = getProgramSums(s);
-                                if (selectedProgram === 'genel') {
-                                    return (
-                                        <tr key={s.studentid}>
-                                            <td>{i + 1}</td>
-                                            <td className="text-start">{s.name}</td>
-                                            <td>{getTurkishClassName(s.class_name)}</td>
-                                            {programSums.map((val, idx) => {
-                                                let bg = '';
-                                                if (val < 60) bg = 'bg-danger text-white';
-                                                else if (val < 80) bg = 'bg-warning text-dark';
-                                                else bg = 'bg-success text-white';
-                                                return (
-                                                    <td key={idx} className={bg}>{val}%</td>
-                                                );
-                                            })}
-                                            <td className={
-                                                genel < 60
-                                                    ? 'bg-danger text-white'
-                                                    : genel < 80
-                                                        ? 'bg-warning text-dark'
-                                                        : 'bg-success text-white'
-                                            }>
-                                                {genel}%
+                                        <th
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() =>
+                                                setSortConfig((prev) =>
+                                                    prev?.key === 'name'
+                                                        ? { key: 'name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                        : { key: 'name', direction: 'asc' }
+                                                )
+                                            }
+                                        >
+                                            İsim {getSortIcon('name')}
+                                        </th>
+                                        <th
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() =>
+                                                setSortConfig((prev) =>
+                                                    prev?.key === 'class_name'
+                                                        ? { key: 'class_name', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                        : { key: 'class_name', direction: 'asc' }
+                                                )
+                                            }
+                                        >
+                                            Dahili Seviye {getSortIcon('class_name')}
+                                        </th>
+                                        {selectedProgram === 'genel'
+                                            ? allPrograms.map((p) => (
+                                                <th key={p} style={{ cursor: 'pointer' }}
+                                                    onClick={() =>
+                                                        setSortConfig((prev) =>
+                                                            prev?.key === p
+                                                                ? { key: p, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                                : { key: p, direction: 'desc' }
+                                                        )
+                                                    }
+                                                >
+                                                    {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')} {getSortIcon(p)}
+                                                </th>
+                                            ))
+                                            : (
+                                                <th
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() =>
+                                                        setSortConfig((prev) =>
+                                                            prev?.key === selectedProgram
+                                                                ? { key: selectedProgram, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                                : { key: selectedProgram, direction: 'desc' }
+                                                        )
+                                                    }
+                                                >
+                                                    {PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
+                                                </th>
+                                            )
+                                        }
+                                        <th
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() =>
+                                                setSortConfig((prev) =>
+                                                    prev?.key === 'genel'
+                                                        ? { key: 'genel', direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                                                        : { key: 'genel', direction: 'desc' }
+                                                )
+                                            }
+                                        >
+                                            Genel {getSortIcon('genel')}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sortedStats.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={selectedProgram === 'genel' ? 4 + allPrograms.length : 5} className="text-center text-muted py-4">
+                                                Sonuç bulunamadı.
                                             </td>
                                         </tr>
-                                    );
-                                } else {
-                                    const programIdx = allPrograms.indexOf(selectedProgram);
-                                    const val = programSums[programIdx] ?? 0;
-                                    let bg = '';
-                                    if (val < 60) bg = 'bg-danger text-white';
-                                    else if (val < 75) bg = 'bg-warning text-dark';
-                                    else bg = 'bg-success text-white';
-                                    return (
-                                        <tr key={s.studentid}>
-                                            <td>{i + 1}</td>
-                                            <td className="text-start">{s.name}</td>
-                                            <td>{getTurkishClassName(s.class_name)}</td>
-                                            <td className={bg}>{val}%</td>
-                                            <td className={
-                                                genel < 60
-                                                    ? 'bg-danger text-white'
-                                                    : genel < 75
-                                                        ? 'bg-warning text-dark'
-                                                        : 'bg-success text-white'
-                                            }>
-                                                {genel}%
-                                            </td>
-                                        </tr>
-                                    );
-                                }
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-                {loading && (
-                    <div className="text-center my-4">
-                        <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Yükleniyor...</span>
+                                    ) : sortedStats.map((s, i) => {
+                                        const { programSums, genel } = getProgramSums(s);
+                                        if (selectedProgram === 'genel') {
+                                            return (
+                                                <tr key={s.studentid}>
+                                                    <td>{i + 1}</td>
+                                                    <td className="text-start">{s.name}</td>
+                                                    <td>{getTurkishClassName(s.class_name)}</td>
+                                                    {programSums.map((val, idx) => {
+                                                        let bg = '';
+                                                        if (val < 60) bg = 'bg-danger text-white';
+                                                        else if (val < 80) bg = 'bg-warning text-dark';
+                                                        else bg = 'bg-success text-white';
+                                                        return (
+                                                            <td key={idx} className={bg}>{val}%</td>
+                                                        );
+                                                    })}
+                                                    <td className={
+                                                        genel < 60
+                                                            ? 'bg-danger text-white'
+                                                            : genel < 80
+                                                                ? 'bg-warning text-dark'
+                                                                : 'bg-success text-white'
+                                                    }>
+                                                        {genel}%
+                                                    </td>
+                                                </tr>
+                                            );
+                                        } else {
+                                            const programIdx = allPrograms.indexOf(selectedProgram);
+                                            const val = programSums[programIdx] ?? 0;
+                                            let bg = '';
+                                            if (val < 60) bg = 'bg-danger text-white';
+                                            else if (val < 75) bg = 'bg-warning text-dark';
+                                            else bg = 'bg-success text-white';
+                                            return (
+                                                <tr key={s.studentid}>
+                                                    <td>{i + 1}</td>
+                                                    <td className="text-start">{s.name}</td>
+                                                    <td>{getTurkishClassName(s.class_name)}</td>
+                                                    <td className={bg}>{val}%</td>
+                                                    <td className={
+                                                        genel < 60
+                                                            ? 'bg-danger text-white'
+                                                            : genel < 75
+                                                                ? 'bg-warning text-dark'
+                                                                : 'bg-success text-white'
+                                                    }>
+                                                        {genel}%
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
+                        {loading && (
+                            <div className="text-center my-4">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Yükleniyor...</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </>
     );
 };
 
 export default Statistics;
+
+
 
 

@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import FilterToolbar from '../components/FilterToolbar';
 import Layout from '../components/Layout';
+import PageHeader from '../components/PageHeader';
 import { classOrder, groupHeaderTitles } from '../constants';
 import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
@@ -374,24 +375,11 @@ const Attendance = () => {
     <div className="container" style={{ padding: '0 12px' }}>
       <ToastContainer />
 
-      {/* Modern Header with Gradient */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-3"
-      >
-        <h1 className="mb-1" style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-          fontWeight: 'bold',
-          fontSize: 'clamp(1.5rem, 5vw, 2rem)'
-        }}>
-          Günlük Yoklama
-        </h1>
-        <p className="text-muted d-none d-md-block" style={{ fontSize: '0.9rem' }}>Talebe yoklamalarını takip edin ve yönetin</p>
-      </motion.div>
+      <PageHeader
+        icon="📋"
+        title="Günlük Yoklama"
+        subtitle="Talebe yoklamalarını takip edin ve yönetin"
+      />
 
       {/* Elegant Date & Program Selector Card */}
       <motion.div

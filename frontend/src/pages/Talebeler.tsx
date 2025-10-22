@@ -6,9 +6,8 @@ import 'react-confirm-alert/src/react-confirm-alert.css';
 import debounce from 'lodash.debounce';
 import { unparse } from 'papaparse';
 import { motion, AnimatePresence } from 'framer-motion';
-import Layout from '../components/Layout';
+import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
-import { a } from 'framer-motion/dist/types.d-CtuPurYT';
 import config from '../config';
 
 
@@ -273,35 +272,56 @@ const Talebeler = () => {
 
     return (
 
-        <div className="container">
-            <h1 className="mb-4">Talebe Ayarları</h1>
+        <div className="container" style={{ padding: '0 12px' }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
-            <h1>Ayarlar</h1>
+            <PageHeader
+                icon="👥"
+                title="Talebe Yönetimi"
+                subtitle="Talebeleri görüntüleyin, ekleyin ve düzenleyin"
+                gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            />
 
-
-            <h3 className="d-flex justify-content-between align-items-center">
-                Mevcut Talebeler
-                <span className="badge bg-info text-dark">
+            <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div className="d-flex align-items-center gap-2 flex-wrap">
+                    {[
+                        "kuranikerim",
+                        "hazirlik",
+                        "ibtidai",
+                        "ihzari",
+                        "mezun tekamul alti",
+                        "tekamul alti"
+                    ].map((className) => {
+                        const count = filteredStudents.filter((s) => s.class_name === className).length;
+                        return (
+                            <span
+                                key={className}
+                                className="badge"
+                                style={{
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    padding: '6px 12px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                {getTurkishClassName(className)}: {count}
+                            </span>
+                        );
+                    })}
+                </div>
+                <span
+                    className="badge"
+                    style={{
+                        background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '0.9rem',
+                        fontWeight: '700'
+                    }}
+                >
                     Toplam: {filteredStudents.length}
                 </span>
-            </h3>
-            <div className="mb-3 d-flex flex-wrap gap-2">
-                {[
-                    "kuranikerim",
-                    "hazirlik",
-                    "ibtidai",
-                    "ihzari",
-                    "mezun tekamul alti",
-                    "tekamul alti"
-                ].map((className) => {
-                    const count = filteredStudents.filter((s) => s.class_name === className).length;
-                    return (
-                        <span key={className} className="badge bg-primary">
-                            {getTurkishClassName(className)}: {count}
-                        </span>
-                    );
-                })}
             </div>
 
 
@@ -310,52 +330,107 @@ const Talebeler = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
+                className="card shadow border-0 mb-3"
+                style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '12px'
+                }}
             >
-                <div className="mb-3">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="İsim, soyisim, Dahili Seviye veya sezon ile ara..."
-                        value={searchInput}
-                        onChange={(e) => {
-                            setSearchInput(e.target.value);
-                            debouncedSearch(e.target.value);
-                        }}
-                    />
-                </div>
+                <div className="card-body p-2 p-md-3">
+                    <div className="row g-2">
+                        <div className="col-12 col-md-6">
+                            <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                placeholder="🔍 Talebe ara..."
+                                value={searchInput}
+                                onChange={(e) => {
+                                    setSearchInput(e.target.value);
+                                    debouncedSearch(e.target.value);
+                                }}
+                                style={{
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    padding: '8px 12px',
+                                    fontSize: '0.85rem'
+                                }}
+                            />
+                        </div>
+                        <div className="col-6 col-md-3">
+                            <select
+                                className="form-select form-select-sm"
+                                value={selectedClass}
+                                onChange={(e) => setSelectedClass(e.target.value)}
+                                style={{
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    padding: '8px 12px',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                <option value="">Tüm Seviyeler</option>
+                                <option value="kuranikerim">Kur'an-ı Kerim</option>
+                                <option value="hazirlik">Hazırlık</option>
+                                <option value="ibtidai">İbtidai</option>
+                                <option value="ihzari">İhzari</option>
+                                <option value="tekamul_alti">Tekamul Altı</option>
+                                <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
+                            </select>
+                        </div>
 
-                <div className="row mb-3">
-                    <div className="col-md-6">
-                        <select className="form-select" value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
-                            <option value="">Tüm Dahili Seviyelar</option>
-                            <option value="kuranikerim">Kuran-ı Kerim</option>
-                            <option value="hazirlik">Hazırlık</option>
-                            <option value="ibtidai">İbtidai</option>
-                            <option value="ihzari">İhzari</option>
-                            <option value="tekamul_alti">Tekamul Altı</option>
-                            <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
-                        </select>
+                        <div className="col-6 col-md-3">
+                            <select
+                                className="form-select form-select-sm"
+                                value={selectedSeason}
+                                onChange={(e) => setSelectedSeason(e.target.value)}
+                                style={{
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    padding: '8px 12px',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                <option value="">Tüm Sezonlar</option>
+                                {Array.from({ length: 33 }).map((_, i) => {
+                                    const year = 2018 + i;
+                                    const season = `${year}/${year + 1}`;
+                                    return (
+                                        <option key={season} value={season}>
+                                            {season}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="col-md-6">
-                        <select className="form-select" value={selectedSeason} onChange={(e) => setSelectedSeason(e.target.value)}>
-                            <option value="">Tüm Sezonlar</option>
-                            {Array.from({ length: 33 }).map((_, i) => {
-                                const year = 2018 + i;
-                                const season = `${year}/${year + 1}`;
-                                return (
-                                    <option key={season} value={season}>
-                                        {season}
-                                    </option>
-                                );
-                            })}
-                        </select>
-
-                        <div className="d-flex justify-content-end mb-2">
-                            <button className="btn btn-outline-success btn-sm" onClick={handleExportCSV}>
-                                CSV Olarak Dışa Aktar
-                            </button>
-                        </div>
+                    <div className="d-flex gap-2 mt-2">
+                        <button
+                            className="btn btn-light btn-sm"
+                            onClick={() => setShowAddModal(true)}
+                            style={{
+                                borderRadius: '8px',
+                                padding: '8px 16px',
+                                fontWeight: '600',
+                                fontSize: '0.85rem'
+                            }}
+                        >
+                            ➕ Talebe Ekle
+                        </button>
+                        <button
+                            className="btn btn-success btn-sm"
+                            onClick={handleExportCSV}
+                            style={{
+                                borderRadius: '8px',
+                                padding: '8px 16px',
+                                fontWeight: '600',
+                                fontSize: '0.85rem',
+                                background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                                border: 'none'
+                            }}
+                        >
+                            📥 CSV İndir
+                        </button>
                     </div>
                 </div>
             </motion.div>
@@ -577,7 +652,7 @@ const Talebeler = () => {
                                 </form>
                             </div>
                         </div>
-                    </motion.div >
+                    </motion.div>
                 )}
                 {
                     (showAddModal || showEditModal) && (
@@ -590,12 +665,11 @@ const Talebeler = () => {
                         />
                     )
                 }
-            </AnimatePresence >
-
+            </AnimatePresence>
 
             {
                 loading ? (
-                    <div className="text-center my-4" >
+                    <div className="text-center my-4">
                         <div className="spinner-border text-primary" role="status">
                             <span className="visually-hidden">Yükleniyor...</span>
                         </div>
@@ -659,7 +733,8 @@ const Talebeler = () => {
                         </table>
                     </div>
 
-                )}
+                )
+            }
             {
                 totalPages > 1 && (
                     <motion.div
@@ -699,7 +774,7 @@ const Talebeler = () => {
                     Yeni Talebe Ekle
                 </motion.button>
             </div>
-        </div >
+        </div>
     );
 };
 
