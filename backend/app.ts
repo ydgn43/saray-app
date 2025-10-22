@@ -50,6 +50,27 @@ app.use('/program', programRouter);
 app.use('/class', classRouter);
 app.use('/reference-codes', referenceCodeRouter);
 
+// Health check endpoint
+app.get('/health', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        const User = sequelize.models.UserSequelize;
+        const userCount = await User.count();
+        res.json({
+            status: 'OK',
+            database: 'Connected',
+            userCount: userCount,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'ERROR',
+            database: 'Disconnected',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+
 console.log('✅ All routes registered successfully!');
 console.log('📍 Auth routes: POST /auth/login, POST /auth/signup');
 

@@ -6,11 +6,18 @@ import { sequelize } from '../data/sequelize';
 
 export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;
+
+    console.log('🔐 Login attempt:', { username, timestamp: new Date().toISOString() });
+
     try {
         const User = sequelize.models.UserSequelize;
         // 1. Find user by username
         const user: any = await User.findOne({ where: { username } });
+
+        console.log('🔍 User lookup result:', user ? 'FOUND' : 'NOT FOUND');
+
         if (!user) {
+            console.log('❌ Login failed: User not found');
             return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
 
@@ -24,7 +31,10 @@ export const login = async (req: Request, res: Response) => {
         // 2. Compare password with hashed password
         const valid = await bcrypt.compare(password, user.password);
 
+        console.log('🔑 Password validation:', valid ? 'VALID' : 'INVALID');
+
         if (!valid) {
+            console.log('❌ Login failed: Invalid password');
             return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
         // 3. Create JWT
