@@ -213,7 +213,7 @@ CORS_ORIGIN=http://localhost:3000
 ```javascript
 const config = {
     API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001',
-    APP_NAME: 'Saray App',
+    APP_NAME: 'Efendim App',
     VERSION: '1.0.0',
 };
 
@@ -565,4 +565,4 @@ If you encounter issues:
 
 **Last Updated:** October 21, 2025  
 **Version:** 1.0.0  
-**Author:** Saray App Development Team
+**Author:** Efendim App Development Team

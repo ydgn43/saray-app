@@ -8,7 +8,7 @@ const Dashboard = () => {
         <Layout>
             <div className="container py-4">
                 <h1 className="text-center">Dashboard</h1>
-                <p className="text-center">Welcome to the Saray App Dashboard!</p>
+                <p className="text-center">Welcome to the Efendim App Dashboard!</p>
 
                 <div className="row mt-4">
                     <div className="col-md-4">

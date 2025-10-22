@@ -53,7 +53,14 @@ const Attendance = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [showCreateButton, setShowCreateButton] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState<string>('');
+
+  // Set today's date as default
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const [date, setDate] = useState<string>(getTodayString());
   const [program, setProgram] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
@@ -78,6 +85,7 @@ const Attendance = () => {
   useEffect(() => {
     const savedDate = localStorage.getItem('attendance-date');
     const savedProgram = localStorage.getItem('attendance-program');
+    // Only use saved date if it exists, otherwise keep today's date
     if (savedDate) setDate(savedDate);
     if (savedProgram) {
       setProgram(savedProgram);
@@ -96,6 +104,45 @@ const Attendance = () => {
       localStorage.setItem('attendance-program', program);
     }
   }, [program]);
+
+  // Date navigation helpers
+  const changeDate = (days: number) => {
+    const currentDate = new Date(date);
+    currentDate.setDate(currentDate.getDate() + days);
+    setDate(currentDate.toISOString().split('T')[0]);
+  };
+
+  const goToYesterday = () => changeDate(-1);
+  const goToToday = () => setDate(getTodayString());
+  const goToTomorrow = () => changeDate(1);
+
+  // Format date for display (Turkish format)
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00'); // Prevent timezone issues
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(d);
+    selected.setHours(0, 0, 0, 0);
+
+    const dayNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+
+    const dayName = dayNames[d.getDay()];
+    const day = d.getDate();
+    const month = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+
+    const diffTime = selected.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return `Bugün, ${day} ${month} ${year}`;
+    if (diffDays === -1) return `Dün, ${day} ${month} ${year}`;
+    if (diffDays === 1) return `Yarın, ${day} ${month} ${year}`;
+
+    return `${dayName}, ${day} ${month} ${year}`;
+  };
 
   // --- Load attendance data (with overlay spinner) ---
   const loadAttendanceData = async (preserveScroll = false) => {
@@ -324,61 +371,234 @@ const Attendance = () => {
 
   return (
 
-    <div className="container">
+    <div className="container" style={{ padding: '0 12px' }}>
       <ToastContainer />
-      <h1 className="mb-4">Günlük Yoklama</h1>
 
-      <div className="card p-4 shadow-sm mb-4">
-        <div className="row g-3">
-          <div className="col-md-4">
-            <label className="form-label">Tarih</label>
-            <input
-              type="date"
-              className="form-control"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
+      {/* Modern Header with Gradient */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-3"
+      >
+        <h1 className="mb-1" style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          fontWeight: 'bold',
+          fontSize: 'clamp(1.5rem, 5vw, 2rem)'
+        }}>
+          Günlük Yoklama
+        </h1>
+        <p className="text-muted d-none d-md-block" style={{ fontSize: '0.9rem' }}>Talebe yoklamalarını takip edin ve yönetin</p>
+      </motion.div>
+
+      {/* Elegant Date & Program Selector Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="card shadow border-0 mb-3"
+        style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '12px'
+        }}
+      >
+        <div className="card-body p-2 p-md-3">
+          {/* Date Selector Section */}
+          <div className="mb-2">
+            <label className="form-label text-white fw-bold mb-2 d-none d-md-block" style={{ fontSize: '0.85rem' }}>
+              📅 Tarih
+            </label>
+
+            {/* Date Display with Quick Navigation */}
+            <div className="d-flex align-items-center gap-1 gap-md-2 mb-2">
+              <button
+                onClick={goToYesterday}
+                className="btn btn-light btn-sm d-flex align-items-center justify-content-center"
+                style={{
+                  borderRadius: '8px',
+                  padding: '6px',
+                  minWidth: '36px',
+                  fontWeight: '600',
+                  fontSize: '0.75rem',
+                  transition: 'all 0.2s'
+                }}
+                title="Dün"
+              >
+                ←
+              </button>
+
+              <div className="flex-grow-1 text-center">
+                <div
+                  className="bg-white rounded-2 py-1 px-2 shadow-sm"
+                  style={{
+                    fontSize: 'clamp(0.75rem, 3vw, 0.95rem)',
+                    fontWeight: '600',
+                    color: '#667eea'
+                  }}
+                >
+                  {formatDateDisplay(date)}
+                </div>
+              </div>
+
+              <button
+                onClick={goToTomorrow}
+                className="btn btn-light btn-sm d-flex align-items-center justify-content-center"
+                style={{
+                  borderRadius: '8px',
+                  padding: '6px',
+                  minWidth: '36px',
+                  fontWeight: '600',
+                  fontSize: '0.75rem',
+                  transition: 'all 0.2s'
+                }}
+                title="Yarın"
+              >
+                →
+              </button>
+            </div>
+
+            {/* Quick Date Buttons */}
+            <div className="d-flex gap-1 gap-md-2 justify-content-center mb-2">
+              <button
+                onClick={goToToday}
+                className="btn btn-light btn-sm"
+                style={{
+                  borderRadius: '16px',
+                  padding: '4px 12px',
+                  fontWeight: '600',
+                  fontSize: '0.75rem',
+                  background: date === getTodayString() ? '#fff' : 'rgba(255,255,255,0.9)',
+                  border: date === getTodayString() ? '2px solid #667eea' : 'none'
+                }}
+              >
+                Bugün
+              </button>
+
+              {/* Calendar Picker Toggle */}
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="date"
+                  className="form-control btn-sm"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  style={{
+                    borderRadius: '16px',
+                    padding: '4px 12px',
+                    fontWeight: '600',
+                    fontSize: '0.75rem',
+                    background: 'rgba(255,255,255,0.9)',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+            </div>
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Program</label>
-            <select
-              className="form-select"
-              value={program}
-              onChange={(e) => setProgram(e.target.value)}
-            >
-              <option value="">Program Seçin</option>
-              {availablePrograms.map((p) => (
-                <option key={p} value={p}>
-                  {p.charAt(0).toUpperCase() + p.slice(1).replace(/_/g, ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-md-4 d-flex align-items-end">
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => loadAttendanceData()}
-              disabled={!date || !program || loading}
-            >
-              {loading ? 'Yükleniyor...' : 'Göster'}
-            </button>
+
+          {/* Program Selector */}
+          <div className="row g-2 align-items-end">
+            <div className="col-12 col-md-8">
+              <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>🕌 Program</label>
+              <select
+                className="form-select form-select-sm"
+                value={program}
+                onChange={(e) => setProgram(e.target.value)}
+                style={{
+                  borderRadius: '8px',
+                  border: 'none',
+                  padding: '8px 12px',
+                  fontSize: '0.85rem',
+                  fontWeight: '500',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                }}
+              >
+                <option value="">Program Seçin</option>
+                {availablePrograms.map((p) => (
+                  <option key={p} value={p}>
+                    {p.charAt(0).toUpperCase() + p.slice(1).replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-12 col-md-4">
+              <button
+                className="btn btn-light w-100 btn-sm"
+                onClick={() => loadAttendanceData()}
+                disabled={!date || !program || loading}
+                style={{
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s',
+                  background: (!date || !program || loading) ? '#e0e0e0' : '#fff'
+                }}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-1" />
+                    Yükleniyor...
+                  </>
+                ) : (
+                  <>
+                    Göster
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <AnimatePresence>
         {showCreateButton && (
-          <div className="mb-3">
-            <button className="btn btn-success" onClick={handleCreateAttendance}>
-              Yeni Yoklama Oluştur
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="mb-2"
+          >
+            <button
+              className="btn btn-success shadow-sm btn-sm"
+              onClick={handleCreateAttendance}
+              style={{
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: '600',
+                fontSize: '0.85rem',
+                background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                border: 'none'
+              }}
+            >
+              ➕ Yeni Yoklama Oluştur
             </button>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      <button className="btn btn-success mb-3" onClick={handleShareAbsentees}>
-        Yoklama Bilgisini Paylaş
-      </button>
+      {attendanceData.length > 0 && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="btn btn-info mb-2 shadow-sm btn-sm"
+          onClick={handleShareAbsentees}
+          style={{
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontWeight: '600',
+            fontSize: '0.85rem',
+            background: 'linear-gradient(135deg, #3494E6 0%, #EC6EAD 100%)',
+            border: 'none',
+            color: 'white'
+          }}
+        >
+          📤 Paylaş
+        </motion.button>
+      )}
 
       <div className="mb-3" style={{ position: 'relative', minHeight: 240 }}>
         {/* Overlay Spinner with animation */}
@@ -404,7 +624,27 @@ const Attendance = () => {
           )}
         </AnimatePresence>
 
-        <h5>Talebe Sayısı: {filteredStudents.length}</h5>
+        {/* Student Count Badge */}
+        {filteredStudents.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="mb-2"
+          >
+            <div
+              className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill shadow-sm"
+              style={{
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '0.8rem'
+              }}
+            >
+              👥 <span style={{ fontSize: '0.95rem', fontWeight: '700' }}>{filteredStudents.length}</span>
+            </div>
+          </motion.div>
+        )}
+
         {attendanceData.length > 0 ? (
           <AttendanceResponsiveView
             students={filteredStudents}
@@ -418,7 +658,22 @@ const Attendance = () => {
           />
         ) : (
           !loading && !showCreateButton && (
-            <div className="alert alert-info text-center mt-3">Veri bulunamadı.</div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="alert text-center mt-2 shadow-sm"
+              style={{
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                color: '#333',
+                fontWeight: '500',
+                fontSize: '0.85rem',
+                padding: '12px'
+              }}
+            >
+              📭 Veri bulunamadı
+            </motion.div>
           )
         )}
 

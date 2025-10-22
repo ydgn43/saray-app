@@ -1,6 +1,6 @@
 # API Configuration Management
 
-This document explains how the centralized API configuration system works in the Saray App.
+This document explains how the centralized API configuration system works in the Efendim App.
 
 ## Overview
 
@@ -19,7 +19,7 @@ All API endpoints are now configured through a centralized configuration system 
    ```javascript
    const config = {
      API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001',
-     APP_NAME: 'Saray App',
+     APP_NAME: 'Efendim App',
      VERSION: '1.0.0',
    };
    ```
@@ -91,7 +91,7 @@ You can easily add more configuration options to the `config.js` file:
 ```javascript
 const config = {
   API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001',
-  APP_NAME: process.env.REACT_APP_NAME || 'Saray App',
+  APP_NAME: process.env.REACT_APP_NAME || 'Efendim App',
   VERSION: '1.0.0',
   FEATURES: {
     ENABLE_ANALYTICS: process.env.REACT_APP_ENABLE_ANALYTICS === 'true',

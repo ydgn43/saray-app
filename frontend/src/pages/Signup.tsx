@@ -214,7 +214,7 @@ export default function Signup() {
                                         margin: 0,
                                     }}
                                 >
-                                    Saray App
+                                    Efendim App
                                 </h1>
                             </div>
                             <h2
@@ -780,7 +780,7 @@ export default function Signup() {
                                 fontWeight: '500',
                             }}
                         >
-                            © 2025 Saray App. Tüm hakları saklıdır.
+                            © 2025 Efendim App. Tüm hakları saklıdır.
                         </motion.p>
                     )}
                 </motion.div>
