@@ -251,7 +251,7 @@ const Home = () => {
             <div className="row mb-4">
               <div className="col-12">
                 <div className="card shadow-lg border-0" style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                   color: 'white'
                 }}>
                   <div className="card-body p-4">
@@ -312,7 +312,7 @@ const Home = () => {
                   if (percentage < 60) {
                     bgGradient = 'linear-gradient(135deg, #eb3349 0%, #f45c43 100%)';
                   } else if (percentage < 80) {
-                    bgGradient = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                    bgGradient = 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)';
                   }
 
                   return (
@@ -393,7 +393,7 @@ const Home = () => {
             <div className="row">
               <div className="col-12">
                 <div className="alert alert-info border-0 shadow-sm" style={{
-                  background: 'linear-gradient(135deg, #667eea22 0%, #764ba222 100%)'
+                  background: 'linear-gradient(135deg, #1e40af22 0%, #3b82f622 100%)'
                 }}>
                   <div className="d-flex align-items-center">
                     <div className="fs-1 me-3">💡</div>
@@ -482,7 +482,7 @@ const Home = () => {
         {/* Total Students Card */}
         <div className="col-xl-3 col-md-6">
           <div className="card border-0 shadow-sm h-100" style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
             transition: 'transform 0.2s'
           }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
@@ -505,7 +505,7 @@ const Home = () => {
         {/* Total Classes Card */}
         <div className="col-xl-3 col-md-6">
           <div className="card border-0 shadow-sm h-100" style={{
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            background: 'linear-gradient(135deg, #2563eb 0%, #60a5fa 100%)',
             transition: 'transform 0.2s'
           }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}

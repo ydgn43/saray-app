@@ -350,8 +350,8 @@ const Attendance = () => {
 
     // Add program and date at the top (optional, but nice)
     let header = '';
-    if (date) header += `📅 Tarih: ${date}\n`;
-    if (program) header += `🕌 Program: ${normalizeProgramName(PROGRAM_NAME_MAP[program] || program)}\n`;
+    if (date) header += `Tarih: ${date}\n`;
+    if (program) header += `Program: ${normalizeProgramName(PROGRAM_NAME_MAP[program] || program)}\n`;
     header += '\n';
 
     const fullMsg = header + msg.trim();
@@ -376,7 +376,6 @@ const Attendance = () => {
       <ToastContainer />
 
       <PageHeader
-        icon="📋"
         title="Günlük Yoklama"
         subtitle="Talebe yoklamalarını takip edin ve yönetin"
       />
@@ -388,15 +387,14 @@ const Attendance = () => {
         transition={{ delay: 0.1 }}
         className="card shadow border-0 mb-3"
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           borderRadius: '12px'
         }}
       >
         <div className="card-body p-2 p-md-3">
           {/* Date Selector Section */}
           <div className="mb-2">
-            <label className="form-label text-white fw-bold mb-2 d-none d-md-block" style={{ fontSize: '0.85rem' }}>
-              📅 Tarih
+            <label className="form-label fw-bold mb-2 d-none d-md-block" style={{ fontSize: '0.85rem' }}>
+              Tarih
             </label>
 
             {/* Date Display with Quick Navigation */}
@@ -423,7 +421,7 @@ const Attendance = () => {
                   style={{
                     fontSize: 'clamp(0.75rem, 3vw, 0.95rem)',
                     fontWeight: '600',
-                    color: '#667eea'
+                    color: '#1e40af'
                   }}
                 >
                   {formatDateDisplay(date)}
@@ -458,7 +456,7 @@ const Attendance = () => {
                   fontWeight: '600',
                   fontSize: '0.75rem',
                   background: date === getTodayString() ? '#fff' : 'rgba(255,255,255,0.9)',
-                  border: date === getTodayString() ? '2px solid #667eea' : 'none'
+                  border: date === getTodayString() ? '2px solid #3b82f6' : 'none'
                 }}
               >
                 Bugün
@@ -488,7 +486,7 @@ const Attendance = () => {
           {/* Program Selector */}
           <div className="row g-2 align-items-end">
             <div className="col-12 col-md-8">
-              <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>🕌 Program</label>
+              <label className="form-label fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Program</label>
               <select
                 className="form-select form-select-sm"
                 value={program}
@@ -558,11 +556,11 @@ const Attendance = () => {
                 padding: '8px 16px',
                 fontWeight: '600',
                 fontSize: '0.85rem',
-                background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                 border: 'none'
               }}
             >
-              ➕ Yeni Yoklama Oluştur
+              Yeni Yoklama Oluştur
             </button>
           </motion.div>
         )}
@@ -579,12 +577,12 @@ const Attendance = () => {
             padding: '8px 16px',
             fontWeight: '600',
             fontSize: '0.85rem',
-            background: 'linear-gradient(135deg, #3494E6 0%, #EC6EAD 100%)',
+            background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
             border: 'none',
             color: 'white'
           }}
         >
-          📤 Paylaş
+          Paylaş
         </motion.button>
       )}
 
@@ -620,15 +618,14 @@ const Attendance = () => {
             className="mb-2"
           >
             <div
-              className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill shadow-sm"
+              className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill shadow-sm bg-danger"
               style={{
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                 color: 'white',
                 fontWeight: '600',
                 fontSize: '0.8rem'
               }}
             >
-              👥 <span style={{ fontSize: '0.95rem', fontWeight: '700' }}>{filteredStudents.length}</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: '700' }}>{filteredStudents.length}</span>
             </div>
           </motion.div>
         )}
@@ -649,18 +646,16 @@ const Attendance = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="alert text-center mt-2 shadow-sm"
+              className="alert alert-info text-center mt-2 shadow-sm"
               style={{
                 borderRadius: '10px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-                color: '#333',
                 fontWeight: '500',
                 fontSize: '0.85rem',
                 padding: '12px'
               }}
             >
-              📭 Veri bulunamadı
+              Veri bulunamadı
             </motion.div>
           )
         )}

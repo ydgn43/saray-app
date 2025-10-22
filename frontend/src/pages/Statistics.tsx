@@ -327,17 +327,16 @@ const Statistics = () => {
             <ToastContainer />
             <div className="container" style={{ padding: '0 12px', maxWidth: 1200 }}>
                 <PageHeader
-                    icon="📊"
+                    icon=""
                     title="İstatistikler"
                     subtitle="Talebe yoklama istatistiklerini görüntüleyin ve analiz edin"
-                    gradient="linear-gradient(135deg, #3494E6 0%, #EC6EAD 100%)"
+                    color="#1e40af"
                 />
 
                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <span
-                        className="badge"
+                        className="badge bg-success"
                         style={{
-                            background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
                             padding: '8px 16px',
                             borderRadius: '20px',
                             fontSize: '0.9rem',
@@ -361,20 +360,19 @@ const Statistics = () => {
                             fontSize: '0.85rem'
                         }}
                     >
-                        🔄 Temizle
+                        Temizle
                     </button>
                 </div>
 
                 <div className="card shadow border-0 mb-3"
                     style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         borderRadius: '12px'
                     }}
                 >
                     <div className="card-body p-2 p-md-3">
                         <div className="row g-2 mb-2">
                             <div className="col-6 col-md-3">
-                                <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>📅 Başlangıç</label>
+                                <label className="form-label fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Başlangıç</label>
                                 <input
                                     type="date"
                                     className="form-control form-control-sm"
@@ -382,19 +380,19 @@ const Statistics = () => {
                                     onChange={(e) => setStartDate(e.target.value)}
                                 />
                             </div>
-                            <div className="col-md-3">
-                                <label className="form-label fw-semibold">Bitiş Tarihi</label>
+                            <div className="col-6 col-md-3">
+                                <label className="form-label fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Bitiş</label>
                                 <input
                                     type="date"
-                                    className="form-control"
+                                    className="form-control form-control-sm"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
                                 />
                             </div>
                             <div className="col-md-2">
-                                <label className="form-label fw-semibold">Program</label>
+                                <label className="form-label fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Program</label>
                                 <select
-                                    className="form-select"
+                                    className="form-select form-select-sm"
                                     value={selectedProgram}
                                     onChange={e => setSelectedProgram(e.target.value)}
                                 >
@@ -407,9 +405,9 @@ const Statistics = () => {
                                 </select>
                             </div>
                             <div className="col-md-2">
-                                <label className="form-label fw-semibold">Dahili Seviye</label>
+                                <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Dahili Seviye</label>
                                 <select
-                                    className="form-select"
+                                    className="form-select form-select-sm"
                                     value={selectedClass}
                                     onChange={e => setSelectedClass(e.target.value)}
                                 >
@@ -423,9 +421,15 @@ const Statistics = () => {
                             </div>
                             <div className="col-md-2 d-flex align-items-end">
                                 <button
-                                    className="btn btn-primary w-100"
+                                    className="btn btn-primary btn-sm w-100"
                                     onClick={fetchStatistics}
-                                    style={{ transition: 'all 0.3s ease-in-out', fontWeight: 600 }}
+                                    style={{
+                                        transition: 'all 0.3s ease-in-out',
+                                        fontWeight: 600,
+                                        borderRadius: '8px',
+                                        padding: '8px 16px',
+                                        fontSize: '0.85rem'
+                                    }}
                                     onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
                                     onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                                 >

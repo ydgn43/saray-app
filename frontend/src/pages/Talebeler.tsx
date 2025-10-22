@@ -276,10 +276,9 @@ const Talebeler = () => {
             <ToastContainer position="top-right" autoClose={3000} />
 
             <PageHeader
-                icon="👥"
                 title="Talebe Yönetimi"
                 subtitle="Talebeleri görüntüleyin, ekleyin ve düzenleyin"
-                gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+                color="#1e40af"
             />
 
             <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -296,9 +295,8 @@ const Talebeler = () => {
                         return (
                             <span
                                 key={className}
-                                className="badge"
+                                className="badge bg-primary"
                                 style={{
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                     padding: '6px 12px',
                                     borderRadius: '20px',
                                     fontSize: '0.8rem',
@@ -311,9 +309,8 @@ const Talebeler = () => {
                     })}
                 </div>
                 <span
-                    className="badge"
+                    className="badge bg-success"
                     style={{
-                        background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
                         padding: '8px 16px',
                         borderRadius: '20px',
                         fontSize: '0.9rem',
@@ -332,7 +329,6 @@ const Talebeler = () => {
                 transition={{ duration: 0.4 }}
                 className="card shadow border-0 mb-3"
                 style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     borderRadius: '12px'
                 }}
             >
@@ -342,7 +338,7 @@ const Talebeler = () => {
                             <input
                                 type="text"
                                 className="form-control form-control-sm"
-                                placeholder="🔍 Talebe ara..."
+                                placeholder="Talebe ara..."
                                 value={searchInput}
                                 onChange={(e) => {
                                     setSearchInput(e.target.value);
@@ -415,7 +411,7 @@ const Talebeler = () => {
                                 fontSize: '0.85rem'
                             }}
                         >
-                            ➕ Talebe Ekle
+                            Talebe Ekle
                         </button>
                         <button
                             className="btn btn-success btn-sm"
@@ -425,11 +421,11 @@ const Talebeler = () => {
                                 padding: '8px 16px',
                                 fontWeight: '600',
                                 fontSize: '0.85rem',
-                                background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                                 border: 'none'
                             }}
                         >
-                            📥 CSV İndir
+                            CSV İndir
                         </button>
                     </div>
                 </div>
