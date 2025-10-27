@@ -55,12 +55,15 @@ function getAllUsers(req, res) {
         try {
             const yurtid = req.selectedYurtId;
             const sequelize = User_1.default.sequelize;
+            const currentUserRole = req.user.role;
             // Query users who are assigned to this yurt through UserYurt table
+            // Exclude super-admin accounts for regular admins
             const users = yield sequelize.query(`
             SELECT DISTINCT u.accountid, u.username, u.role_name, u.studentid
             FROM user u
             INNER JOIN useryurt uy ON u.accountid = uy.accountid
             WHERE uy.yurtid = :yurtid
+            ${currentUserRole === 'admin' ? "AND u.role_name != 'super-admin'" : ''}
             ORDER BY u.username
         `, {
                 replacements: { yurtid },

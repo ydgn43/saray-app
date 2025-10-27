@@ -36,7 +36,9 @@ app.use(cors({
         console.error("❌ CORS blocked for", origin);
         return callback(new Error("CORS not allowed for " + origin), false);
     },
-    credentials: true
+    credentials: true,
+    exposedHeaders: ['X-Yurt-Id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Yurt-Id']
 }));
 
 // ⛔️ REMOVED THE app.options('*') BLOCK HERE! 

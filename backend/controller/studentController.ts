@@ -45,14 +45,34 @@ export class StudentController {
 
     public async createStudent(req: Request, res: Response) {
         try {
+            console.log('🔍 Create student request:', {
+                body: req.body,
+                selectedYurtId: req.selectedYurtId,
+                user: req.user
+            });
+
             const yurtid = req.selectedYurtId!;
+
+            if (!yurtid) {
+                console.error('❌ No yurtid found in request');
+                return res.status(400).json({ message: 'Yurt ID bulunamadı' });
+            }
+
+            const { first_name, last_name, birth_date, season_year, class_name } = req.body;
+
+            // birth_date is optional, so only check for the required fields
+            if (!first_name || !last_name || !season_year || !class_name) {
+                console.error('❌ Missing required fields:', { first_name, last_name, season_year, class_name });
+                return res.status(400).json({ message: 'İsim, soyisim, sezon ve sınıf zorunludur' });
+            }
+
             const student: Student = new Student(
                 undefined,
-                req.body.first_name,
-                req.body.last_name,
-                req.body.birth_date,
-                req.body.season_year,
-                req.body.class_name,
+                first_name,
+                last_name,
+                birth_date || null, // Allow empty string to be converted to null
+                season_year,
+                class_name,
                 yurtid
             );
 
@@ -62,7 +82,7 @@ export class StudentController {
 
             res.status(202).json({ message: createdResponse });
         } catch (error) {
-            console.error('Error creating student:', error);
+            console.error('❌ Error creating student:', error);
             if (error instanceof Error) {
                 res.status(400).json({ message: error.message });
             } else {

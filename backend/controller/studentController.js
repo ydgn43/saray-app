@@ -57,14 +57,30 @@ class StudentController {
     createStudent(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log('🔍 Create student request:', {
+                    body: req.body,
+                    selectedYurtId: req.selectedYurtId,
+                    user: req.user
+                });
                 const yurtid = req.selectedYurtId;
-                const student = new Student_1.Student(undefined, req.body.first_name, req.body.last_name, req.body.birth_date, req.body.season_year, req.body.class_name, yurtid);
+                if (!yurtid) {
+                    console.error('❌ No yurtid found in request');
+                    return res.status(400).json({ message: 'Yurt ID bulunamadı' });
+                }
+                const { first_name, last_name, birth_date, season_year, class_name } = req.body;
+                // birth_date is optional, so only check for the required fields
+                if (!first_name || !last_name || !season_year || !class_name) {
+                    console.error('❌ Missing required fields:', { first_name, last_name, season_year, class_name });
+                    return res.status(400).json({ message: 'İsim, soyisim, sezon ve sınıf zorunludur' });
+                }
+                const student = new Student_1.Student(undefined, first_name, last_name, birth_date || null, // Allow empty string to be converted to null
+                season_year, class_name, yurtid);
                 const createdResponse = yield this.studentService.createStudent(student);
                 console.log('📤 Sending response to frontend:', createdResponse);
                 res.status(202).json({ message: createdResponse });
             }
             catch (error) {
-                console.error('Error creating student:', error);
+                console.error('❌ Error creating student:', error);
                 if (error instanceof Error) {
                     res.status(400).json({ message: error.message });
                 }

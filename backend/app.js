@@ -48,7 +48,9 @@ app.use((0, cors_1.default)({
         console.error("❌ CORS blocked for", origin);
         return callback(new Error("CORS not allowed for " + origin), false);
     },
-    credentials: true
+    credentials: true,
+    exposedHeaders: ['X-Yurt-Id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Yurt-Id']
 }));
 // ⛔️ REMOVED THE app.options('*') BLOCK HERE! 
 // The 'cors' middleware above handles preflight requests correctly.
