@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { authFetch } from '../utils/authFetch';
 import config from '../config';
+import { toast } from 'react-toastify';
 
 type User = {
     accountid: number;
@@ -21,6 +22,8 @@ const UserManagement = () => {
     const [currentUser, setCurrentUser] = useState<Partial<User & { password?: string }>>({});
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [showResetCodeModal, setShowResetCodeModal] = useState(false);
+    const [resetCodeData, setResetCodeData] = useState<{ username: string; code: string } | null>(null);
 
     // Fetch users
     const loadUsers = async () => {
@@ -118,6 +121,43 @@ const UserManagement = () => {
         setError("");
     };
 
+    // Generate password reset code
+    const handleGenerateResetCode = async (user: User) => {
+        setSaving(true);
+        try {
+            const res = await authFetch(`${config.API_BASE_URL}/auth/admin/generate-reset-token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.username })
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Kod oluşturulamadı');
+            }
+
+            const data = await res.json();
+            setResetCodeData({
+                username: user.username,
+                code: data.resetToken
+            });
+            setShowResetCodeModal(true);
+            toast.success('Şifre sıfırlama kodu oluşturuldu!');
+        } catch (err: any) {
+            toast.error(err.message || 'Kod oluşturulamadı');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Copy reset code to clipboard
+    const handleCopyResetCode = () => {
+        if (resetCodeData) {
+            navigator.clipboard.writeText(resetCodeData.code);
+            toast.success('Kod kopyalandı!');
+        }
+    };
+
     return (
         <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
@@ -142,7 +182,10 @@ const UserManagement = () => {
                                 <td>{u.role_name}</td>
                                 <td>
                                     <button className="btn btn-sm btn-warning me-2" onClick={() => startEdit(u)}>Düzenle</button>
-                                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(u)}>Sil</button>
+                                    <button className="btn btn-sm btn-danger me-2" onClick={() => handleDelete(u)}>Sil</button>
+                                    <button className="btn btn-sm btn-info" onClick={() => handleGenerateResetCode(u)} disabled={saving}>
+                                        🔑 Şifre Kodu
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -207,6 +250,59 @@ const UserManagement = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Reset Code Modal */}
+            {showResetCodeModal && resetCodeData && (
+                <div className="modal fade show" style={{ display: "block", background: "rgba(0,0,0,0.5)" }} tabIndex={-1}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header bg-primary text-white">
+                                <h5 className="modal-title">🔑 Şifre Sıfırlama Kodu</h5>
+                                <button type="button" className="btn-close btn-close-white" onClick={() => setShowResetCodeModal(false)}></button>
+                            </div>
+                            <div className="modal-body text-center">
+                                <p className="mb-3">
+                                    <strong>{resetCodeData.username}</strong> için şifre sıfırlama kodu:
+                                </p>
+                                <div
+                                    style={{
+                                        padding: '20px',
+                                        background: '#f8f9fa',
+                                        borderRadius: '8px',
+                                        fontSize: '32px',
+                                        fontWeight: '700',
+                                        letterSpacing: '4px',
+                                        color: '#1e40af',
+                                        fontFamily: 'monospace',
+                                        marginBottom: '20px',
+                                        border: '2px solid #3b82f6'
+                                    }}
+                                >
+                                    {resetCodeData.code}
+                                </div>
+                                <button
+                                    className="btn btn-primary mb-3"
+                                    onClick={handleCopyResetCode}
+                                >
+                                    📋 Kodu Kopyala
+                                </button>
+                                <div className="alert alert-info">
+                                    <small>
+                                        ℹ️ Bu kodu kullanıcıyla paylaşın. Kod 24 saat geçerlidir.
+                                        <br />
+                                        Kullanıcı bu kodu şifre sıfırlama sayfasında kullanabilir.
+                                    </small>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowResetCodeModal(false)}>
+                                    Kapat
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

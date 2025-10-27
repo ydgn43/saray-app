@@ -66,6 +66,20 @@ __decorate([
     __metadata("design:type", Object)
 ], UserSequelize.prototype, "studentid", void 0);
 __decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING(255),
+        allowNull: true
+    }),
+    __metadata("design:type", Object)
+], UserSequelize.prototype, "resetToken", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.DATE,
+        allowNull: true
+    }),
+    __metadata("design:type", Object)
+], UserSequelize.prototype, "resetTokenExpiry", void 0);
+__decorate([
     (0, sequelize_typescript_1.BelongsTo)(() => Role_1.default),
     __metadata("design:type", Role_1.default)
 ], UserSequelize.prototype, "role", void 0);

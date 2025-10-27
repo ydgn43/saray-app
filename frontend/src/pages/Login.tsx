@@ -538,7 +538,7 @@ export default function Login() {
                                 </motion.div>
 
                                 {/* Password Field */}
-                                <motion.div variants={itemVariants} style={{ marginBottom: '28px' }}>
+                                <motion.div variants={itemVariants} style={{ marginBottom: '12px' }}>
                                     <label
                                         style={{
                                             display: 'block',
@@ -585,6 +585,21 @@ export default function Login() {
                                             whileFocus={{ scale: 1.01 }}
                                         />
                                     </div>
+                                </motion.div>
+
+                                {/* Forgot Password Link */}
+                                <motion.div variants={itemVariants} style={{ textAlign: 'right', marginBottom: '28px' }}>
+                                    <Link
+                                        to="/forgot-password"
+                                        style={{
+                                            color: '#3b82f6',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            textDecoration: 'none',
+                                        }}
+                                    >
+                                        Şifremi Unuttum
+                                    </Link>
                                 </motion.div>
 
                                 {/* Submit Button */}

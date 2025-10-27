@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { markCodeAsUsed } from './referenceCodeController';
 import { sequelize } from '../data/sequelize';
+import { QueryTypes } from 'sequelize';
 
 export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;
@@ -322,5 +323,237 @@ export const signup = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Signup error:', error);
         res.status(500).json({ message: 'Server error', error: error instanceof Error ? error.message : error });
+    }
+};
+
+// Request password reset - creates a pending request (admin approval required)
+export const requestPasswordReset = async (req: Request, res: Response) => {
+    const { username } = req.body;
+
+    console.log('🔐 Password reset request:', { username, timestamp: new Date().toISOString() });
+
+    try {
+        const User = sequelize.models.UserSequelize;
+
+        // Find user by username
+        const user: any = await User.findOne({ where: { username } });
+
+        if (!user) {
+            // Don't reveal whether user exists or not for security
+            return res.status(200).json({
+                message: 'Şifre sıfırlama talebiniz alındı. Lütfen yöneticinizle iletişime geçin.',
+                requestSubmitted: true
+            });
+        }
+
+        // Check if there's already a pending reset request (within last 24 hours)
+        if (user.resetTokenExpiry && new Date() < new Date(user.resetTokenExpiry)) {
+            return res.status(200).json({
+                message: 'Zaten aktif bir şifre sıfırlama talebiniz var. Lütfen yöneticinizle iletişime geçin.',
+                requestSubmitted: true
+            });
+        }
+
+        // Mark that user has requested a reset (but don't generate token yet)
+        // Set a flag that admin can see
+        await User.update(
+            {
+                resetToken: 'PENDING_ADMIN_APPROVAL',
+                resetTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000)
+            },
+            { where: { accountid: user.accountid } }
+        );
+
+        console.log('✅ Password reset request submitted for admin approval:', {
+            username: user.username,
+            accountid: user.accountid
+        });
+
+        res.status(200).json({
+            message: 'Şifre sıfırlama talebiniz alındı. Yöneticiniz en kısa sürede size yardımcı olacaktır.',
+            requestSubmitted: true,
+            note: 'Lütfen yöneticinizle iletişime geçin.'
+        });
+
+    } catch (error) {
+        console.error('Password reset request error:', error);
+        res.status(500).json({ message: 'Sunucu hatası', error: error instanceof Error ? error.message : error });
+    }
+};// Reset password using token
+export const resetPassword = async (req: Request, res: Response) => {
+    const { username, resetToken, newPassword } = req.body;
+
+    console.log('🔐 Password reset attempt:', { username, timestamp: new Date().toISOString() });
+
+    try {
+        if (!username || !resetToken || !newPassword) {
+            return res.status(400).json({ message: 'Kullanıcı adı, sıfırlama kodu ve yeni şifre gereklidir' });
+        }
+
+        if (newPassword.length < 4) {
+            return res.status(400).json({ message: 'Şifre en az 4 karakter olmalıdır' });
+        }
+
+        const User = sequelize.models.UserSequelize;
+
+        // Find user by username
+        const user: any = await User.findOne({ where: { username } });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya sıfırlama kodu' });
+        }
+
+        // Check if reset token exists
+        if (!user.resetToken || !user.resetTokenExpiry) {
+            return res.status(401).json({ message: 'Geçersiz veya süresi dolmuş sıfırlama kodu' });
+        }
+
+        // Check if token is expired
+        if (new Date() > new Date(user.resetTokenExpiry)) {
+            // Clear expired token
+            await User.update(
+                { resetToken: null, resetTokenExpiry: null },
+                { where: { accountid: user.accountid } }
+            );
+            return res.status(401).json({ message: 'Sıfırlama kodunun süresi dolmuş. Lütfen yeni bir kod talep edin' });
+        }
+
+        // Verify the reset token
+        const tokenValid = await bcrypt.compare(resetToken, user.resetToken);
+
+        if (!tokenValid) {
+            return res.status(401).json({ message: 'Geçersiz sıfırlama kodu' });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear reset token
+        await User.update(
+            {
+                password: hashedPassword,
+                resetToken: null,
+                resetTokenExpiry: null
+            },
+            { where: { accountid: user.accountid } }
+        );
+
+        console.log('✅ Password successfully reset for user:', {
+            username: user.username,
+            accountid: user.accountid
+        });
+
+        res.status(200).json({
+            message: 'Şifreniz başarıyla sıfırlandı. Şimdi giriş yapabilirsiniz',
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Password reset error:', error);
+        res.status(500).json({ message: 'Sunucu hatası', error: error instanceof Error ? error.message : error });
+    }
+};
+
+// Admin-only: Generate password reset token for a user
+export const generatePasswordResetToken = async (req: Request, res: Response) => {
+    const { username } = req.body;
+    const adminUser = req.user; // From JWT middleware (using proper typing)
+
+    console.log('🔐 Admin generating password reset token:', {
+        username,
+        adminUser: adminUser,
+        adminUsername: adminUser?.username,
+        adminRole: adminUser?.role,
+        hasUser: !!req.user,
+        timestamp: new Date().toISOString()
+    });
+
+    try {
+        // Verify admin role
+        if (!adminUser) {
+            console.log('❌ No admin user found in request');
+            return res.status(403).json({ message: 'Bu işlem için yetkiniz yok - Kullanıcı bilgisi bulunamadı' });
+        }
+
+        console.log('✅ User authenticated, role:', adminUser.role);
+
+        // Check if user is admin or super-admin (allow both)
+        const allowedRoles = ['admin', 'super-admin'];
+        if (!allowedRoles.includes(adminUser.role)) {
+            console.log('❌ Invalid role:', adminUser.role, 'Expected one of:', allowedRoles);
+            return res.status(403).json({
+                message: `Bu işlem için yetkiniz yok - Rol: ${adminUser.role}`,
+                requiredRoles: allowedRoles
+            });
+        }
+
+        console.log('✅ Role check passed');
+
+        const User = sequelize.models.UserSequelize;
+
+        // Find user by username
+        const user: any = await User.findOne({ where: { username } });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+        }
+
+        // If admin (not super-admin), verify user is in same yurt
+        if (adminUser.role === 'admin') {
+            const userYurts: any = await sequelize.query(`
+                SELECT yurtid FROM useryurt WHERE accountid = :accountid
+            `, {
+                replacements: { accountid: user.accountid },
+                type: QueryTypes.SELECT
+            });
+
+            const adminYurtId = req.selectedYurtId;
+            console.log('🔍 Yurt boundary check - Admin yurt:', adminYurtId, 'User yurts:', userYurts);
+
+            // Check if user has access to the admin's yurt
+            const userHasAccessToYurt = userYurts.some((uy: any) => uy.yurtid === adminYurtId);
+            if (!userHasAccessToYurt) {
+                return res.status(403).json({ message: 'Bu kullanıcı için şifre sıfırlama yetkınız yok' });
+            }
+        }
+
+        // Generate a random 8-character reset token
+        const resetToken = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+        // Hash the token before storing
+        const hashedToken = await bcrypt.hash(resetToken, 10);
+
+        // Set token expiry to 24 hours from now
+        const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        // Store the hashed token and expiry in the user record
+        await User.update(
+            {
+                resetToken: hashedToken,
+                resetTokenExpiry: tokenExpiry
+            },
+            { where: { accountid: user.accountid } }
+        );
+
+        console.log('✅ Admin generated password reset token:', {
+            username: user.username,
+            accountid: user.accountid,
+            generatedBy: adminUser.username,
+            token: resetToken,
+            expiry: tokenExpiry
+        });
+
+        res.status(200).json({
+            message: 'Şifre sıfırlama kodu oluşturuldu',
+            success: true,
+            resetToken: resetToken,
+            username: user.username,
+            expiresAt: tokenExpiry,
+            note: 'Bu kodu kullanıcıyla paylaşın. 24 saat geçerlidir.'
+        });
+
+    } catch (error) {
+        console.error('Admin password reset token generation error:', error);
+        res.status(500).json({ message: 'Sunucu hatası', error: error instanceof Error ? error.message : error });
     }
 };

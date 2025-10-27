@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import PrivateRoute from './auth/PrivateRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Attendance from './pages/Attendance';
 import Statistics from './pages/Statistics';
 import Talebeler from './pages/Talebeler';
@@ -51,6 +53,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/attendance"
             element={

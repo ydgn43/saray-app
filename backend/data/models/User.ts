@@ -49,6 +49,18 @@ export default class UserSequelize extends Model {
     })
     declare studentid: number | null;
 
+    @Column({
+        type: DataType.STRING(255),
+        allowNull: true
+    })
+    declare resetToken: string | null;
+
+    @Column({
+        type: DataType.DATE,
+        allowNull: true
+    })
+    declare resetTokenExpiry: Date | null;
+
     @BelongsTo(() => Role)
     role!: Role;
 
