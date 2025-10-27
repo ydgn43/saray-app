@@ -274,9 +274,9 @@ const Attendance = () => {
   };
 
   // --- Filtered students by selected classes ---
-  const filteredStudents = selectedClasses.length > 0
+  const filteredStudents = (selectedClasses.length > 0
     ? students.filter(s => selectedClasses.includes(s.class_name))
-    : students;
+    : students).sort((a, b) => a.first_name.localeCompare(b.first_name, 'tr'));
 
   const handleShareAbsentees = () => {
     // Grouping by type and class

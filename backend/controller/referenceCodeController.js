@@ -24,10 +24,9 @@ const generateUniqueCode = () => {
 const createReferenceCode = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { roleId, expiresAt, maxUses, description } = req.body;
-        const yurtid = req.headers['x-yurt-id'] ? Number(req.headers['x-yurt-id']) : null;
+        const yurtid = req.selectedYurtId; // Get from middleware instead of header
         console.log('📝 Creating reference code:');
-        console.log('   - x-yurt-id header:', req.headers['x-yurt-id']);
-        console.log('   - Parsed yurtid:', yurtid);
+        console.log('   - selectedYurtId:', yurtid);
         console.log('   - roleId from body:', roleId);
         const ReferenceCode = sequelize_2.sequelize.models.ReferenceCode;
         const Role = sequelize_2.sequelize.models.RoleSequelize;

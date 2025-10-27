@@ -63,6 +63,9 @@ const CustomManagement = () => {
             else if (type === 'class') setNewClass('');
 
             fetchAll();
+
+            // Refresh page to show new entry across the app
+            setTimeout(() => window.location.reload(), 1000);
         } catch {
             toast.error(`${type} eklenemedi`);
         }
@@ -96,6 +99,9 @@ const CustomManagement = () => {
             toast.success(`${type} güncellendi`);
             setEditingItem(null);
             fetchAll();
+
+            // Refresh page to show updated entry across the app
+            setTimeout(() => window.location.reload(), 1000);
         } catch {
             toast.error(`${type} güncellenemedi`);
         }
@@ -113,6 +119,9 @@ const CustomManagement = () => {
             if (!res.ok) throw new Error();
             toast.success(`${type} silindi`);
             fetchAll();
+
+            // Refresh page to update dropdowns across the app
+            setTimeout(() => window.location.reload(), 1000);
         } catch {
             toast.error(`${type} silinemedi`);
         }

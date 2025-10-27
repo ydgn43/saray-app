@@ -2,7 +2,7 @@ export class Student {
     private _studentId: number | undefined;
     private _firstName!: string;
     private _lastName!: string;
-    private _birthDate!: Date;
+    private _birthDate!: Date | null;
     private _seasonYear!: string;
     private _className!: string;
     private _yurtId!: number;
@@ -11,7 +11,7 @@ export class Student {
         studentId: number | undefined,
         firstName: string,
         lastName: string,
-        birthDate: Date,
+        birthDate: Date | null,
         seasonYear: string,
         className: string,
         yurtId: number
@@ -59,11 +59,11 @@ export class Student {
         this._lastName = lastName;
     }
 
-    public get birthDate(): Date {
+    public get birthDate(): Date | null {
         return this._birthDate;
     }
 
-    public set birthDate(birthDate: Date) {
+    public set birthDate(birthDate: Date | null) {
         this._birthDate = birthDate;
     }
 

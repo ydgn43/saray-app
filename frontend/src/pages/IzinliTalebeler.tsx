@@ -171,6 +171,9 @@ const IzinliTalebeler = () => {
             setShowDeleteConfirm(false);
             setStudentToDelete(null);
             fetchIzinliler();
+
+            // Refresh page to update attendance data
+            setTimeout(() => window.location.reload(), 1000);
         } catch {
             toast.error('Silme işlemi başarısız.');
         } finally {

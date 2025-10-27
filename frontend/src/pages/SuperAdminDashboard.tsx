@@ -80,6 +80,7 @@ const SuperAdminDashboard = () => {
     const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
     const [showAssignAdminModal, setShowAssignAdminModal] = useState(false);
     const [showEditUserModal, setShowEditUserModal] = useState(false);
+    const [showEditYurtModal, setShowEditYurtModal] = useState(false);
 
     // Form state for creating reference code
     const [expiresAt, setExpiresAt] = useState('');
@@ -102,6 +103,12 @@ const SuperAdminDashboard = () => {
     const [editUsername, setEditUsername] = useState('');
     const [editRole, setEditRole] = useState('');
     const [editPassword, setEditPassword] = useState('');
+
+    // Form state for yurt management
+    const [editingYurt, setEditingYurt] = useState<Yurt | null>(null);
+    const [editYurtName, setEditYurtName] = useState('');
+    const [editYurtLocation, setEditYurtLocation] = useState('');
+    const [editYurtDescription, setEditYurtDescription] = useState('');
 
     useEffect(() => {
         fetchSystemStats();
@@ -255,6 +262,9 @@ const SuperAdminDashboard = () => {
             fetchYurts();
             fetchSystemStats();
             fetchAdmins();
+
+            // Refresh page to show new admin
+            setTimeout(() => window.location.reload(), 1000);
         } catch (error: any) {
             toast.error(error.message || 'Failed to create admin user');
         } finally {
@@ -294,6 +304,9 @@ const SuperAdminDashboard = () => {
             setAssignYurtId('');
             setIsPrimary(false);
             fetchYurts();
+
+            // Refresh page to show updated yurt assignments
+            setTimeout(() => window.location.reload(), 1000);
         } catch (error: any) {
             toast.error(error.message || 'Failed to assign admin');
         } finally {
@@ -340,6 +353,9 @@ const SuperAdminDashboard = () => {
             setEditPassword('');
             fetchUsers();
             fetchSystemStats();
+
+            // Refresh page to show updated user details
+            setTimeout(() => window.location.reload(), 1000);
         } catch (error: any) {
             toast.error(error.message || 'Failed to update user');
         } finally {
@@ -367,6 +383,9 @@ const SuperAdminDashboard = () => {
             toast.success('✅ User deleted successfully');
             fetchUsers();
             fetchSystemStats();
+
+            // Refresh page to update user list
+            setTimeout(() => window.location.reload(), 1000);
         } catch (error: any) {
             toast.error(error.message || 'Failed to delete user');
         } finally {
@@ -380,6 +399,85 @@ const SuperAdminDashboard = () => {
         setEditRole(user.role_name);
         setEditPassword('');
         setShowEditUserModal(true);
+    };
+
+    const openEditYurtModal = (yurt: Yurt) => {
+        setEditingYurt(yurt);
+        setEditYurtName(yurt.yurt_name);
+        setEditYurtLocation(yurt.location || '');
+        setEditYurtDescription(yurt.description || '');
+        setShowEditYurtModal(true);
+    };
+
+    const handleEditYurt = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingYurt) return;
+
+        setLoading(true);
+        try {
+            const res = await authFetch(
+                `${config.API_BASE_URL}/yurts/${editingYurt.yurtid}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        yurt_name: editYurtName,
+                        location: editYurtLocation || null,
+                        description: editYurtDescription || null
+                    })
+                }
+            );
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message);
+            }
+
+            toast.success('✅ Yurt updated successfully');
+            setShowEditYurtModal(false);
+            setEditingYurt(null);
+            setEditYurtName('');
+            setEditYurtLocation('');
+            setEditYurtDescription('');
+            fetchYurts();
+
+            // Refresh page to show updated yurt details
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to update yurt');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteYurt = async (yurt: Yurt) => {
+        if (!window.confirm(`Are you sure you want to delete yurt "${yurt.yurt_name}"? This will delete all associated data (students, attendance, etc.) and cannot be undone.`)) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await authFetch(
+                `${config.API_BASE_URL}/yurts/${yurt.yurtid}`,
+                { method: 'DELETE' }
+            );
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message);
+            }
+
+            toast.success('✅ Yurt deleted successfully');
+            fetchYurts();
+            fetchSystemStats();
+
+            // Refresh page to update all yurt-related data
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to delete yurt');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getStatusBadge = (code: AdminReferenceCode) => {
@@ -577,7 +675,28 @@ const SuperAdminDashboard = () => {
                                         <div key={yurt.yurtid} className="col-md-4">
                                             <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '12px' }}>
                                                 <div className="card-body">
-                                                    <h6 className="fw-bold mb-2">{yurt.yurt_name}</h6>
+                                                    <div className="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 className="fw-bold mb-0">{yurt.yurt_name}</h6>
+                                                        <div className="d-flex gap-1">
+                                                            <button
+                                                                className="btn btn-sm btn-outline-primary"
+                                                                onClick={() => openEditYurtModal(yurt)}
+                                                                style={{ borderRadius: '6px', padding: '2px 8px' }}
+                                                                title="Edit Yurt"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-outline-danger"
+                                                                onClick={() => handleDeleteYurt(yurt)}
+                                                                style={{ borderRadius: '6px', padding: '2px 8px' }}
+                                                                title="Delete Yurt"
+                                                                disabled={yurt.yurtid === 1}
+                                                            >
+                                                                <Trash size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                     {yurt.location && <p className="text-muted small mb-2">📍 {yurt.location}</p>}
                                                     {yurt.description && <p className="text-muted small mb-3">{yurt.description}</p>}
                                                     <div className="d-flex align-items-center gap-2 mb-2">
@@ -971,6 +1090,70 @@ const SuperAdminDashboard = () => {
                                 </div>
                                 <div className="modal-footer border-0">
                                     <button type="button" className="btn btn-secondary" onClick={() => setShowEditUserModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" disabled={loading}>
+                                        {loading ? 'Saving...' : 'Save Changes'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Yurt Modal */}
+            {showEditYurtModal && editingYurt && (
+                <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => setShowEditYurtModal(false)}>
+                    <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-content" style={{ borderRadius: '12px' }}>
+                            <div className="modal-header border-0">
+                                <h5 className="modal-title fw-bold">Edit Yurt: {editingYurt.yurt_name}</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowEditYurtModal(false)}></button>
+                            </div>
+                            <form onSubmit={handleEditYurt}>
+                                <div className="modal-body">
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Yurt Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={editYurtName}
+                                            onChange={(e) => setEditYurtName(e.target.value)}
+                                            placeholder="Enter yurt name"
+                                            required
+                                            minLength={2}
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Location <span className="text-muted">(Optional)</span></label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={editYurtLocation}
+                                            onChange={(e) => setEditYurtLocation(e.target.value)}
+                                            placeholder="Enter location"
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label fw-semibold">Description <span className="text-muted">(Optional)</span></label>
+                                        <textarea
+                                            className="form-control"
+                                            value={editYurtDescription}
+                                            onChange={(e) => setEditYurtDescription(e.target.value)}
+                                            placeholder="Enter description"
+                                            rows={3}
+                                        />
+                                    </div>
+                                    <div className="alert alert-info d-flex align-items-start gap-2 mb-0">
+                                        <Building size={20} className="flex-shrink-0 mt-1" />
+                                        <small>
+                                            Changes will affect all admins and students assigned to this yurt.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div className="modal-footer border-0">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowEditYurtModal(false)}>
                                         Cancel
                                     </button>
                                     <button type="submit" className="btn btn-primary" disabled={loading}>

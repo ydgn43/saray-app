@@ -110,6 +110,17 @@ class YurtController {
             try {
                 const { yurtid } = req.params;
                 const updates = req.body;
+                const userId = req.user.accountid;
+                const userRole = req.user.role;
+                // Check if admin has access to this yurt (super-admin bypasses this)
+                if (userRole === 'admin') {
+                    const hasAccess = yield userYurtData.hasAccessToYurt(userId, Number(yurtid));
+                    if (!hasAccess) {
+                        return res.status(403).json({
+                            message: 'You do not have permission to update this yurt'
+                        });
+                    }
+                }
                 const yurt = yield yurtService_1.default.updateYurt(Number(yurtid), updates);
                 res.json({
                     message: 'Yurt updated successfully',

@@ -189,8 +189,8 @@ const Talebeler = () => {
     const handleAddStudent = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!first_name || !last_name || !birth_date || !season_year || !class_name) {
-            toast.error('Lütfen tüm alanları doldurun.');
+        if (!first_name || !last_name || !season_year || !class_name) {
+            toast.error('Lütfen zorunlu alanları doldurun.');
             return;
         }
 
@@ -235,7 +235,7 @@ const Talebeler = () => {
         const matchesClass = selectedClass ? s.class_name === selectedClass : true;
         const matchesSeason = selectedSeason ? s.season_year === selectedSeason : true;
         return matchesSearch && matchesClass && matchesSeason;
-    });
+    }).sort((a, b) => a.first_name.localeCompare(b.first_name, 'tr'));
 
     const indexOfLast = currentPage * studentsPerPage;
     const indexOfFirst = indexOfLast - studentsPerPage;
@@ -493,7 +493,7 @@ const Talebeler = () => {
                                         </div>
                                         <div className="row">
                                             <div className="col-md-6 mb-3">
-                                                <label>Doğum Tarihi</label>
+                                                <label>Doğum Tarihi <span className="text-muted">(Opsiyonel)</span></label>
                                                 <input type="date" className="form-control" value={birth_date} onChange={(e) => setBirthDate(e.target.value)} />
                                             </div>
                                             <div className="col-md-6 mb-3">
@@ -602,7 +602,7 @@ const Talebeler = () => {
                                             <input className="form-control" value={editingStudent.last_name} onChange={(e) => setEditingStudent({ ...editingStudent, last_name: e.target.value })} />
                                         </div>
                                         <div className="mb-3">
-                                            <label>Doğum Tarihi</label>
+                                            <label>Doğum Tarihi <span className="text-muted">(Opsiyonel)</span></label>
                                             <input type="date" className="form-control" value={editingStudent.birth_date} onChange={(e) => setEditingStudent({ ...editingStudent, birth_date: e.target.value })} />
                                         </div>
                                         <div className="mb-3">
@@ -709,7 +709,13 @@ const Talebeler = () => {
                                         <td>{s.last_name}</td>
                                         <td>{getTurkishClassName(s.class_name)}</td>
                                         <td>{s.season_year}</td>
-                                        <td>{s.birth_date}</td>
+                                        <td>
+                                            {s.birth_date && s.birth_date !== '0000-00-00' ? (
+                                                s.birth_date
+                                            ) : (
+                                                <span className="text-muted fst-italic">Yok</span>
+                                            )}
+                                        </td>
                                         <td>
                                             {s.reference_code ? (
                                                 <code className="bg-light px-2 py-1 rounded">{s.reference_code}</code>

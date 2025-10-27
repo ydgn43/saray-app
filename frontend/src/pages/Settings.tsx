@@ -4,9 +4,11 @@ import { useAuth } from '../auth/AuthContext';
 import UserManagement from './UserManagement';
 import Layout from '../components/Layout';
 import CustomManagement from './CustomManagement';
+import YurtManagement from './YurtManagement';
 
 const TABS = [
     { key: 'users', label: 'Kullanıcı Yönetimi', adminOnly: true },
+    { key: 'yurts', label: 'Yurt Yönetimi', adminOnly: true },
     { key: 'custom', label: 'Sezon ve Program Yönetimi', adminOnly: true },
 ];
 
@@ -35,6 +37,7 @@ const Settings = () => {
             {/* Tab content */}
             <div>
                 {tab === 'users' && user?.role === 'admin' && <UserManagement />}
+                {tab === 'yurts' && user?.role === 'admin' && <YurtManagement />}
                 {tab === 'custom' && user?.role === 'admin' && <CustomManagement />}
             </div>
         </div>

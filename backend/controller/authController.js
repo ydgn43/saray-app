@@ -183,18 +183,25 @@ const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             studentid: linkedStudentId
         });
         console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId, yurtid: assignedYurtId });
-        // 7. Special handling for admin users: Create a yurt automatically
+        // 7. Special handling for admin users
         if (roleToAssign === 'admin') {
-            console.log('🏢 Creating yurt for new admin:', newUser.username);
-            const Yurt = sequelize_1.sequelize.models.YurtSequelize;
-            const newYurt = yield Yurt.create({
-                yurt_name: `${newUser.username}_yurt`,
-                location: null,
-                description: `Yurt for admin ${newUser.username}`,
-                is_active: true
-            });
-            assignedYurtId = newYurt.yurtid;
-            console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+            console.log('🏢 Admin user detected');
+            // Only create a new yurt if no yurt is assigned yet (e.g., for super-admin created codes without yurt)
+            if (!assignedYurtId) {
+                console.log('🏢 No yurt assigned, creating new yurt for admin:', newUser.username);
+                const Yurt = sequelize_1.sequelize.models.YurtSequelize;
+                const newYurt = yield Yurt.create({
+                    yurt_name: `${newUser.username}_yurt`,
+                    location: null,
+                    description: `Yurt for admin ${newUser.username}`,
+                    is_active: true
+                });
+                assignedYurtId = newYurt.yurtid;
+                console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+            }
+            else {
+                console.log('✅ Admin will be assigned to existing yurt:', assignedYurtId);
+            }
         }
         // 8. Assign user to yurt
         const UserYurt = sequelize_1.sequelize.models.UserYurt;

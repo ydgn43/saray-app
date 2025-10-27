@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { Building, Check, ChevronDown, Plus, Trash } from 'react-bootstrap-icons';
+import { Building, Check, ChevronDown, Plus } from 'react-bootstrap-icons';
 import { useNavigate } from 'react-router-dom';
 import config from '../config';
 
@@ -81,51 +81,6 @@ export const YurtSelector: React.FC = () => {
             alert('Yurt oluşturulurken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
         } finally {
             setIsCreating(false);
-        }
-    };
-
-    const handleDeleteYurt = async (yurtId: number, yurtName: string, e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent switching to this yurt when clicking delete
-        e.preventDefault(); // Prevent any default behavior
-
-        // Confirm deletion
-        const confirmMessage = `"${yurtName}" yurdunu silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz ve yurt ile ilişkili tüm veriler silinecektir.`;
-        if (!window.confirm(confirmMessage)) {
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const url = `${config.API_BASE_URL}/yurts/${yurtId}`;
-
-            const response = await fetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                // If we deleted the currently selected yurt, we need to switch to another one
-                if (selectedYurt?.yurtId === yurtId) {
-                    const remainingActiveYurts = activeYurts.filter(y => y.yurtId !== yurtId);
-                    if (remainingActiveYurts.length > 0) {
-                        switchYurt(remainingActiveYurts[0]); // This will reload the page
-                    }
-                } else {
-                    // Just reload the yurts list without page refresh
-                    alert('Yurt başarıyla silindi!');
-                    window.location.reload(); // Reload to ensure UI is fresh
-                }
-            } else {
-                alert(`Hata: ${data.message || 'Yurt silinemedi'}`);
-            }
-        } catch (error) {
-            console.error('Delete yurt error:', error);
-            alert('Yurt silinirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
         }
     };
 
@@ -286,48 +241,14 @@ export const YurtSelector: React.FC = () => {
                                         </span>
                                     )}
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    {/* Delete button - only show if more than 1 active yurt */}
-                                    {activeYurts.length > 1 && (
-                                        <button
-                                            onClick={(e) => handleDeleteYurt(yurt.yurtId, yurt.yurtName, e)}
-                                            style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                padding: '4px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                borderRadius: '4px',
-                                                transition: 'background 0.2s',
-                                            }}
-                                            onMouseOver={(e) => {
-                                                e.currentTarget.style.background = isSelected
-                                                    ? 'rgba(255, 255, 255, 0.2)'
-                                                    : 'rgba(239, 68, 68, 0.1)';
-                                            }}
-                                            onMouseOut={(e) => {
-                                                e.currentTarget.style.background = 'transparent';
-                                            }}
-                                            title="Yurdu sil"
-                                        >
-                                            <Trash
-                                                size={14}
-                                                style={{
-                                                    color: isSelected ? '#ffffff' : '#ef4444',
-                                                }}
-                                            />
-                                        </button>
-                                    )}
-                                    {isSelected && (
-                                        <Check
-                                            size={18}
-                                            style={{
-                                                color: '#ffffff',
-                                            }}
-                                        />
-                                    )}
-                                </div>
+                                {isSelected && (
+                                    <Check
+                                        size={18}
+                                        style={{
+                                            color: '#ffffff',
+                                        }}
+                                    />
+                                )}
                             </div>
                         );
                     })}

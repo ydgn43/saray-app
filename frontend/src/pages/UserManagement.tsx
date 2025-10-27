@@ -83,6 +83,9 @@ const UserManagement = () => {
             setModal(null);
             setCurrentUser({});
             loadUsers();
+
+            // Refresh page to show updated user list
+            setTimeout(() => window.location.reload(), 1000);
         } catch (err: any) {
             setError(err.message || "Hata oluştu.");
         } finally {
@@ -98,6 +101,9 @@ const UserManagement = () => {
             const res = await authFetch(`${config.API_BASE_URL}/user/${user.accountid}`, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
             loadUsers();
+
+            // Refresh page to update user list
+            setTimeout(() => window.location.reload(), 1000);
         } catch (err: any) {
             setError(err.message || "Hata oluştu.");
         } finally {

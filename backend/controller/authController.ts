@@ -205,20 +205,27 @@ export const signup = async (req: Request, res: Response) => {
 
         console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId, yurtid: assignedYurtId });
 
-        // 7. Special handling for admin users: Create a yurt automatically
+        // 7. Special handling for admin users
         if (roleToAssign === 'admin') {
-            console.log('🏢 Creating yurt for new admin:', newUser.username);
+            console.log('🏢 Admin user detected');
 
-            const Yurt = sequelize.models.YurtSequelize;
-            const newYurt: any = await Yurt.create({
-                yurt_name: `${newUser.username}_yurt`,
-                location: null,
-                description: `Yurt for admin ${newUser.username}`,
-                is_active: true
-            });
+            // Only create a new yurt if no yurt is assigned yet (e.g., for super-admin created codes without yurt)
+            if (!assignedYurtId) {
+                console.log('🏢 No yurt assigned, creating new yurt for admin:', newUser.username);
 
-            assignedYurtId = newYurt.yurtid;
-            console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+                const Yurt = sequelize.models.YurtSequelize;
+                const newYurt: any = await Yurt.create({
+                    yurt_name: `${newUser.username}_yurt`,
+                    location: null,
+                    description: `Yurt for admin ${newUser.username}`,
+                    is_active: true
+                });
+
+                assignedYurtId = newYurt.yurtid;
+                console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+            } else {
+                console.log('✅ Admin will be assigned to existing yurt:', assignedYurtId);
+            }
         }
 
         // 8. Assign user to yurt

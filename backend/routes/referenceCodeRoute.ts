@@ -6,6 +6,7 @@ import {
     deactivateReferenceCode,
 } from '../controller/referenceCodeController';
 import { authenticateJWT, requireAdmin } from '../middleware/authMiddleware';
+import { validateYurtAccess } from '../middleware/validateYurtAccess';
 
 const router = express.Router();
 
@@ -18,9 +19,9 @@ console.log('authenticateJWT:', typeof authenticateJWT);
 console.log('requireAdmin:', typeof requireAdmin);
 
 // Admin routes - require authentication and admin role
-router.post('/', authenticateJWT, requireAdmin, createReferenceCode);
-router.get('/', authenticateJWT, requireAdmin, getAllReferenceCodes);
-router.delete('/:id', authenticateJWT, requireAdmin, deactivateReferenceCode);
+router.post('/', authenticateJWT, requireAdmin, validateYurtAccess, createReferenceCode);
+router.get('/', authenticateJWT, requireAdmin, validateYurtAccess, getAllReferenceCodes);
+router.delete('/:id', authenticateJWT, requireAdmin, validateYurtAccess, deactivateReferenceCode);
 
 // Public route - validate code during signup
 router.get('/validate/:code', validateReferenceCode);

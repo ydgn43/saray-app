@@ -67,6 +67,66 @@ class YurtData {
             if (!yurt) {
                 throw new Error('Yurt not found');
             }
+            // Hard delete - actually remove from database with cascading deletes
+            const sequelize = Yurt_1.default.sequelize;
+            console.log(`🗑️ Deleting yurt ${yurtid} and all related data...`);
+            // Delete all related data in the correct order to avoid foreign key issues
+            // 1. Delete attendance records
+            yield sequelize.query(`DELETE FROM attendance WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Deleted attendance records');
+            // 2. Delete activity logs
+            yield sequelize.query(`DELETE FROM activitylog WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Deleted activity logs');
+            // 3. Delete students
+            yield sequelize.query(`DELETE FROM student WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Deleted students');
+            // 4. Delete UserYurt associations
+            yield sequelize.query(`DELETE FROM useryurt WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Deleted user-yurt associations');
+            // 5. Delete reference codes associated with this yurt
+            yield sequelize.query(`DELETE FROM referencecodes WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Deleted reference codes');
+            // 6. Update users to remove yurtid reference (set to default)
+            yield sequelize.query(`UPDATE user SET yurtid = 1 WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Updated user yurtid references');
+            // 7. Delete classes, seasons, programs, attendance types for this yurt
+            yield sequelize.query(`DELETE FROM class WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            yield sequelize.query(`DELETE FROM season WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            yield sequelize.query(`DELETE FROM program WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            yield sequelize.query(`DELETE FROM attendancetype WHERE yurtid = :yurtid`, {
+                replacements: { yurtid }
+            });
+            console.log('✅ Deleted yurt configuration data');
+            // 8. Finally, delete the yurt itself
+            yield yurt.destroy();
+            console.log('✅ Yurt deleted successfully');
+            return yurt;
+        });
+    }
+    softDeleteYurt(yurtid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const yurt = yield Yurt_1.default.findByPk(yurtid);
+            if (!yurt) {
+                throw new Error('Yurt not found');
+            }
             // Soft delete - mark as inactive instead of deleting
             // This preserves data integrity
             return yield yurt.update({ is_active: false });
