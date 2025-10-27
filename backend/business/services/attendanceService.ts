@@ -36,4 +36,8 @@ export class AttendanceService {
     public async deleteAttendance(studentId: number, date: string, programName: string, yurtid: number): Promise<boolean> {
         return this.attendanceData.deleteAttendance(studentId, date, programName, yurtid);
     }
+
+    public async deleteAllAttendanceByProgram(date: string, programName: string, yurtid: number): Promise<number> {
+        return this.attendanceData.deleteAllAttendanceByProgram(date, programName, yurtid);
+    }
 }

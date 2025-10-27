@@ -49,5 +49,10 @@ class AttendanceService {
             return this.attendanceData.deleteAttendance(studentId, date, programName, yurtid);
         });
     }
+    deleteAllAttendanceByProgram(date, programName, yurtid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.attendanceData.deleteAllAttendanceByProgram(date, programName, yurtid);
+        });
+    }
 }
 exports.AttendanceService = AttendanceService;

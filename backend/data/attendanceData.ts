@@ -189,4 +189,23 @@ export default class AttendanceData {
             throw new Error('Could not delete attendance');
         }
     }
+
+    public async deleteAllAttendanceByProgram(date: string, programName: string, yurtid: number): Promise<number> {
+        try {
+            console.log(`🗑️ Data layer DELETE ALL: date=${date}, program_name=${programName}, yurtid=${yurtid}`);
+
+            const deleted = await AttendanceSequelize.destroy({
+                where: {
+                    date: date,
+                    program_name: programName,
+                    yurtid: yurtid
+                },
+            });
+            console.log(`🗑️ Total rows deleted: ${deleted}`);
+            return deleted;
+        } catch (error) {
+            console.error('❌ Delete all failed:', error);
+            throw new Error('Could not delete attendance records for program');
+        }
+    }
 }

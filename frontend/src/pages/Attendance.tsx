@@ -10,6 +10,7 @@ import { classOrder, groupHeaderTitles } from '../constants';
 import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 import config from '../config';
+import { useAuth } from '../auth/AuthContext';
 
 // These will be loaded from the database
 const PROGRAM_OPTIONS: string[] = [];
@@ -50,10 +51,12 @@ const fetchJson = async (url: string, options = {}) => {
 };
 
 const Attendance = () => {
+  const { user } = useAuth();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [showCreateButton, setShowCreateButton] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Set today's date as default
   const getTodayString = () => {
@@ -209,6 +212,49 @@ const Attendance = () => {
       await loadAttendanceData();
     } catch {
       toast.error("Yoklama oluşturulamadı");
+    }
+  };
+
+  // --- Delete all attendance for program ---
+  const handleDeleteAllAttendance = async () => {
+    if (!date || !program) {
+      toast.error("Tarih ve program seçiniz.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Bu program için tüm yoklama kayıtlarını silmek istediğinize emin misiniz?\n\n` +
+      `Tarih: ${formatDateDisplay(date)}\n` +
+      `Program: ${program}\n` +
+      `Toplam ${attendanceData.length} kayıt silinecek.\n\n` +
+      `Bu işlem geri alınamaz!`
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
+      const res = await authFetch(
+        `${config.API_BASE_URL}/attendance/delete-program?date=${date}&program_name=${apiProgramName}`,
+        { method: 'DELETE' }
+      );
+
+      if (!res.ok) {
+        throw new Error('Silme işlemi başarısız');
+      }
+
+      const data = await res.json();
+      toast.success(data.message || 'Yoklama kayıtları silindi');
+
+      // Clear the attendance data and show create button
+      setAttendanceData([]);
+      setShowCreateButton(true);
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error("Yoklama kayıtları silinemedi");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -567,23 +613,57 @@ const Attendance = () => {
       </AnimatePresence>
 
       {attendanceData.length > 0 && (
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="btn btn-info mb-2 shadow-sm btn-sm"
-          onClick={handleShareAbsentees}
-          style={{
-            borderRadius: '8px',
-            padding: '8px 16px',
-            fontWeight: '600',
-            fontSize: '0.85rem',
-            background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
-            border: 'none',
-            color: 'white'
-          }}
-        >
-          Paylaş
-        </motion.button>
+        <div className="d-flex gap-2 mb-2 flex-wrap">
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="btn btn-info shadow-sm btn-sm"
+            onClick={handleShareAbsentees}
+            style={{
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+              border: 'none',
+              color: 'white'
+            }}
+          >
+            Paylaş
+          </motion.button>
+
+          {user?.role === 'admin' && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="btn btn-danger shadow-sm btn-sm"
+              onClick={handleDeleteAllAttendance}
+              disabled={deleting}
+              style={{
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontWeight: '600',
+                fontSize: '0.85rem',
+                background: deleting ? '#6c757d' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                border: 'none',
+                color: 'white',
+                opacity: deleting ? 0.6 : 1
+              }}
+            >
+              {deleting ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Siliniyor...
+                </>
+              ) : (
+                <>
+                  🗑️ Tüm Kayıtları Sil
+                </>
+              )}
+            </motion.button>
+          )}
+        </div>
       )}
 
       <div className="mb-3" style={{ position: 'relative', minHeight: 240 }}>

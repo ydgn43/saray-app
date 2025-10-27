@@ -80,6 +80,36 @@ attendanceRouter.delete('/delete', requireRoles(['admin', 'hoca', 'yoklamaci']),
     }
 });
 
+// Delete all attendance records for a program on a specific date
+attendanceRouter.delete('/delete-program', requireRoles(['admin']), async (req: Request, res: Response) => {
+    console.log('🔥 DELETE /delete-program route HIT with query:', req.query);
+    console.log('🔥 User:', req.user);
+
+    try {
+        const { date, program_name } = req.query;
+
+        await attendanceController.deleteAllAttendanceByProgram(req, res);
+
+        // Log the activity after successful delete
+        if (res.statusCode === 200) {
+            await activityLogService.createLog({
+                userid: req.user!.accountid,
+                username: req.user!.username,
+                action: 'delete',
+                entity_type: 'attendance',
+                entity_id: JSON.stringify({ date, program_name }),
+                details: JSON.stringify({
+                    description: `${program_name} programı için tüm yoklama kayıtları silindi (${date})`
+                }),
+                ip_address: req.ip || req.socket.remoteAddress || null,
+                yurtid: req.user!.yurtid,
+            });
+        }
+    } catch (error) {
+        console.error('Delete program error:', error);
+    }
+});
+
 attendanceRouter.get('/', (req: Request, res: Response) => {
     attendanceController.getAttendance(req, res);
 });

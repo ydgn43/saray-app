@@ -147,5 +147,29 @@ class AttendanceController {
             }
         });
     }
+    deleteAllAttendanceByProgram(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                console.log('🗑️ DELETE ALL /attendance/delete-program hit with query:', req.query);
+                const { date, program_name } = req.query;
+                const yurtid = req.selectedYurtId;
+                if (!date || !program_name) {
+                    console.log('❌ Missing required fields');
+                    return res.status(400).json({ message: 'Missing required fields: date, program_name' });
+                }
+                console.log(`🔍 Attempting to delete all records: date=${date}, program=${program_name}, yurtid=${yurtid}`);
+                const deletedCount = yield this.attendanceService.deleteAllAttendanceByProgram(date, program_name, yurtid);
+                console.log(`✅ Deleted ${deletedCount} records`);
+                res.status(200).json({
+                    message: `${deletedCount} yoklama kaydı silindi`,
+                    deletedCount
+                });
+            }
+            catch (error) {
+                console.log('❌ Delete All Attendance error:', error);
+                res.status(500).json({ message: 'Failed to delete attendance records' });
+            }
+        });
+    }
 }
 exports.AttendanceController = AttendanceController;
