@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Student, Attendance } from '../types';
-import { classGroupedColors, groupHeaderTitles } from '../constants';
+import { classGroupedColors } from '../constants';
 import { motion } from 'framer-motion';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
@@ -163,7 +163,7 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onUpd
             <div className="card-body py-3 px-4">
                 <h5 className="mb-1">{student.first_name} {student.last_name}</h5>
                 <p className="mb-2 text-muted small">
-                    {groupHeaderTitles[normalizeClassName(student.class_name)] ?? student.class_name}
+                    {student.class_name}
                 </p>
                 <div className="d-flex flex-wrap gap-2 mt-2">
                     {typeOptions.map((type) => (

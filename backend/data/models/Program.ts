@@ -13,6 +13,19 @@ export default class ProgramSequelize extends Model {
     })
     declare program_name: string;
 
+    @Column({
+        type: DataType.STRING(100),
+        allowNull: true
+    })
+    declare display_name: string | null;
+
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: true,
+        defaultValue: 0
+    })
+    declare display_order: number | null;
+
     @ForeignKey(() => Yurt)
     @Column({
         type: DataType.INTEGER,

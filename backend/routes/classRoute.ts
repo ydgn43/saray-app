@@ -11,5 +11,7 @@ classRouter.use(validateYurtAccess); // Add yurt access validation
 
 classRouter.get('/', classController.getAll); // Allow all authenticated users
 classRouter.post('/create', requireRoles(['admin']), classController.create);
+classRouter.put('/update/:class_name', requireRoles(['admin']), classController.update);
+classRouter.put('/update-order', requireRoles(['admin']), classController.updateOrder);
 classRouter.delete('/delete/:class_name', requireRoles(['admin']), classController.delete);
 

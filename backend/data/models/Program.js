@@ -25,6 +25,21 @@ __decorate([
     __metadata("design:type", String)
 ], ProgramSequelize.prototype, "program_name", void 0);
 __decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.STRING(100),
+        allowNull: true
+    }),
+    __metadata("design:type", Object)
+], ProgramSequelize.prototype, "display_name", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({
+        type: sequelize_typescript_1.DataType.INTEGER,
+        allowNull: true,
+        defaultValue: 0
+    }),
+    __metadata("design:type", Object)
+], ProgramSequelize.prototype, "display_order", void 0);
+__decorate([
     (0, sequelize_typescript_1.ForeignKey)(() => Yurt_1.default),
     (0, sequelize_typescript_1.Column)({
         type: sequelize_typescript_1.DataType.INTEGER,

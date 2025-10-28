@@ -14,4 +14,6 @@ exports.classRouter.use(authMiddleware_1.authenticateJWT);
 exports.classRouter.use(validateYurtAccess_1.validateYurtAccess); // Add yurt access validation
 exports.classRouter.get('/', classController_1.classController.getAll); // Allow all authenticated users
 exports.classRouter.post('/create', (0, authMiddleware_1.requireRoles)(['admin']), classController_1.classController.create);
+exports.classRouter.put('/update/:class_name', (0, authMiddleware_1.requireRoles)(['admin']), classController_1.classController.update);
+exports.classRouter.put('/update-order', (0, authMiddleware_1.requireRoles)(['admin']), classController_1.classController.updateOrder);
 exports.classRouter.delete('/delete/:class_name', (0, authMiddleware_1.requireRoles)(['admin']), classController_1.classController.delete);

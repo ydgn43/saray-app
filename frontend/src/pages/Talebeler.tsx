@@ -36,6 +36,8 @@ function getTurkishClassName(className: string) {
 
 const Talebeler = () => {
     const [students, setStudents] = useState<Student[]>([]);
+    const [availableSeasons, setAvailableSeasons] = useState<string[]>([]);
+    const [availableClasses, setAvailableClasses] = useState<{ class_name: string; display_name?: string | null }[]>([]);
 
     // Form fields
     const [showAddModal, setShowAddModal] = useState(false);
@@ -75,6 +77,33 @@ const Talebeler = () => {
             setLoading(false);
         }
     };
+
+    const loadSeasons = async () => {
+        try {
+            const res = await authFetch(`${config.API_BASE_URL}/season`);
+            const data = await res.json();
+            const seasons = data.map((s: any) => s.season_year);
+            setAvailableSeasons(seasons);
+        } catch (err) {
+            console.error('Sezonlar alınamadı:', err);
+        }
+    };
+
+    const loadClasses = async () => {
+        try {
+            const res = await authFetch(`${config.API_BASE_URL}/class`);
+            const data = await res.json();
+            setAvailableClasses(data);
+        } catch (err) {
+            console.error('Dahili seviyeler alınamadı:', err);
+        }
+    };
+
+    useEffect(() => {
+        loadStudents();
+        loadSeasons();
+        loadClasses();
+    }, []);
 
 
     const handleDelete = async (id: number) => {
@@ -365,12 +394,11 @@ const Talebeler = () => {
                                 }}
                             >
                                 <option value="">Tüm Seviyeler</option>
-                                <option value="kuranikerim">Kur'an-ı Kerim</option>
-                                <option value="hazirlik">Hazırlık</option>
-                                <option value="ibtidai">İbtidai</option>
-                                <option value="ihzari">İhzari</option>
-                                <option value="tekamul_alti">Tekamul Altı</option>
-                                <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
+                                {availableClasses.map(cls => (
+                                    <option key={cls.class_name} value={cls.class_name}>
+                                        {cls.display_name || cls.class_name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -387,15 +415,11 @@ const Talebeler = () => {
                                 }}
                             >
                                 <option value="">Tüm Sezonlar</option>
-                                {Array.from({ length: 33 }).map((_, i) => {
-                                    const year = 2018 + i;
-                                    const season = `${year}/${year + 1}`;
-                                    return (
-                                        <option key={season} value={season}>
-                                            {season}
-                                        </option>
-                                    );
-                                })}
+                                {availableSeasons.map(season => (
+                                    <option key={season} value={season}>
+                                        {season}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
@@ -500,14 +524,11 @@ const Talebeler = () => {
                                                 <label>Sezon</label>
                                                 <select className="form-select" value={season_year} onChange={(e) => setSeason(e.target.value)}>
                                                     <option value="">Sezon Seç</option>
-                                                    {Array.from({ length: 33 }).map((_, i) => {
-                                                        const year = 2018 + i;
-                                                        return (
-                                                            <option key={year} value={`${year}/${year + 1}`}>
-                                                                {year}/{year + 1}
-                                                            </option>
-                                                        );
-                                                    })}
+                                                    {availableSeasons.map(season => (
+                                                        <option key={season} value={season}>
+                                                            {season}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
                                         </div>
@@ -516,12 +537,11 @@ const Talebeler = () => {
                                                 <label>Dahili Seviye Adı</label>
                                                 <select className="form-select" value={class_name} onChange={(e) => setClassName(e.target.value)}>
                                                     <option value="">Dahili Seviye Seç</option>
-                                                    <option value="kuranikerim">Kuran-ı Kerim</option>
-                                                    <option value="hazirlik">Hazırlık</option>
-                                                    <option value="ibtidai">İbtidai</option>
-                                                    <option value="ihzari">İhzari</option>
-                                                    <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
-                                                    <option value="tekamul_alti">Tekamul Altı</option>
+                                                    {availableClasses.map(cls => (
+                                                        <option key={cls.class_name} value={cls.class_name}>
+                                                            {cls.display_name || cls.class_name}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
                                         </div>
@@ -609,26 +629,22 @@ const Talebeler = () => {
                                             <label>Sezon</label>
                                             <select className="form-select" value={editingStudent.season_year} onChange={(e) => setEditingStudent({ ...editingStudent, season_year: e.target.value })}>
                                                 <option value="">Sezon Seç</option>
-                                                {Array.from({ length: 33 }).map((_, i) => {
-                                                    const year = 2018 + i;
-                                                    return (
-                                                        <option key={year} value={`${year}/${year + 1}`}>
-                                                            {year}/{year + 1}
-                                                        </option>
-                                                    );
-                                                })}
+                                                {availableSeasons.map(season => (
+                                                    <option key={season} value={season}>
+                                                        {season}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div className="mb-3">
                                             <label>Dahili Seviye</label>
                                             <select className="form-select" value={editingStudent.class_name} onChange={(e) => setEditingStudent({ ...editingStudent, class_name: e.target.value })}>
                                                 <option value="">Dahili Seviye Seç</option>
-                                                <option value="kuranikerim">Kuran-ı Kerim</option>
-                                                <option value="hazirlik">Hazırlık</option>
-                                                <option value="ibtidai">İbtidai</option>
-                                                <option value="ihzari">İhzari</option>
-                                                <option value="mezun_tekamul_alti">Mezun Tekamul Altı</option>
-                                                <option value="tekamul_alti">Tekamul Altı</option>
+                                                {availableClasses.map(cls => (
+                                                    <option key={cls.class_name} value={cls.class_name}>
+                                                        {cls.display_name || cls.class_name}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>

@@ -6,43 +6,28 @@ import { AnimatePresence, motion } from 'framer-motion';
 import FilterToolbar from '../components/FilterToolbar';
 import Layout from '../components/Layout';
 import PageHeader from '../components/PageHeader';
-import { classOrder, groupHeaderTitles } from '../constants';
 import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 import config from '../config';
 import { useAuth } from '../auth/AuthContext';
 
-// These will be loaded from the database
-const PROGRAM_OPTIONS: string[] = [];
+interface Program {
+  program_name: string;
+  display_name?: string | null;
+  display_order?: number | null;
+}
 
-// Map user-friendly names to DB values (if needed for backwards compatibility)
-const PROGRAM_NAME_MAP: Record<string, string> = {
-  "Sabah Namazı": "sabah_namazi",
-  "Öğle Namazı": "oglen_namazi",
-  "İkindi Namazı": "ikindi_namazi",
-  "Akşam Namazı": "aksam_namazi",
-  "Yatsı Namazı": "yatsi_namazi",
-  "Hatim": "hatim"
-};
+interface Class {
+  class_name: string;
+  display_name?: string | null;
+  display_order?: number | null;
+}
 
 const normalizeClassName = (str: string) => {
   let out = str.trim().toLowerCase().replace(/ /g, '_');
   if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
   return out;
 };
-
-// Defensive normalization for Turkish chars
-function normalizeProgramName(str: string) {
-  return str
-    .toLowerCase()
-    .replace(/ /g, ' ')
-    .replace(/ö/g, 'o')
-    .replace(/ü/g, 'u')
-    .replace(/ş/g, 's')
-    .replace(/ı/g, 'i')
-    .replace(/ğ/g, 'g')
-    .replace(/ç/g, 'c');
-}
 
 const fetchJson = async (url: string, options = {}) => {
   const res = await authFetch(url, options);
@@ -67,16 +52,17 @@ const Attendance = () => {
   const [date, setDate] = useState<string>(getTodayString());
   const [program, setProgram] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
-  const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
+  const [availablePrograms, setAvailablePrograms] = useState<Program[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<Class[]>([]);
 
   // Fetch available programs from the database
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
         const response = await authFetch(`${config.API_BASE_URL}/program`);
-        const data = await response.json();
-        const programNames = data.map((p: any) => p.program_name);
-        setAvailablePrograms(programNames);
+        const data: Program[] = await response.json();
+        // Programs are already sorted by display_order from backend
+        setAvailablePrograms(data);
       } catch (error) {
         console.error('Error fetching programs:', error);
         toast.error('Programlar yüklenemedi');
@@ -84,6 +70,22 @@ const Attendance = () => {
     };
 
     fetchPrograms();
+  }, []);
+
+  // Fetch available classes from the database
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await authFetch(`${config.API_BASE_URL}/class`);
+        const data: Class[] = await response.json();
+        // Classes are already sorted by display_order from backend
+        setAvailableClasses(data);
+      } catch (error) {
+        console.error('Error fetching classes:', error);
+      }
+    };
+
+    fetchClasses();
   }, []);
 
   useEffect(() => {
@@ -159,9 +161,8 @@ const Attendance = () => {
     setShowCreateButton(false);
 
     try {
-      const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
-      const res = await authFetch(`${config.API_BASE_URL}
-/attendance/dailyprogram?date=${date}&program_name=${apiProgramName}`);
+      // program is already in DB format (e.g., 'sabah_namazi')
+      const res = await authFetch(`${config.API_BASE_URL}/attendance/dailyprogram?date=${date}&program_name=${program}`);
       const data = await res.json();
 
       if (!Array.isArray(data)) {
@@ -192,11 +193,11 @@ const Attendance = () => {
       return;
     }
 
-    const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
+    // program is already in DB format (e.g., 'sabah_namazi')
     const payload = students.map(s => ({
       studentid: s.studentid,
       date,
-      program_name: apiProgramName,
+      program_name: program,
       attendance_type_name: 'yok',
     }));
 
@@ -234,9 +235,9 @@ const Attendance = () => {
 
     setDeleting(true);
     try {
-      const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
+      // program is already in DB format (e.g., 'sabah_namazi')
       const res = await authFetch(
-        `${config.API_BASE_URL}/attendance/delete-program?date=${date}&program_name=${apiProgramName}`,
+        `${config.API_BASE_URL}/attendance/delete-program?date=${date}&program_name=${program}`,
         { method: 'DELETE' }
       );
 
@@ -265,10 +266,8 @@ const Attendance = () => {
     sebep: string | null = null
   ) => {
     try {
-      const apiProgramName = normalizeProgramName(PROGRAM_NAME_MAP[program] || program);
-      // Determine POST vs PUT as in your API logic
-      const checkUrl = `${config.API_BASE_URL}
-/attendance?studentid=${studentid}&date=${date}&program_name=${apiProgramName}`;
+      // program is already in DB format (e.g., 'sabah_namazi')
+      const checkUrl = `${config.API_BASE_URL}/attendance?studentid=${studentid}&date=${date}&program_name=${program}`;
       const checkRes = await authFetch(checkUrl);
       const record = await checkRes.json();
       const method = checkRes.ok && record ? 'PUT' : 'POST';
@@ -279,7 +278,7 @@ const Attendance = () => {
       const body = {
         studentid,
         date,
-        program_name: apiProgramName,
+        program_name: program,
         attendance_type_name,
         sebep,
       };
@@ -298,7 +297,7 @@ const Attendance = () => {
               ? { ...a, attendance_type_name, sebep }
               : a
           )
-          : [...prev, { studentid, date, program_name: apiProgramName, attendance_type_name, sebep }]
+          : [...prev, { studentid, date, program_name: program, attendance_type_name, sebep }]
       );
 
     } catch (err) {
@@ -349,14 +348,21 @@ const Attendance = () => {
       }
     });
 
+    // Helper to get display name for class
+    const getClassDisplayName = (className: string) => {
+      const cls = availableClasses.find(c => normalizeClassName(c.class_name) === className);
+      return cls?.display_name || className;
+    };
+
     // Format message
     let msg = '';
     msg += '🟥 Olmayanlar:\n';
     let yokAny = false;
-    classOrder.forEach(classKey => {
+    availableClasses.forEach(cls => {
+      const classKey = normalizeClassName(cls.class_name);
       if (yoklarByClass[classKey]?.length) {
         yokAny = true;
-        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        msg += `\n${cls.display_name || cls.class_name}:\n`;
         yoklarByClass[classKey].forEach(name => {
           msg += `• ${name}\n`;
         });
@@ -366,10 +372,11 @@ const Attendance = () => {
 
     msg += '\n🟧 Geç Kalanlar:\n';
     let gecAny = false;
-    classOrder.forEach(classKey => {
+    availableClasses.forEach(cls => {
+      const classKey = normalizeClassName(cls.class_name);
       if (gecByClass[classKey]?.length) {
         gecAny = true;
-        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        msg += `\n${cls.display_name || cls.class_name}:\n`;
         gecByClass[classKey].forEach(({ name, sebep }) => {
           msg += `• ${name}`;
           if (sebep) msg += ` (${sebep})`;
@@ -381,10 +388,11 @@ const Attendance = () => {
 
     msg += '\n🟦 İzinliler:\n';
     let izinliAny = false;
-    classOrder.forEach(classKey => {
+    availableClasses.forEach(cls => {
+      const classKey = normalizeClassName(cls.class_name);
       if (izinlilerByClass[classKey]?.length) {
         izinliAny = true;
-        msg += `\n${groupHeaderTitles[classKey]}:\n`;
+        msg += `\n${cls.display_name || cls.class_name}:\n`;
         izinlilerByClass[classKey].forEach(({ name, sebep }) => {
           msg += `• ${name}`;
           if (sebep) msg += ` (${sebep})`;
@@ -394,10 +402,13 @@ const Attendance = () => {
     });
     if (!izinliAny) msg += 'İzinli talebe yok!\n';
 
-    // Add program and date at the top (optional, but nice)
+    // Add program and date at the top
+    const selectedProgram = availablePrograms.find(p => p.program_name === program);
+    const programDisplayName = selectedProgram?.display_name || program;
+
     let header = '';
     if (date) header += `Tarih: ${date}\n`;
-    if (program) header += `Program: ${normalizeProgramName(PROGRAM_NAME_MAP[program] || program)}\n`;
+    if (program) header += `Program: ${programDisplayName}\n`;
     header += '\n';
 
     const fullMsg = header + msg.trim();
@@ -548,8 +559,8 @@ const Attendance = () => {
               >
                 <option value="">Program Seçin</option>
                 {availablePrograms.map((p) => (
-                  <option key={p} value={p}>
-                    {p.charAt(0).toUpperCase() + p.slice(1).replace(/_/g, ' ')}
+                  <option key={p.program_name} value={p.program_name}>
+                    {p.display_name || p.program_name}
                   </option>
                 ))}
               </select>

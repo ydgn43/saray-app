@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { classOrder, groupHeaderTitles, classGroupedColors } from '../constants';
+import { classGroupedColors } from '../constants';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 const typeLabels: Record<AttendanceType, string> = {
@@ -132,6 +132,9 @@ const AttendanceTable: React.FC<Props> = ({
     return acc;
   }, {} as Record<string, Student[]>);
 
+  // Get unique class names in the order they appear in students array
+  const classNames = Array.from(new Set(students.map(s => normalizeClassName(s.class_name))));
+
   return (
     <div className="mt-4">
       <table className="table table-striped align-middle">
@@ -147,16 +150,18 @@ const AttendanceTable: React.FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {classOrder.map((groupName) => {
+          {classNames.map((groupName) => {
             const groupStudents = grouped[groupName];
             if (!groupStudents) return null;
             const color = classGroupedColors[groupName] || '#f8f9fa';
             const borderColor = darkenColor(color, 35);
+            // Find the original class name for display
+            const originalClassName = students.find(s => normalizeClassName(s.class_name) === groupName)?.class_name || groupName;
             return (
               <React.Fragment key={groupName}>
                 <tr className="table-group-header">
                   <td colSpan={7} style={{ backgroundColor: color, borderLeft: `4px solid ${borderColor}` }}>
-                    <strong className="text-primary">{groupHeaderTitles[groupName] ?? groupName}</strong>
+                    <strong className="text-primary">{originalClassName}</strong>
                   </td>
                 </tr>
                 <AnimatePresence>

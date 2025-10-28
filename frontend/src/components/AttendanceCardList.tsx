@@ -1,7 +1,6 @@
 import React from 'react';
 import { Student, Attendance } from '../types';
 import AttendanceCard from './AttendanceCard';
-import { classOrder } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Props {
@@ -29,11 +28,8 @@ const AttendanceCardList: React.FC<Props> = ({
     program,
     onUpdateAttendance
 }) => {
-    const sortedStudents = [...students].sort((a, b) => {
-        const aIndex = classOrder.indexOf(a.class_name);
-        const bIndex = classOrder.indexOf(b.class_name);
-        return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-    });
+    // Students are already sorted by class display_order from parent component
+    const sortedStudents = [...students];
 
     return (
         <motion.div

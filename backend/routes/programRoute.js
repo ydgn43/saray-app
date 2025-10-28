@@ -15,4 +15,5 @@ exports.programRouter.use(validateYurtAccess_1.validateYurtAccess); // Add yurt 
 exports.programRouter.get('/', programController_1.programController.getAll); // Allow all authenticated users
 exports.programRouter.post('/create', (0, authMiddleware_1.requireRoles)(['admin']), programController_1.programController.create);
 exports.programRouter.put('/update/:program_name', (0, authMiddleware_1.requireRoles)(['admin']), programController_1.programController.update);
+exports.programRouter.put('/update-order', (0, authMiddleware_1.requireRoles)(['admin']), programController_1.programController.updateOrder);
 exports.programRouter.delete('/delete/:program_name', (0, authMiddleware_1.requireRoles)(['admin']), programController_1.programController.delete);
