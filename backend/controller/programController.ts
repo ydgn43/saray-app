@@ -11,7 +11,23 @@ export const programController = {
                 order: [['display_order', 'ASC'], ['program_name', 'ASC']]
             });
             res.json(programs);
-        } catch {
+        } catch (error: any) {
+            console.error('Error fetching programs:', error);
+            // If display_order column doesn't exist, try without ordering
+            if (error.message?.includes('display_order') || error.original?.code === 'ER_BAD_FIELD_ERROR') {
+                try {
+                    const yurtid = req.selectedYurtId!;
+                    const programs = await Program.findAll({
+                        where: { yurtid },
+                        order: [['program_name', 'ASC']]
+                    });
+                    console.warn('⚠️ Warning: display_order column not found, please run migration script');
+                    res.json(programs);
+                    return;
+                } catch (fallbackError) {
+                    console.error('Fallback query failed:', fallbackError);
+                }
+            }
             res.status(500).json({ message: 'Programlar alınamadı.' });
         }
     },

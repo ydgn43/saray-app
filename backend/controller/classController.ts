@@ -11,7 +11,23 @@ export const classController = {
                 order: [['display_order', 'ASC'], ['class_name', 'ASC']]
             });
             res.json(classes);
-        } catch {
+        } catch (error: any) {
+            console.error('Error fetching classes:', error);
+            // If display_order column doesn't exist, try without ordering
+            if (error.message?.includes('display_order') || error.original?.code === 'ER_BAD_FIELD_ERROR') {
+                try {
+                    const yurtid = req.selectedYurtId!;
+                    const classes = await Class.findAll({
+                        where: { yurtid },
+                        order: [['class_name', 'ASC']]
+                    });
+                    console.warn('⚠️ Warning: display_order column not found, please run migration script');
+                    res.json(classes);
+                    return;
+                } catch (fallbackError) {
+                    console.error('Fallback query failed:', fallbackError);
+                }
+            }
             res.status(500).json({ message: 'Dahili Seviyelar alınamadı.' });
         }
     },

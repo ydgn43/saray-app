@@ -81,21 +81,35 @@ const Talebeler = () => {
     const loadSeasons = async () => {
         try {
             const res = await authFetch(`${config.API_BASE_URL}/season`);
+            if (!res.ok) {
+                console.error('Sezonlar yüklenemedi:', res.status);
+                return;
+            }
             const data = await res.json();
-            const seasons = data.map((s: any) => s.season_year);
-            setAvailableSeasons(seasons);
+            if (Array.isArray(data)) {
+                const seasons = data.map((s: any) => s.season_year);
+                setAvailableSeasons(seasons);
+            }
         } catch (err) {
             console.error('Sezonlar alınamadı:', err);
+            setAvailableSeasons([]); // Keep empty array on error
         }
     };
 
     const loadClasses = async () => {
         try {
             const res = await authFetch(`${config.API_BASE_URL}/class`);
+            if (!res.ok) {
+                console.error('Dahili seviyeler yüklenemedi:', res.status);
+                return;
+            }
             const data = await res.json();
-            setAvailableClasses(data);
+            if (Array.isArray(data)) {
+                setAvailableClasses(data);
+            }
         } catch (err) {
             console.error('Dahili seviyeler alınamadı:', err);
+            setAvailableClasses([]); // Keep empty array on error
         }
     };
 

@@ -124,15 +124,58 @@ const ActivityLogs = () => {
     const getSummary = (log: ActivityLog) => {
         try {
             const details = log.details ? JSON.parse(log.details) : {};
+            const entityId = log.entity_id ? JSON.parse(log.entity_id) : {};
+
+            // Check for description first (most detailed)
             if (details.description) {
                 return details.description;
             }
-            if (details.studentName) {
-                return details.studentName;
+
+            // For attendance records, try to show date and program
+            if (log.entity_type === 'attendance' || log.entity_type === 'izinli') {
+                const parts = [];
+
+                // Add student name if available
+                if (details.studentName || entityId.studentName) {
+                    parts.push(details.studentName || entityId.studentName);
+                }
+
+                // Add program name
+                if (details.program_name || entityId.program_name) {
+                    parts.push(details.program_name || entityId.program_name);
+                }
+
+                // Add date
+                if (details.date || entityId.date) {
+                    const date = details.date || entityId.date;
+                    parts.push(new Date(date).toLocaleDateString('tr-TR'));
+                }
+
+                // Add status change if it's an update
+                if (log.action === 'update' && details.previousStatus && details.newStatus) {
+                    parts.push(`${details.previousStatus} → ${details.newStatus}`);
+                }
+
+                // Add count for bulk operations
+                if (details.count) {
+                    parts.push(`(${details.count} kayıt)`);
+                }
+
+                if (parts.length > 0) {
+                    return parts.join(' - ');
+                }
             }
-            return parseEntityId(log.entity_id);
+
+            // Fallback to entity ID parsing
+            if (Array.isArray(entityId)) {
+                return `${entityId.length} kayıt`;
+            }
+            if (typeof entityId === 'object' && Object.keys(entityId).length > 0) {
+                return Object.entries(entityId).map(([key, value]) => `${key}: ${value}`).join(', ');
+            }
+            return log.entity_id;
         } catch {
-            return parseEntityId(log.entity_id);
+            return log.entity_id;
         }
     };
 

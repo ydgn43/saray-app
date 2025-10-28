@@ -154,6 +154,11 @@ attendanceRouter.post('/create', requireRoles(['admin', 'hoca', 'yoklamaci']), a
                     .map(r => `${r.studentName} - ${r.status}`)
                     .join(', ');
 
+                // Get first record's date and program for display
+                const firstRecord = payloads[0];
+                const dateStr = firstRecord.date;
+                const programName = firstRecord.program_name;
+
                 await activityLogService.createLog({
                     userid: req.user!.accountid,
                     username: req.user!.username,
@@ -167,7 +172,9 @@ attendanceRouter.post('/create', requireRoles(['admin', 'hoca', 'yoklamaci']), a
                     }))),
                     details: JSON.stringify({
                         count: payloads.length,
-                        description: `Toplu yoklama: ${payloads.length} kayıt`,
+                        date: dateStr,
+                        program_name: programName,
+                        description: `${programName} - ${dateStr} için ${payloads.length} kayıt oluşturuldu`,
                         records: recordsWithNames
                     }),
                     ip_address: req.ip || req.socket.remoteAddress || null,
@@ -221,9 +228,11 @@ attendanceRouter.put('/put', requireRoles(['admin', 'hoca', 'yoklamaci']), async
                 entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
                 details: JSON.stringify({
                     studentName,
+                    date,
+                    program_name,
                     previousStatus,
                     newStatus: attendance_type_name,
-                    description: changeDescription
+                    description: `${program_name} - ${date} için ${changeDescription}`
                 }),
                 ip_address: req.ip || req.socket.remoteAddress || null,
                 yurtid: req.user!.yurtid,
@@ -286,10 +295,12 @@ attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, re
             entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
             details: JSON.stringify({
                 studentName,
+                date,
+                program_name,
                 sebep,
                 previousStatus,
                 newStatus: 'izinli',
-                description: changeDescription
+                description: `${program_name} - ${date} için ${changeDescription}`
             }),
             ip_address: req.ip || req.socket.remoteAddress || null,
             yurtid: req.user!.yurtid,
