@@ -318,6 +318,11 @@ const Statistics = () => {
                 ? String(aValue).localeCompare(String(bValue), 'tr')
                 : String(bValue).localeCompare(String(aValue), 'tr');
         });
+    } else {
+        // Default sorting: alphabetically by name
+        sortedStats.sort((a, b) => {
+            return a.name.toLowerCase().localeCompare(b.name.toLowerCase(), 'tr');
+        });
     }
 
     // Helper for header rendering
