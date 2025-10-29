@@ -838,6 +838,7 @@ const Attendance = () => {
             showCreateButton={showCreateButton}
             onCreate={handleCreateAttendance}
             fetchAttendanceData={loadAttendanceData}
+            availableClasses={availableClasses}
           />
         ) : (
           !loading && !showCreateButton && (

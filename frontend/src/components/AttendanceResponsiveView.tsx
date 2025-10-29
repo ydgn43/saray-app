@@ -5,6 +5,12 @@ import AttendanceRowList from './AttendanceRowList';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Attendance, Student } from '../types';
 
+interface Class {
+  class_name: string;
+  display_name?: string | null;
+  display_order?: number | null;
+}
+
 interface Props {
   students: Student[];
   attendanceData: Attendance[];
@@ -14,7 +20,9 @@ interface Props {
   onUpdateSebep?: (studentId: number, type: string, sebep: string) => void;
   showCreateButton: boolean;
   onCreate: () => void;
-  fetchAttendanceData: () => void; // <-- add this
+  fetchAttendanceData: () => void;
+  classNames?: string[];
+  availableClasses?: Class[];
 }
 
 const AttendanceResponsiveView: React.FC<Props> = ({
@@ -27,6 +35,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
   showCreateButton,
   onCreate,
   fetchAttendanceData,
+  classNames,
+  availableClasses = [],
 }) => {
   const isMobile = useIsMobile();
   const [useRowView, setUseRowView] = useState(false);
@@ -73,6 +83,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               date={date}
               program={program}
               onUpdateAttendance={onUpdateAttendance}
+              availableClasses={availableClasses}
             />
           ) : (
             <AttendanceCardList
@@ -81,6 +92,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               date={date}
               program={program}
               onUpdateAttendance={onUpdateAttendance}
+              availableClasses={availableClasses}
             />
           )
         ) : (
@@ -90,6 +102,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
             date={date}
             program={program}
             onUpdateAttendance={onUpdateAttendance}
+            availableClasses={availableClasses}
           />
         )
       ) : (

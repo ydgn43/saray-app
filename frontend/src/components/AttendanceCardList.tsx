@@ -3,12 +3,19 @@ import { Student, Attendance } from '../types';
 import AttendanceCard from './AttendanceCard';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface Class {
+    class_name: string;
+    display_name?: string | null;
+    display_order?: number | null;
+}
+
 interface Props {
     students: Student[];
     attendanceData: Attendance[];
     date: string;
     program: string;
     onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
+    availableClasses?: Class[];
 }
 
 const listVariants = {
@@ -26,10 +33,34 @@ const AttendanceCardList: React.FC<Props> = ({
     attendanceData,
     date,
     program,
-    onUpdateAttendance
+    onUpdateAttendance,
+    availableClasses = [],
 }) => {
-    // Students are already sorted by class display_order from parent component
-    const sortedStudents = [...students];
+    // Sort students by class display_order from availableClasses
+    const normalizeClassName = (name: string) => name.replace(/\s+/g, '').toLowerCase();
+
+    const sortedStudents = (() => {
+        // Create a map of normalized class names to display_order
+        const orderMap: Record<string, number> = {};
+        availableClasses.forEach(cls => {
+            const normalized = normalizeClassName(cls.class_name);
+            orderMap[normalized] = cls.display_order ?? 999;
+        });
+
+        return [...students].sort((a, b) => {
+            const aClass = normalizeClassName(a.class_name);
+            const bClass = normalizeClassName(b.class_name);
+            const aOrder = orderMap[aClass] ?? 999;
+            const bOrder = orderMap[bClass] ?? 999;
+
+            if (aOrder !== bOrder) {
+                return aOrder - bOrder;
+            }
+            // If same class, sort by first name then last name
+            if (a.first_name !== b.first_name) return a.first_name.localeCompare(b.first_name);
+            return a.last_name.localeCompare(b.last_name);
+        });
+    })();
 
     return (
         <motion.div

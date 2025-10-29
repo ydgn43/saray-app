@@ -39,12 +39,19 @@ type Attendance = {
   sebep?: string;
 };
 
+interface Class {
+  class_name: string;
+  display_name?: string | null;
+  display_order?: number | null;
+}
+
 type Props = {
   students: Student[];
   attendanceData: Attendance[];
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
+  availableClasses?: Class[];
 };
 
 // Helpers for color animation
@@ -86,7 +93,8 @@ const AttendanceTable: React.FC<Props> = ({
   attendanceData,
   date,
   program,
-  onUpdateAttendance
+  onUpdateAttendance,
+  availableClasses = [],
 }) => {
   const [savedIndicators, setSavedIndicators] = useState<{ [studentId: number]: boolean }>({});
   const [sebepDrafts, setSebepDrafts] = useState<{ [studentId: number]: string }>({});
@@ -132,8 +140,29 @@ const AttendanceTable: React.FC<Props> = ({
     return acc;
   }, {} as Record<string, Student[]>);
 
-  // Get unique class names in the order they appear in students array
-  const classNames = Array.from(new Set(students.map(s => normalizeClassName(s.class_name))));
+  // Sort class names by display_order from availableClasses
+  const classNames = (() => {
+    const uniqueClassNames = Array.from(new Set(students.map(s => normalizeClassName(s.class_name))));
+
+    if (availableClasses.length === 0) {
+      // Fallback to original order if no classes provided
+      return uniqueClassNames;
+    }
+
+    // Create a map of normalized class names to display_order
+    const orderMap: Record<string, number> = {};
+    availableClasses.forEach(cls => {
+      const normalized = normalizeClassName(cls.class_name);
+      orderMap[normalized] = cls.display_order ?? 999;
+    });
+
+    // Sort by display_order
+    return uniqueClassNames.sort((a, b) => {
+      const orderA = orderMap[a] ?? 999;
+      const orderB = orderMap[b] ?? 999;
+      return orderA - orderB;
+    });
+  })();
 
   return (
     <div className="mt-4">

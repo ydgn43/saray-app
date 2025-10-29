@@ -2,14 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Student, Attendance } from '../types';
 import { classGroupedColors } from '../constants';
 
-const CLASS_ORDER = [
-  'kuranikerim',
-  'hazirlik',
-  'ibtidai',
-  'ihzari',
-  'tekamulalti',
-  'mezuntekamulalti',
-];
+interface Class {
+  class_name: string;
+  display_name?: string | null;
+  display_order?: number | null;
+}
 
 function normalizeClassName(name: string) {
   return name.replace(/\s+/g, '').toLowerCase();
@@ -23,6 +20,7 @@ interface Props {
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
+  availableClasses?: Class[];
 }
 
 const attendanceLabels: Record<AttendanceType, string> = {
@@ -40,6 +38,7 @@ const AttendanceRowList: React.FC<Props> = ({
   date,
   program,
   onUpdateAttendance,
+  availableClasses = [],
 }) => {
   const [sebepDrafts, setSebepDrafts] = useState<Record<number, string>>({});
   const [recentlyUpdated, setRecentlyUpdated] = useState<Record<number, boolean>>({});
@@ -74,22 +73,29 @@ const AttendanceRowList: React.FC<Props> = ({
     return classGroupedColors[key] || '#dee2e6';
   };
 
-  // Sort students by class order, then by name
-  const sortedStudents = [...students].sort((a, b) => {
-    const aClass = normalizeClassName(a.class_name);
-    const bClass = normalizeClassName(b.class_name);
-    const aIdx = CLASS_ORDER.indexOf(aClass);
-    const bIdx = CLASS_ORDER.indexOf(bClass);
-    if (aIdx !== bIdx) {
-      // Classes not found in the order will be at the end
-      if (aIdx === -1) return 1;
-      if (bIdx === -1) return -1;
-      return aIdx - bIdx;
-    }
-    // If same class, sort by first name then last name
-    if (a.first_name !== b.first_name) return a.first_name.localeCompare(b.first_name);
-    return a.last_name.localeCompare(b.last_name);
-  });
+  // Sort students by class display_order, then by name
+  const sortedStudents = (() => {
+    // Create a map of normalized class names to display_order
+    const orderMap: Record<string, number> = {};
+    availableClasses.forEach(cls => {
+      const normalized = normalizeClassName(cls.class_name);
+      orderMap[normalized] = cls.display_order ?? 999;
+    });
+
+    return [...students].sort((a, b) => {
+      const aClass = normalizeClassName(a.class_name);
+      const bClass = normalizeClassName(b.class_name);
+      const aOrder = orderMap[aClass] ?? 999;
+      const bOrder = orderMap[bClass] ?? 999;
+
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      // If same class, sort by first name then last name
+      if (a.first_name !== b.first_name) return a.first_name.localeCompare(b.first_name);
+      return a.last_name.localeCompare(b.last_name);
+    });
+  })();
 
   // After creating new attendance date:
   const handleCreateAttendance = async () => {
