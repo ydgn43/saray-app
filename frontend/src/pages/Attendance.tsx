@@ -823,7 +823,7 @@ const Attendance = () => {
       </AnimatePresence>
 
       {attendanceData.length > 0 && (
-        <div className="d-flex gap-2 mb-2 flex-wrap">
+        <div className="d-flex gap-2 mb-2 flex-wrap" style={{ position: 'relative', zIndex: 10 }}>
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
