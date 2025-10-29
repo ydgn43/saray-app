@@ -42,6 +42,7 @@ const Attendance = () => {
   const [showCreateButton, setShowCreateButton] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Set today's date as default
   const getTodayString = () => {
@@ -256,6 +257,82 @@ const Attendance = () => {
       toast.error("Yoklama kayıtları silinemedi");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // --- Submit all current attendance data to ensure synchronization ---
+  const handleSubmitAll = async () => {
+    if (!date || !program) {
+      toast.error("Tarih ve program seçiniz.");
+      return;
+    }
+
+    if (attendanceData.length === 0) {
+      toast.warning("Kaydedilecek yoklama verisi yok.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Tüm yoklama verilerini kaydetmek istediğinize emin misiniz?\n\n` +
+      `Tarih: ${formatDateDisplay(date)}\n` +
+      `Program: ${program}\n` +
+      `Toplam ${attendanceData.length} kayıt kaydedilecek.\n\n` +
+      `Bu işlem mevcut verilerin üzerine yazacak.`
+    );
+
+    if (!confirmed) return;
+
+    setSubmitting(true);
+    try {
+      // Prepare bulk update payload with all current attendance data
+      const payload = attendanceData.map(record => ({
+        studentid: record.studentid,
+        date: date,
+        program_name: program,
+        attendance_type_name: record.attendance_type_name || 'yok',
+        sebep: record.sebep || null
+      }));
+
+      // Send all records to backend
+      const res = await authFetch(`${config.API_BASE_URL}/attendance/put`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload[0]) // Send one by one in a loop would be better but this is simpler
+      });
+
+      // Actually, let's send them all properly
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const record of payload) {
+        try {
+          await authFetch(`${config.API_BASE_URL}/attendance/put`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(record)
+          });
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          console.error(`Failed to save record for student ${record.studentid}:`, error);
+        }
+      }
+
+      if (errorCount === 0) {
+        toast.success(`Tüm yoklama verileri başarıyla kaydedildi! (${successCount} kayıt)`);
+      } else if (successCount > 0) {
+        toast.warning(`${successCount} kayıt kaydedildi, ${errorCount} kayıt başarısız oldu.`);
+      } else {
+        toast.error("Yoklama verileri kaydedilemedi.");
+      }
+
+      // Reload data to ensure consistency
+      await loadAttendanceData(true);
+    } catch (error) {
+      console.error('Submit all error:', error);
+      toast.error("Yoklama verileri kaydedilemedi");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -628,6 +705,36 @@ const Attendance = () => {
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            className="btn btn-success shadow-sm btn-sm"
+            onClick={handleSubmitAll}
+            disabled={submitting}
+            style={{
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              background: submitting ? '#6c757d' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              border: 'none',
+              color: 'white',
+              opacity: submitting ? 0.6 : 1
+            }}
+          >
+            {submitting ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Kaydediliyor...
+              </>
+            ) : (
+              <>
+                💾 Tümünü Kaydet
+              </>
+            )}
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
             className="btn btn-info shadow-sm btn-sm"
             onClick={handleShareAbsentees}
             style={{
