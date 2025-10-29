@@ -156,19 +156,32 @@ const Statistics = () => {
         })
     );
 
+    // Helper to get all programs that have at least one record in the date range
+    const getProgramsWithRecords = (): Set<string> => {
+        const programsSet = new Set<string>();
+        attendanceRecords.forEach(rec => {
+            programsSet.add(normalizeProgramName(rec.program_name));
+        });
+        return programsSet;
+    };
+
     // Compute program percentages for a statistic entry
     function computeProgramPercentages(
         stat: StatisticEntry,
         attendanceRecords: any[]
-    ): Record<string, { var: number; izinli: number }> {
+    ): Record<string, { var: number; izinli: number; hasRecords: boolean }> {
         // If attendanceRecords is empty, return empty object (no per-program stats)
         if (!attendanceRecords.length) {
             return {};
         }
+
         const studentRecords = attendanceRecords.filter(
             (rec) => rec.studentid === stat.studentid
         );
+
+        const programsWithRecords = getProgramsWithRecords();
         const programMap: Record<string, { var: number; izinli: number; total: number }> = {};
+
         studentRecords.forEach((rec) => {
             const prog = normalizeProgramName(rec.program_name);
             if (!programMap[prog]) programMap[prog] = { var: 0, izinli: 0, total: 0 };
@@ -176,25 +189,46 @@ const Statistics = () => {
             if (rec.attendance_type_name === 'izinli') programMap[prog].izinli += 1;
             programMap[prog].total += 1;
         });
-        const result: Record<string, { var: number, izinli: number }> = {};
-        Object.entries(programMap).forEach(([prog, { var: v, izinli: i, total }]) => {
-            result[prog] = {
-                var: total ? Math.round((v / total) * 100) : 0,
-                izinli: total ? Math.round((i / total) * 100) : 0,
-            };
+
+        const result: Record<string, { var: number; izinli: number; hasRecords: boolean }> = {};
+
+        // For programs that have records in the system but student has no records = 100% attendance
+        programsWithRecords.forEach(prog => {
+            if (programMap[prog]) {
+                const { var: v, izinli: i, total } = programMap[prog];
+                result[prog] = {
+                    var: total ? Math.round((v / total) * 100) : 0,
+                    izinli: total ? Math.round((i / total) * 100) : 0,
+                    hasRecords: true
+                };
+            } else {
+                // Program has records in system but not for this student = 100% attendance
+                result[prog] = {
+                    var: 100,
+                    izinli: 0,
+                    hasRecords: false
+                };
+            }
         });
+
         return result;
     }
 
     const getProgramSums = (stat: StatisticEntry) => {
         const programPercentages = computeProgramPercentages(stat, attendanceRecords);
-        const programSums = allPrograms.map((program) => {
-            const prog = programPercentages[program] || { var: 0, izinli: 0 };
+        const programsWithAnyRecords = getProgramsWithRecords();
+
+        // Only calculate for programs that have records in the system
+        const programSums = Array.from(programsWithAnyRecords).map((program) => {
+            const prog = programPercentages[program];
+            if (!prog) return 100; // Program exists but student has no records = 100%
             return prog.var + prog.izinli;
         });
-        // Genel: average of all programSums (ignore zeros if you want, but here we include all)
+
+        // Genel: average only of programs that actually have records in the date range
         const valid = programSums.filter(x => typeof x === 'number');
         const genel = valid.length ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+
         return { programSums, genel };
     };
 
@@ -204,7 +238,11 @@ const Statistics = () => {
             return getProgramSums(stat).genel;
         }
         const programPercentages = computeProgramPercentages(stat, attendanceRecords);
-        const prog = programPercentages[program] || { var: 0, izinli: 0 };
+        const prog = programPercentages[program];
+
+        // If program doesn't exist in the results, it means no records for any student
+        if (!prog) return 0;
+
         return prog.var + prog.izinli;
     };
 
@@ -275,8 +313,9 @@ const Statistics = () => {
             value = getProgramSums(entry).genel;
         } else {
             const programPercentages = computeProgramPercentages(entry, attendanceRecords);
-            const prog = programPercentages[selectedProgram] || { var: 0, izinli: 0 };
-            value = prog.var + prog.izinli;
+            const prog = programPercentages[selectedProgram];
+            // If prog doesn't exist, program has no records = 100%
+            value = prog ? (prog.var + prog.izinli) : 100;
         }
         const matchesColor =
             selectedColor === '' ||
@@ -304,9 +343,11 @@ const Statistics = () => {
                 aValue = getProgramSums(a).genel;
                 bValue = getProgramSums(b).genel;
             } else if (allPrograms.includes(sortConfig.key)) {
-                const idx = allPrograms.indexOf(sortConfig.key);
-                aValue = getProgramSums(a).programSums[idx] ?? 0;
-                bValue = getProgramSums(b).programSums[idx] ?? 0;
+                // Get percentage for specific program
+                const aProg = computeProgramPercentages(a, attendanceRecords)[sortConfig.key];
+                const bProg = computeProgramPercentages(b, attendanceRecords)[sortConfig.key];
+                aValue = aProg ? (aProg.var + aProg.izinli) : 100;
+                bValue = bProg ? (bProg.var + bProg.izinli) : 100;
             } else {
                 aValue = '';
                 bValue = '';
@@ -734,7 +775,9 @@ const Statistics = () => {
                                                             data: allPrograms.map(prog => {
                                                                 const programStats = filteredStats.map(stat => {
                                                                     const programPercentages = computeProgramPercentages(stat, attendanceRecords);
-                                                                    return programPercentages[prog]?.var || 0;
+                                                                    const progData = programPercentages[prog];
+                                                                    // If no data for this program, return 100 (perfect attendance)
+                                                                    return progData ? (progData.var + progData.izinli) : 100;
                                                                 });
                                                                 const avg = programStats.length > 0
                                                                     ? programStats.reduce((a, b) => a + b, 0) / programStats.length
@@ -1097,8 +1140,11 @@ const Statistics = () => {
                                                 </td>
                                             </tr>
                                         ) : sortedStats.map((s, i) => {
-                                            const { programSums, genel } = getProgramSums(s);
+                                            const { genel } = getProgramSums(s);
                                             if (selectedProgram === 'genel') {
+                                                const programsWithRecordsSet = getProgramsWithRecords();
+                                                const programPercentages = computeProgramPercentages(s, attendanceRecords);
+
                                                 return (
                                                     <tr key={s.studentid} style={{
                                                         borderBottom: '1px solid #f1f5f9',
@@ -1116,7 +1162,10 @@ const Statistics = () => {
                                                         <td style={{ padding: '16px', textAlign: 'center', color: '#475569' }}>
                                                             {getTurkishClassName(s.class_name)}
                                                         </td>
-                                                        {programSums.map((val, idx) => {
+                                                        {allPrograms.map((prog, idx) => {
+                                                            const progData = programPercentages[prog];
+                                                            const val = progData ? (progData.var + progData.izinli) :
+                                                                (programsWithRecordsSet.has(prog) ? 100 : 0);
                                                             let badgeStyle = modernBadgeStyles.success;
                                                             if (val < 60) badgeStyle = modernBadgeStyles.danger;
                                                             else if (val < 80) badgeStyle = modernBadgeStyles.warning;
@@ -1140,8 +1189,11 @@ const Statistics = () => {
                                                     </tr>
                                                 );
                                             } else {
-                                                const programIdx = allPrograms.indexOf(selectedProgram);
-                                                const val = programSums[programIdx] ?? 0;
+                                                const programPercentages = computeProgramPercentages(s, attendanceRecords);
+                                                const programsWithRecordsSet = getProgramsWithRecords();
+                                                const progData = programPercentages[selectedProgram];
+                                                const val = progData ? (progData.var + progData.izinli) :
+                                                    (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
                                                 let badgeStyle = modernBadgeStyles.success;
                                                 if (val < 60) badgeStyle = modernBadgeStyles.danger;
                                                 else if (val < 75) badgeStyle = modernBadgeStyles.warning;
