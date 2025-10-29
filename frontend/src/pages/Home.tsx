@@ -123,17 +123,30 @@ const Home = () => {
     }
   };
 
+  // Helper to get all programs that have at least one record in the date range
+  const getProgramsWithRecords = (): Set<string> => {
+    const programsSet = new Set<string>();
+    attendanceRecords.forEach(rec => {
+      programsSet.add(normalizeProgramName(rec.program_name));
+    });
+    return programsSet;
+  };
+
   function computeProgramPercentages(
     stat: StatisticEntry,
     attendanceRecords: any[]
-  ): Record<string, { var: number; izinli: number }> {
+  ): Record<string, { var: number; izinli: number; hasRecords: boolean }> {
     if (!attendanceRecords.length) {
       return {};
     }
+
     const studentRecords = attendanceRecords.filter(
       (rec) => rec.studentid === stat.studentid
     );
+
+    const programsWithRecords = getProgramsWithRecords();
     const programMap: Record<string, { var: number; izinli: number; total: number }> = {};
+
     studentRecords.forEach((rec) => {
       const prog = normalizeProgramName(rec.program_name);
       if (!programMap[prog]) programMap[prog] = { var: 0, izinli: 0, total: 0 };
@@ -141,24 +154,46 @@ const Home = () => {
       if (rec.attendance_type_name === 'izinli') programMap[prog].izinli += 1;
       programMap[prog].total += 1;
     });
-    const result: Record<string, { var: number; izinli: number }> = {};
-    Object.entries(programMap).forEach(([prog, { var: v, izinli: i, total }]) => {
-      result[prog] = {
-        var: total ? Math.round((v / total) * 100) : 0,
-        izinli: total ? Math.round((i / total) * 100) : 0,
-      };
+
+    const result: Record<string, { var: number; izinli: number; hasRecords: boolean }> = {};
+
+    // For programs that have records in the system but student has no records = 100% attendance
+    programsWithRecords.forEach(prog => {
+      if (programMap[prog]) {
+        const { var: v, izinli: i, total } = programMap[prog];
+        result[prog] = {
+          var: total ? Math.round((v / total) * 100) : 0,
+          izinli: total ? Math.round((i / total) * 100) : 0,
+          hasRecords: true
+        };
+      } else {
+        // Program has records in system but not for this student = 100% attendance
+        result[prog] = {
+          var: 100,
+          izinli: 0,
+          hasRecords: false
+        };
+      }
     });
+
     return result;
   }
 
   const getProgramSums = (stat: StatisticEntry) => {
     const programPercentages = computeProgramPercentages(stat, attendanceRecords);
-    const programSums = PROGRAM_ORDER.map((program) => {
-      const prog = programPercentages[program] || { var: 0, izinli: 0 };
+    const programsWithAnyRecords = getProgramsWithRecords();
+
+    // Only calculate for programs that have records in the system
+    const programSums = Array.from(programsWithAnyRecords).map((program) => {
+      const prog = programPercentages[program];
+      if (!prog) return 100; // Program exists but student has no records = 100%
       return prog.var + prog.izinli;
     });
+
+    // Genel: average only of programs that actually have records in the date range
     const valid = programSums.filter(x => typeof x === 'number');
     const genel = valid.length ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
+
     return { programSums, genel, programPercentages };
   };
 
@@ -303,9 +338,13 @@ const Home = () => {
             <div className="row g-3 mb-4">
               {(() => {
                 const { programSums, programPercentages } = getProgramSums(myStatistics);
-                return PROGRAM_ORDER.map((program, idx) => {
-                  const percentage = programSums[idx];
-                  const programData = programPercentages[program] || { var: 0, izinli: 0 };
+                const programsWithAnyRecords = getProgramsWithRecords();
+
+                return Array.from(programsWithAnyRecords).map((program) => {
+                  const programData = programPercentages[program];
+                  if (!programData) return null;
+
+                  const percentage = programData.var + programData.izinli;
                   let bgGradient = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
                   let textColor = 'text-white';
 
