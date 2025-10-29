@@ -146,6 +146,10 @@ exports.attendanceRouter.post('/create', (0, authMiddleware_1.requireRoles)(['ad
                 const description = recordsWithNames
                     .map(r => `${r.studentName} - ${r.status}`)
                     .join(', ');
+                // Get first record's date and program for display
+                const firstRecord = payloads[0];
+                const dateStr = firstRecord.date;
+                const programName = firstRecord.program_name;
                 yield activityLogRoute_1.activityLogService.createLog({
                     userid: req.user.accountid,
                     username: req.user.username,
@@ -159,7 +163,9 @@ exports.attendanceRouter.post('/create', (0, authMiddleware_1.requireRoles)(['ad
                     }))),
                     details: JSON.stringify({
                         count: payloads.length,
-                        description: `Toplu yoklama: ${payloads.length} kayıt`,
+                        date: dateStr,
+                        program_name: programName,
+                        description: `${programName} - ${dateStr} için ${payloads.length} kayıt oluşturuldu`,
                         records: recordsWithNames
                     }),
                     ip_address: req.ip || req.socket.remoteAddress || null,
@@ -208,9 +214,11 @@ exports.attendanceRouter.put('/put', (0, authMiddleware_1.requireRoles)(['admin'
                 entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
                 details: JSON.stringify({
                     studentName,
+                    date,
+                    program_name,
                     previousStatus,
                     newStatus: attendance_type_name,
-                    description: changeDescription
+                    description: `${program_name} - ${date} için ${changeDescription}`
                 }),
                 ip_address: req.ip || req.socket.remoteAddress || null,
                 yurtid: req.user.yurtid,
@@ -267,10 +275,12 @@ exports.attendanceRouter.post('/izinli', (0, authMiddleware_1.requireRoles)(['ad
             entity_id: JSON.stringify({ studentid, date, program_name, studentName }),
             details: JSON.stringify({
                 studentName,
+                date,
+                program_name,
                 sebep,
                 previousStatus,
                 newStatus: 'izinli',
-                description: changeDescription
+                description: `${program_name} - ${date} için ${changeDescription}`
             }),
             ip_address: req.ip || req.socket.remoteAddress || null,
             yurtid: req.user.yurtid,

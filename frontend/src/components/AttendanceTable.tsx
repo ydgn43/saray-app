@@ -52,6 +52,7 @@ type Props = {
   program: string;
   onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
   availableClasses?: Class[];
+  recentlyUpdatedStudents?: Set<number>;
 };
 
 // Helpers for color animation
@@ -95,6 +96,7 @@ const AttendanceTable: React.FC<Props> = ({
   program,
   onUpdateAttendance,
   availableClasses = [],
+  recentlyUpdatedStudents = new Set(),
 }) => {
   const [savedIndicators, setSavedIndicators] = useState<{ [studentId: number]: boolean }>({});
   const [sebepDrafts, setSebepDrafts] = useState<{ [studentId: number]: string }>({});
@@ -206,6 +208,8 @@ const AttendanceTable: React.FC<Props> = ({
                       (current === 'gec' || current === 'izinli') &&
                       !(sebepOptions.includes(sebepVal) || sebepVal === '');
 
+                    const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
+
                     return (
                       <motion.tr
                         key={student.studentid}
@@ -215,8 +219,9 @@ const AttendanceTable: React.FC<Props> = ({
                         exit="exit"
                         layout
                         style={{
-                          backgroundColor: rowHighlight,
-                          transition: 'background-color 0.7s cubic-bezier(.4,0,.2,1)'
+                          backgroundColor: isRecentlyUpdated ? 'rgba(13, 110, 253, 0.1)' : rowHighlight,
+                          transition: 'background-color 0.7s cubic-bezier(.4,0,.2,1)',
+                          boxShadow: isRecentlyUpdated ? '0 0 10px rgba(13, 110, 253, 0.4)' : undefined
                         }}
                       >
                         <td>{index + 1}</td>

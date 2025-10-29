@@ -16,6 +16,7 @@ exports.programController = void 0;
 const Program_1 = __importDefault(require("../data/models/Program"));
 exports.programController = {
     getAll(req, res) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const yurtid = req.selectedYurtId;
@@ -25,7 +26,24 @@ exports.programController = {
                 });
                 res.json(programs);
             }
-            catch (_a) {
+            catch (error) {
+                console.error('Error fetching programs:', error);
+                // If display_order column doesn't exist, try without ordering
+                if (((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('display_order')) || ((_b = error.original) === null || _b === void 0 ? void 0 : _b.code) === 'ER_BAD_FIELD_ERROR') {
+                    try {
+                        const yurtid = req.selectedYurtId;
+                        const programs = yield Program_1.default.findAll({
+                            where: { yurtid },
+                            order: [['program_name', 'ASC']]
+                        });
+                        console.warn('⚠️ Warning: display_order column not found, please run migration script');
+                        res.json(programs);
+                        return;
+                    }
+                    catch (fallbackError) {
+                        console.error('Fallback query failed:', fallbackError);
+                    }
+                }
                 res.status(500).json({ message: 'Programlar alınamadı.' });
             }
         });

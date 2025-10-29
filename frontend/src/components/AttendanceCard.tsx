@@ -142,6 +142,34 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onUpd
         // eslint-disable-next-line
     }, [recentlyUpdated]);
 
+    // Sync local state when record prop changes (e.g., from WebSocket updates)
+    useEffect(() => {
+        if (record?.attendance_type_name) {
+            const newType = record.attendance_type_name.toLowerCase() as AttendanceType;
+            if (newType !== attendanceType) {
+                setAttendanceType(newType);
+            }
+        }
+    }, [record?.attendance_type_name]);
+
+    // Sync sebep when record changes
+    useEffect(() => {
+        if (record?.sebep !== undefined) {
+            const newSebep = record.sebep || '';
+            const isOther = newSebep && !sebepOptions.includes(newSebep);
+
+            if (isOther) {
+                setIsOtherSebep(true);
+                setCustomSebep(newSebep);
+                setSebep('');
+            } else {
+                setIsOtherSebep(false);
+                setSebep(newSebep);
+                setCustomSebep('');
+            }
+        }
+    }, [record?.sebep]);
+
     // Always show Sebep select and input, but only enable if "gec"/"izinli"
     const sebepEnabled = attendanceType === 'gec' || attendanceType === 'izinli';
     const showCustomInput = sebepEnabled && isOtherSebep;

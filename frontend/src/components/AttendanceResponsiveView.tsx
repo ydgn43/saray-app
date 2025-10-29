@@ -23,6 +23,8 @@ interface Props {
   fetchAttendanceData: () => void;
   classNames?: string[];
   availableClasses?: Class[];
+  recentlyUpdatedStudents?: Set<number>;
+  isWebSocketConnected?: boolean;
 }
 
 const AttendanceResponsiveView: React.FC<Props> = ({
@@ -37,6 +39,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
   fetchAttendanceData,
   classNames,
   availableClasses = [],
+  recentlyUpdatedStudents = new Set(),
+  isWebSocketConnected = false,
 }) => {
   const isMobile = useIsMobile();
   const [useRowView, setUseRowView] = useState(false);
@@ -55,6 +59,15 @@ const AttendanceResponsiveView: React.FC<Props> = ({
 
   return (
     <div className="px-2">
+      {/* WebSocket connection status indicator */}
+      {isWebSocketConnected && (
+        <div className="d-flex justify-content-end mb-2">
+          <span className="badge bg-success" style={{ fontSize: '0.7rem', padding: '4px 8px' }}>
+            🔌 Canlı Bağlantı
+          </span>
+        </div>
+      )}
+
       {showCreateButton && !showTable && (
         <div className="mb-3 text-center">
           <button className="btn btn-success" onClick={onCreate}>
@@ -84,6 +97,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               program={program}
               onUpdateAttendance={onUpdateAttendance}
               availableClasses={availableClasses}
+              recentlyUpdatedStudents={recentlyUpdatedStudents}
             />
           ) : (
             <AttendanceCardList
@@ -93,6 +107,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               program={program}
               onUpdateAttendance={onUpdateAttendance}
               availableClasses={availableClasses}
+              recentlyUpdatedStudents={recentlyUpdatedStudents}
             />
           )
         ) : (
@@ -103,6 +118,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
             program={program}
             onUpdateAttendance={onUpdateAttendance}
             availableClasses={availableClasses}
+            recentlyUpdatedStudents={recentlyUpdatedStudents}
           />
         )
       ) : (

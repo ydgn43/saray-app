@@ -21,6 +21,7 @@ interface Props {
   program: string;
   onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
   availableClasses?: Class[];
+  recentlyUpdatedStudents?: Set<number>;
 }
 
 const attendanceLabels: Record<AttendanceType, string> = {
@@ -39,6 +40,7 @@ const AttendanceRowList: React.FC<Props> = ({
   program,
   onUpdateAttendance,
   availableClasses = [],
+  recentlyUpdatedStudents = new Set(),
 }) => {
   const [sebepDrafts, setSebepDrafts] = useState<Record<number, string>>({});
   const [recentlyUpdated, setRecentlyUpdated] = useState<Record<number, boolean>>({});
@@ -126,12 +128,20 @@ const AttendanceRowList: React.FC<Props> = ({
         const current = getAttendanceType(student.studentid);
         const sebep = sebepDrafts[student.studentid] ?? '';
         const recently = recentlyUpdated[student.studentid];
+        const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
 
         return (
           <div
             key={student.studentid}
             className="border-left"
-            style={{ borderLeft: `6px solid ${getClassColor(student.class_name)}` }}
+            style={{
+              borderLeft: `6px solid ${getClassColor(student.class_name)}`,
+              boxShadow: isRecentlyUpdated ? "0 0 15px rgba(13, 110, 253, 0.5)" : undefined,
+              transition: "box-shadow 0.3s",
+              padding: "8px",
+              borderRadius: "8px",
+              backgroundColor: isRecentlyUpdated ? "rgba(13, 110, 253, 0.05)" : undefined
+            }}
           >
             <div className="d-flex align-items-center justify-content-between gap-2">
               <div className="fw-bold flex-grow-1 text-truncate d-flex align-items-center gap-2 ms-2">

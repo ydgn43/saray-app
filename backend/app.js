@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: './config.env' });
 const express_1 = __importDefault(require("express"));
+const http_1 = require("http");
 const cors_1 = __importDefault(require("cors"));
 const sequelize_1 = require("./data/sequelize");
 const studentRoute_1 = require("./routes/studentRoute");
@@ -29,7 +30,9 @@ const activityLogRoute_1 = require("./routes/activityLogRoute");
 const yurtRoute_1 = __importDefault(require("./routes/yurtRoute"));
 const yurtManagementRoute_1 = __importDefault(require("./routes/yurtManagementRoute"));
 const superAdminRoute_1 = __importDefault(require("./routes/superAdminRoute"));
+const socketServer_1 = require("./websocket/socketServer");
 const app = (0, express_1.default)();
+const httpServer = (0, http_1.createServer)(app);
 const port = Number(process.env.PORT_HTTP) || 3001;
 const host = '0.0.0.0';
 // Define the whitelist of allowed frontend origins
@@ -96,9 +99,12 @@ app.use((req, res, next) => {
     console.log(`⚠️  404 - Route not found: ${req.method} ${req.url}`);
     res.status(404).json({ message: 'Route not found', path: req.url, method: req.method });
 });
-app.listen(port, host, () => {
+// Initialize WebSocket server
+(0, socketServer_1.initializeWebSocket)(httpServer);
+httpServer.listen(port, host, () => {
     console.log(`🚀 Backend server listening on http://${host}:${port}`);
     console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
+    console.log(`🔌 WebSocket server initialized`);
 });
 function testSequelizeConnection() {
     return __awaiter(this, void 0, void 0, function* () {

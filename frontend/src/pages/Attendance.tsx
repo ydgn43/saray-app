@@ -10,8 +10,12 @@ import { authFetch } from '../utils/authFetch';
 import BackToTopButton from '../components/BackToTopButton';
 import config from '../config';
 import { useAuth } from '../auth/AuthContext';
+import { useAttendanceSync } from '../websocket/useAttendanceSync';
+import { usePresence } from '../websocket/usePresence';
+import { ActiveUsersIndicator } from '../components/ActiveUsersIndicator';
 
 interface Program {
+  programid?: number;
   program_name: string;
   display_name?: string | null;
   display_order?: number | null;
@@ -43,6 +47,7 @@ const Attendance = () => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [recentlyUpdatedStudents, setRecentlyUpdatedStudents] = useState<Set<number>>(new Set());
 
   // Set today's date as default
   const getTodayString = () => {
@@ -55,6 +60,71 @@ const Attendance = () => {
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [availablePrograms, setAvailablePrograms] = useState<Program[]>([]);
   const [availableClasses, setAvailableClasses] = useState<Class[]>([]);
+
+  // WebSocket real-time attendance sync
+  const { isConnected, broadcastUpdate, broadcastCreate, broadcastBulkSave } = useAttendanceSync({
+    currentDate: date,
+    currentProgram: program, // Use program_name directly
+    onAttendanceUpdate: (data) => {
+      // Update attendance data when receiving updates from other users
+      // Match by composite key: studentid + date + program_name
+      setAttendanceData(prev =>
+        prev.map(a =>
+          a.studentid === data.studentid &&
+            a.date === data.date &&
+            a.program_name === data.program_name
+            ? {
+              ...a,
+              attendancetypeid: data.attendancetypeid,
+              attendance_type_name: getAttendanceTypeName(data.attendancetypeid),
+              sebep: data.sebep || ''
+            }
+            : a
+        )
+      );
+      // Highlight the updated student
+      setRecentlyUpdatedStudents(prev => new Set(prev).add(data.studentid));
+      setTimeout(() => {
+        setRecentlyUpdatedStudents(prev => {
+          const next = new Set(prev);
+          next.delete(data.studentid);
+          return next;
+        });
+      }, 2000);
+
+      toast.info(`${data.updatedBy} bir yoklama güncelledi`, { autoClose: 2000 });
+    },
+    onUserJoined: (data) => {
+      toast.info(`👤 ${data.username} oturuma katıldı (${data.userCount} kullanıcı)`, { autoClose: 2000 });
+    },
+    onUserLeft: (data) => {
+      toast.info(`👤 ${data.username} oturumdan ayrıldı (${data.userCount} kullanıcı)`, { autoClose: 2000 });
+    },
+    onBulkSave: (data) => {
+      toast.success(`📋 ${data.savedBy} toplu kayıt yaptı (${data.count} kayıt)`, { autoClose: 3000 });
+      // Refresh attendance data to show the bulk changes
+      if (date && program) {
+        loadAttendanceData(true);
+      }
+    },
+  });
+
+  // Presence tracking - show active users viewing this attendance
+  const presenceRoomName = date && program ? `attendance:${date}:${program}` : undefined;
+  const { activeUsers, userCount } = usePresence({
+    roomName: presenceRoomName
+  });
+
+  // Helper function to get attendance type name from ID
+  const getAttendanceTypeName = (typeid: number): string => {
+    const typeMap: Record<number, string> = {
+      1: 'var',
+      2: 'yok',
+      3: 'gec',
+      4: 'izinli',
+    };
+    return typeMap[typeid] || 'var';
+  };
 
   // Fetch available programs from the database
   useEffect(() => {
@@ -320,8 +390,18 @@ const Attendance = () => {
 
       if (errorCount === 0) {
         toast.success(`Tüm yoklama verileri başarıyla kaydedildi! (${successCount} kayıt)`);
+
+        // Broadcast bulk save to other users
+        if (program) {
+          broadcastBulkSave(date, program, successCount);
+        }
       } else if (successCount > 0) {
         toast.warning(`${successCount} kayıt kaydedildi, ${errorCount} kayıt başarısız oldu.`);
+
+        // Still broadcast partial success
+        if (program && successCount > 0) {
+          broadcastBulkSave(date, program, successCount);
+        }
       } else {
         toast.error("Yoklama verileri kaydedilemedi.");
       }
@@ -360,11 +440,13 @@ const Attendance = () => {
         sebep,
       };
 
-      await authFetch(url, {
+      const response = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+
+      const result = await response.json();
 
       // Optimistic local update
       setAttendanceData(prev =>
@@ -376,6 +458,46 @@ const Attendance = () => {
           )
           : [...prev, { studentid, date, program_name: program, attendance_type_name, sebep }]
       );
+
+      // Broadcast WebSocket update to other users
+      if (program) {
+        const typeMap: Record<string, number> = {
+          'var': 1,
+          'yok': 2,
+          'gec': 3,
+          'izinli': 4,
+        };
+        const attendancetypeid = typeMap[attendance_type_name.toLowerCase()] || 1;
+
+        console.log('🔥 Broadcasting update:', {
+          method,
+          studentid,
+          attendancetypeid,
+          date,
+          program_name: program,
+          sebep,
+          isConnected
+        });
+
+        if (method === 'POST') {
+          broadcastCreate({
+            studentid,
+            attendancetypeid,
+            date,
+            program_name: program,
+          });
+        } else {
+          broadcastUpdate(
+            studentid,
+            attendancetypeid,
+            date,
+            program,
+            sebep || undefined
+          );
+        }
+      } else {
+        console.warn('⚠️ Not broadcasting - program is empty');
+      }
 
     } catch (err) {
       toast.error('Yoklama güncellenemedi');
@@ -813,7 +935,7 @@ const Attendance = () => {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="mb-2"
+            className="mb-2 d-flex gap-2 align-items-center"
           >
             <div
               className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill shadow-sm bg-danger"
@@ -825,6 +947,25 @@ const Attendance = () => {
             >
               <span style={{ fontSize: '0.95rem', fontWeight: '700' }}>{filteredStudents.length}</span>
             </div>
+
+            {/* WebSocket Connection Status */}
+            <div
+              className={`d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill shadow-sm ${isConnected ? 'bg-success' : 'bg-secondary'}`}
+              style={{
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '0.75rem'
+              }}
+              title={isConnected ? 'WebSocket bağlı - Canlı güncellemeler aktif' : 'WebSocket bağlantısı kesildi'}
+            >
+              <span style={{ fontSize: '0.9rem' }}>{isConnected ? '🔌' : '⚠️'}</span>
+              <span>{isConnected ? 'Canlı' : 'Çevrimdışı'}</span>
+            </div>
+
+            {/* Active Users Indicator */}
+            {isConnected && userCount > 0 && (
+              <ActiveUsersIndicator activeUsers={activeUsers} userCount={userCount} />
+            )}
           </motion.div>
         )}
 
@@ -839,6 +980,8 @@ const Attendance = () => {
             onCreate={handleCreateAttendance}
             fetchAttendanceData={loadAttendanceData}
             availableClasses={availableClasses}
+            recentlyUpdatedStudents={recentlyUpdatedStudents}
+            isWebSocketConnected={isConnected}
           />
         ) : (
           !loading && !showCreateButton && (

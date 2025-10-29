@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import { SocketProvider } from './websocket/SocketProvider';
 import PrivateRoute from './auth/PrivateRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -49,155 +50,157 @@ function HomeRedirect() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/attendance"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <PageTransition>
-                    <Attendance />
-                  </PageTransition>
-                </Layout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/statistics"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <PageTransition>
-                    <Statistics />
-                  </PageTransition>
-                </Layout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/talebeler"
-            element={
-              <PrivateRoute>
-                <RequireRole roles={['admin']}>
+      <SocketProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/attendance"
+              element={
+                <PrivateRoute>
                   <Layout>
                     <PageTransition>
-                      <Talebeler />
+                      <Attendance />
                     </PageTransition>
                   </Layout>
-                </RequireRole>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <HomeRedirect />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <PageTransition>
-                    <Profile />
-                  </PageTransition>
-                </Layout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <PrivateRoute>
-                <RequireRole roles={['admin']}>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/statistics"
+              element={
+                <PrivateRoute>
                   <Layout>
                     <PageTransition>
-                      <Settings />
+                      <Statistics />
                     </PageTransition>
                   </Layout>
-                </RequireRole>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/activity-logs"
-            element={
-              <PrivateRoute>
-                <RequireRole roles={['admin']}>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/talebeler"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['admin']}>
+                    <Layout>
+                      <PageTransition>
+                        <Talebeler />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute>
+                  <HomeRedirect />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
                   <Layout>
                     <PageTransition>
-                      <ActivityLogs />
+                      <Profile />
                     </PageTransition>
                   </Layout>
-                </RequireRole>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/izinli-talebeler"
-            element={
-              <PrivateRoute>
-                <Layout>
-                  <PageTransition>
-                    <IzinliTalebeler />
-                  </PageTransition>
-                </Layout>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/reference-codes"
-            element={
-              <PrivateRoute>
-                <RequireRole roles={['admin']}>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['admin']}>
+                    <Layout>
+                      <PageTransition>
+                        <Settings />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/activity-logs"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['admin']}>
+                    <Layout>
+                      <PageTransition>
+                        <ActivityLogs />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/izinli-talebeler"
+              element={
+                <PrivateRoute>
                   <Layout>
                     <PageTransition>
-                      <ReferenceCodeManagement />
+                      <IzinliTalebeler />
                     </PageTransition>
                   </Layout>
-                </RequireRole>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/student-portal"
-            element={
-              <PrivateRoute>
-                <RequireRole roles={['talebe']}>
-                  <Layout>
-                    <PageTransition>
-                      <StudentPortal />
-                    </PageTransition>
-                  </Layout>
-                </RequireRole>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/super-admin"
-            element={
-              <PrivateRoute>
-                <RequireRole roles={['super-admin']}>
-                  <Layout>
-                    <PageTransition>
-                      <SuperAdminDashboard />
-                    </PageTransition>
-                  </Layout>
-                </RequireRole>
-              </PrivateRoute>
-            }
-          />
-        </Routes>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/reference-codes"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['admin']}>
+                    <Layout>
+                      <PageTransition>
+                        <ReferenceCodeManagement />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/student-portal"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['talebe']}>
+                    <Layout>
+                      <PageTransition>
+                        <StudentPortal />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/super-admin"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['super-admin']}>
+                    <Layout>
+                      <PageTransition>
+                        <SuperAdminDashboard />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
+                </PrivateRoute>
+              }
+            />
+          </Routes>
 
-      </Router>
+        </Router>
+      </SocketProvider>
     </AuthProvider>
   );
 }

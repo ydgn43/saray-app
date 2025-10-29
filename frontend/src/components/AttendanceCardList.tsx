@@ -16,6 +16,7 @@ interface Props {
     program: string;
     onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
     availableClasses?: Class[];
+    recentlyUpdatedStudents?: Set<number>;
 }
 
 const listVariants = {
@@ -35,6 +36,7 @@ const AttendanceCardList: React.FC<Props> = ({
     program,
     onUpdateAttendance,
     availableClasses = [],
+    recentlyUpdatedStudents = new Set(),
 }) => {
     // Sort students by class display_order from availableClasses
     const normalizeClassName = (name: string) => name.replace(/\s+/g, '').toLowerCase();
@@ -72,14 +74,23 @@ const AttendanceCardList: React.FC<Props> = ({
             <AnimatePresence>
                 {sortedStudents.map((student) => {
                     const record = attendanceData.find(a => a.studentid === student.studentid);
+                    const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
+
                     return (
                         <motion.div
                             key={student.studentid}
                             variants={cardVariants}
                             initial="hidden"
-                            animate="show"
+                            animate={isRecentlyUpdated ? {
+                                ...cardVariants.show,
+                                boxShadow: "0 0 20px rgba(13, 110, 253, 0.5)",
+                                scale: 1.02
+                            } : "show"}
                             exit="exit"
                             layout
+                            style={{
+                                transition: isRecentlyUpdated ? "box-shadow 0.3s, scale 0.3s" : undefined
+                            }}
                         >
                             <AttendanceCard
                                 student={student}

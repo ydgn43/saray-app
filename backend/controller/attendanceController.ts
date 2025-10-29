@@ -118,7 +118,13 @@ export class AttendanceController {
 
             await this.attendanceService.updateAttendance(attendanceData, yurtid);
 
-            res.status(202).json({ message: 'Attendance successfully updated' });
+            res.status(202).json({
+                message: 'Attendance successfully updated',
+                studentid,
+                date,
+                attendance_type_name,
+                program_name
+            });
         } catch (error) {
             console.log('Update Attendance error:', error);
             res.status(500).json({ message: 'Failed to update attendance' });

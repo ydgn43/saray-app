@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: './config.env' });
 
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import { sequelize } from './data/sequelize';
 import { studentRouter } from './routes/studentRoute';
@@ -16,8 +17,10 @@ import { activityLogRouter } from './routes/activityLogRoute';
 import yurtRouter from './routes/yurtRoute';
 import yurtManagementRouter from './routes/yurtManagementRoute';
 import superAdminRouter from './routes/superAdminRoute';
+import { initializeWebSocket } from './websocket/socketServer';
 
 const app = express();
+const httpServer = createServer(app);
 const port = Number(process.env.PORT_HTTP) || 3001;
 const host = '0.0.0.0';
 
@@ -90,9 +93,13 @@ app.use((req, res, next) => {
     res.status(404).json({ message: 'Route not found', path: req.url, method: req.method });
 });
 
-app.listen(port, host, () => {
+// Initialize WebSocket server
+initializeWebSocket(httpServer);
+
+httpServer.listen(port, host, () => {
     console.log(`🚀 Backend server listening on http://${host}:${port}`);
     console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
+    console.log(`🔌 WebSocket server initialized`);
 });
 
 async function testSequelizeConnection() {

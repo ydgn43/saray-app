@@ -109,7 +109,13 @@ class AttendanceController {
                 const attendanceData = new Attendance_1.Attendance(studentid, new Date(date), attendance_type_name, program_name, yurtid);
                 attendanceData.sebep = sebep || null;
                 yield this.attendanceService.updateAttendance(attendanceData, yurtid);
-                res.status(202).json({ message: 'Attendance successfully updated' });
+                res.status(202).json({
+                    message: 'Attendance successfully updated',
+                    studentid,
+                    date,
+                    attendance_type_name,
+                    program_name
+                });
             }
             catch (error) {
                 console.log('Update Attendance error:', error);
