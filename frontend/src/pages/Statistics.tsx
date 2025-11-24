@@ -97,6 +97,11 @@ const Statistics = () => {
     const [selectedProgram, setSelectedProgram] = useState('genel');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
+    // State for programs included in "genel" calculation
+    const [programsForGenel, setProgramsForGenel] = useState<Set<string>>(
+        new Set(PROGRAM_ORDER) // By default, include all programs
+    );
+
     // Pastel color styles for badges
     const pastelStyles = {
         success: {
@@ -196,9 +201,11 @@ const Statistics = () => {
         programsWithRecords.forEach(prog => {
             if (programMap[prog]) {
                 const { var: v, izinli: i, total } = programMap[prog];
+                // Calculate attendance rate: (var + izinli) / total * 100
+                const attendanceRate = total ? Math.round(((v + i) / total) * 100) : 0;
                 result[prog] = {
-                    var: total ? Math.round((v / total) * 100) : 0,
-                    izinli: total ? Math.round((i / total) * 100) : 0,
+                    var: attendanceRate,
+                    izinli: 0, // Not used separately anymore
                     hasRecords: true
                 };
             } else {
@@ -218,14 +225,20 @@ const Statistics = () => {
         const programPercentages = computeProgramPercentages(stat, attendanceRecords);
         const programsWithAnyRecords = getProgramsWithRecords();
 
-        // Only calculate for programs that have records in the system
-        const programSums = Array.from(programsWithAnyRecords).map((program) => {
+        // Filter to only include programs selected for "genel" calculation
+        const programsToInclude = Array.from(programsWithAnyRecords).filter(prog =>
+            programsForGenel.has(prog)
+        );
+
+        // Only calculate for programs that are selected and have records in the system
+        const programSums = programsToInclude.map((program) => {
             const prog = programPercentages[program];
             if (!prog) return 100; // Program exists but student has no records = 100%
-            return prog.var + prog.izinli;
+            // Now prog.var already contains the correct attendance rate
+            return prog.var;
         });
 
-        // Genel: average only of programs that actually have records in the date range
+        // Genel: average only of selected programs that actually have records in the date range
         const valid = programSums.filter(x => typeof x === 'number');
         const genel = valid.length ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length) : 0;
 
@@ -629,6 +642,71 @@ const Statistics = () => {
                                 </ul>
                             </div>
                         </div>
+
+                        {/* Program selector for "genel" calculation */}
+                        {selectedProgram === 'genel' && (
+                            <div className="mb-3 p-3 border rounded" style={{ backgroundColor: '#f8f9fa' }}>
+                                <div className="d-flex align-items-center mb-2">
+                                    <label className="form-label fw-bold mb-0 me-3" style={{ fontSize: '0.9rem' }}>
+                                        📊 Genel Hesaplamaya Dahil Programlar:
+                                    </label>
+                                    <button
+                                        className="btn btn-sm btn-outline-primary me-2"
+                                        onClick={() => setProgramsForGenel(new Set(PROGRAM_ORDER))}
+                                        style={{ fontSize: '0.75rem', padding: '4px 12px' }}
+                                    >
+                                        Tümünü Seç
+                                    </button>
+                                    <button
+                                        className="btn btn-sm btn-outline-secondary"
+                                        onClick={() => setProgramsForGenel(new Set())}
+                                        style={{ fontSize: '0.75rem', padding: '4px 12px' }}
+                                    >
+                                        Tümünü Kaldır
+                                    </button>
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {PROGRAM_ORDER.map(program => (
+                                        <div
+                                            key={program}
+                                            className="form-check"
+                                            style={{
+                                                padding: '8px 12px',
+                                                borderRadius: '6px',
+                                                border: '1px solid #dee2e6',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                boxShadow: programsForGenel.has(program) ? '0 2px 8px rgba(13, 110, 253, 0.2)' : 'none',
+                                                backgroundColor: programsForGenel.has(program) ? '#e7f3ff' : 'white'
+                                            }}
+                                            onClick={() => {
+                                                const newSet = new Set(programsForGenel);
+                                                if (newSet.has(program)) {
+                                                    newSet.delete(program);
+                                                } else {
+                                                    newSet.add(program);
+                                                }
+                                                setProgramsForGenel(newSet);
+                                            }}
+                                        >
+                                            <input
+                                                className="form-check-input me-2"
+                                                type="checkbox"
+                                                checked={programsForGenel.has(program)}
+                                                onChange={() => { }}
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                            <label className="form-check-label" style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: programsForGenel.has(program) ? '600' : '400' }}>
+                                                {PROGRAM_TURKISH_MAP[program] || program}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                                <small className="text-muted mt-2 d-block" style={{ fontSize: '0.75rem' }}>
+                                    ℹ️ Seçilen programların ortalaması "Genel" sütununda gösterilir. ({programsForGenel.size} program seçili)
+                                </small>
+                            </div>
+                        )}
 
                         {/* Charts Section */}
                         {filteredStats.length > 0 && (
