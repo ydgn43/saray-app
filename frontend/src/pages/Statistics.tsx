@@ -153,13 +153,18 @@ const Statistics = () => {
     };
 
     // Get all unique normalized program names from attendanceRecords and statistics
-    const allPrograms = PROGRAM_ORDER.filter(p =>
+    const allProgramsBase = PROGRAM_ORDER.filter(p =>
         statistics.length === 0 ||
         statistics.some(stat => {
             if (!attendanceRecords.length) return true;
             return attendanceRecords.some(rec => normalizeProgramName(rec.program_name) === p);
         })
     );
+
+    // Filter programs based on selection when in 'genel' view
+    const allPrograms = selectedProgram === 'genel'
+        ? allProgramsBase.filter(p => programsForGenel.has(p))
+        : allProgramsBase;
 
     // Helper to get all programs that have at least one record in the date range
     const getProgramsWithRecords = (): Set<string> => {
@@ -669,15 +674,18 @@ const Statistics = () => {
                                     {PROGRAM_ORDER.map(program => (
                                         <div
                                             key={program}
-                                            className="form-check"
                                             style={{
-                                                padding: '8px 12px',
-                                                borderRadius: '6px',
-                                                border: '1px solid #dee2e6',
+                                                padding: '10px 16px',
+                                                borderRadius: '8px',
+                                                border: programsForGenel.has(program) ? '2px solid #0d6efd' : '2px solid #dee2e6',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s',
-                                                boxShadow: programsForGenel.has(program) ? '0 2px 8px rgba(13, 110, 253, 0.2)' : 'none',
-                                                backgroundColor: programsForGenel.has(program) ? '#e7f3ff' : 'white'
+                                                boxShadow: programsForGenel.has(program) ? '0 2px 8px rgba(13, 110, 253, 0.25)' : 'none',
+                                                backgroundColor: programsForGenel.has(program) ? '#e7f3ff' : 'white',
+                                                fontSize: '0.85rem',
+                                                fontWeight: programsForGenel.has(program) ? '600' : '500',
+                                                color: programsForGenel.has(program) ? '#0d6efd' : '#495057',
+                                                userSelect: 'none'
                                             }}
                                             onClick={() => {
                                                 const newSet = new Set(programsForGenel);
@@ -689,21 +697,12 @@ const Statistics = () => {
                                                 setProgramsForGenel(newSet);
                                             }}
                                         >
-                                            <input
-                                                className="form-check-input me-2"
-                                                type="checkbox"
-                                                checked={programsForGenel.has(program)}
-                                                onChange={() => { }}
-                                                style={{ cursor: 'pointer' }}
-                                            />
-                                            <label className="form-check-label" style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: programsForGenel.has(program) ? '600' : '400' }}>
-                                                {PROGRAM_TURKISH_MAP[program] || program}
-                                            </label>
+                                            {PROGRAM_TURKISH_MAP[program] || program}
                                         </div>
                                     ))}
                                 </div>
                                 <small className="text-muted mt-2 d-block" style={{ fontSize: '0.75rem' }}>
-                                    ℹ️ Seçilen programların ortalaması "Genel" sütununda gösterilir. ({programsForGenel.size} program seçili)
+                                    ℹ️ Seçilen programlar tabloda gösterilir ve "Genel" sütunu bu programların ortalaması olarak hesaplanır. ({programsForGenel.size} program seçili)
                                 </small>
                             </div>
                         )}
