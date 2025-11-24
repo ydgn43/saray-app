@@ -393,85 +393,290 @@ const Statistics = () => {
     // Export functions
     const handleExportToCSV = () => {
         const csvRows: string[] = [];
-        const headers = ['#', 'İsim', 'Dahili Seviye', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel'];
+
+        // Headers
+        const headers = ['#', 'İsim', 'Dahili Seviye'];
+        if (selectedProgram === 'genel') {
+            allPrograms.forEach(p => headers.push(PROGRAM_TURKISH_MAP[p] || p));
+        } else {
+            headers.push(PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram);
+        }
+        headers.push('Genel');
         csvRows.push(headers.join(';'));
+
+        // Data rows
         sortedStats.forEach((s, i) => {
-            const { programSums, genel } = getProgramSums(s);
+            const { genel } = getProgramSums(s);
+            const programPercentages = computeProgramPercentages(s, attendanceRecords);
+            const programsWithRecordsSet = getProgramsWithRecords();
+
             const row = [
-                i + 1,
+                String(i + 1),
                 s.name,
-                s.class_name,
-                ...programSums,
-                genel
+                getTurkishClassName(s.class_name),
             ];
+
+            if (selectedProgram === 'genel') {
+                allPrograms.forEach((p) => {
+                    const progData = programPercentages[p];
+                    const val = progData ? (progData.var + progData.izinli) :
+                        (programsWithRecordsSet.has(p) ? 100 : 0);
+                    row.push(val + '%');
+                });
+            } else {
+                const progData = programPercentages[selectedProgram];
+                const val = progData ? (progData.var + progData.izinli) :
+                    (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
+                row.push(val + '%');
+            }
+
+            row.push(genel + '%');
             csvRows.push(row.join(';'));
         });
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+
+        const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.setAttribute('href', url);
-        a.setAttribute('download', 'istatistikler.csv');
+        a.setAttribute('download', `istatistikler_${new Date().toLocaleDateString('tr-TR')}.csv`);
         a.click();
         URL.revokeObjectURL(url);
     };
 
     const handleExportToExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(
-            sortedStats.map((s, i) => {
-                const { programSums, genel } = getProgramSums(s);
-                const row: any = {
-                    '#': i + 1,
-                    'İsim': s.name,
-                    'Dahili Seviye': s.class_name,
-                };
-                allPrograms.forEach((p, idx) => {
-                    row[p.replace(/_/g, ' ')] = programSums[idx];
+        const data = sortedStats.map((s, i) => {
+            const { genel } = getProgramSums(s);
+            const programPercentages = computeProgramPercentages(s, attendanceRecords);
+            const programsWithRecordsSet = getProgramsWithRecords();
+
+            const row: any = {
+                '#': i + 1,
+                'İsim': s.name,
+                'Dahili Seviye': getTurkishClassName(s.class_name),
+            };
+
+            if (selectedProgram === 'genel') {
+                allPrograms.forEach((p) => {
+                    const progData = programPercentages[p];
+                    const val = progData ? (progData.var + progData.izinli) :
+                        (programsWithRecordsSet.has(p) ? 100 : 0);
+                    row[PROGRAM_TURKISH_MAP[p] || p] = val + '%';
                 });
-                row['Genel'] = genel;
-                return row;
-            })
-        );
+            } else {
+                const progData = programPercentages[selectedProgram];
+                const val = progData ? (progData.var + progData.izinli) :
+                    (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
+                row[PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram] = val + '%';
+            }
+
+            row['Genel'] = genel + '%';
+            return row;
+        });
+
+        const ws = XLSX.utils.json_to_sheet(data);
+
+        // Set column widths
+        const cols = [
+            { wch: 5 },  // #
+            { wch: 25 }, // İsim
+            { wch: 20 }, // Dahili Seviye
+        ];
+
+        // Add column widths for programs
+        if (selectedProgram === 'genel') {
+            allPrograms.forEach(() => cols.push({ wch: 15 }));
+        } else {
+            cols.push({ wch: 15 });
+        }
+        cols.push({ wch: 12 }); // Genel
+
+        ws['!cols'] = cols;
+
+        // Style header row
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const address = XLSX.utils.encode_col(C) + "1";
+            if (!ws[address]) continue;
+            ws[address].s = {
+                font: { bold: true, sz: 12 },
+                fill: { fgColor: { rgb: "F1F5F9" } },
+                alignment: { horizontal: "center", vertical: "center" }
+            };
+        }
+
+        // Apply conditional formatting colors to data cells
+        for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+            for (let C = range.s.c + 3; C <= range.e.c; ++C) { // Start from program columns
+                const address = XLSX.utils.encode_col(C) + (R + 1);
+                if (!ws[address]) continue;
+
+                const val = parseInt(ws[address].v);
+                let bgColor = "86EFAC"; // Green
+                let fontColor = "166534";
+
+                if (val < 60) {
+                    bgColor = "FCA5A5"; // Red
+                    fontColor = "991B1B";
+                } else if (val < 80) {
+                    bgColor = "FDE047"; // Yellow
+                    fontColor = "713F12";
+                }
+
+                ws[address].s = {
+                    fill: { fgColor: { rgb: bgColor } },
+                    font: { color: { rgb: fontColor }, bold: true },
+                    alignment: { horizontal: "center", vertical: "center" }
+                };
+            }
+        }
+
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'İstatistikler');
-        XLSX.writeFile(wb, 'istatistikler.xlsx');
+        XLSX.writeFile(wb, `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
     };
 
     const handleExportToPDF = () => {
         const doc = new jsPDF('l', 'mm', 'a4');
-        doc.setFontSize(10);
 
-        // Table
+        // Add title
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('İstatistikler Raporu', 14, 15);
+
+        // Add date range if filters are applied
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        let subtitle = '';
+        if (startDate || endDate) {
+            subtitle += `Tarih: ${startDate || '...'} - ${endDate || '...'}`;
+        }
+        if (selectedClass !== '') {
+            if (subtitle) subtitle += ' | ';
+            subtitle += `Seviye: ${getTurkishClassName(selectedClass)}`;
+        }
+        if (subtitle) {
+            doc.text(subtitle, 14, 22);
+        }
+
+        // Prepare table headers
+        const headers: string[] = ['#', 'İsim', 'Dahili Seviye'];
+        if (selectedProgram === 'genel') {
+            allPrograms.forEach(p => headers.push(PROGRAM_TURKISH_MAP[p] || p));
+        } else {
+            headers.push(PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram);
+        }
+        headers.push('Genel');
+
+        // Prepare table data with styling information
         const tableData = sortedStats.map((s, i) => {
-            const { programSums, genel } = getProgramSums(s);
+            const { genel } = getProgramSums(s);
+            const programPercentages = computeProgramPercentages(s, attendanceRecords);
+            const programsWithRecordsSet = getProgramsWithRecords();
+
             const row = [
                 String(i + 1),
                 s.name,
-                s.class_name,
-                ...programSums.map(String),
-                String(genel),
+                getTurkishClassName(s.class_name),
             ];
+
+            if (selectedProgram === 'genel') {
+                allPrograms.forEach((p) => {
+                    const progData = programPercentages[p];
+                    const val = progData ? (progData.var + progData.izinli) :
+                        (programsWithRecordsSet.has(p) ? 100 : 0);
+                    row.push(val + '%');
+                });
+            } else {
+                const progData = programPercentages[selectedProgram];
+                const val = progData ? (progData.var + progData.izinli) :
+                    (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
+                row.push(val + '%');
+            }
+
+            row.push(genel + '%');
             return row;
         });
 
         autoTable(doc, {
-            head: [
-                ['#', 'İsim', 'Dahili Seviye', ...allPrograms.map(p => p.replace(/_/g, ' ')), 'Genel']
-            ],
+            head: [headers],
             body: tableData,
-            startY: 20,
+            startY: subtitle ? 26 : 20,
             theme: 'grid',
             styles: {
-                cellPadding: 2,
-                fontSize: 10,
+                cellPadding: 3,
+                fontSize: 9,
+                halign: 'center',
+                valign: 'middle',
+            },
+            headStyles: {
+                fillColor: [241, 245, 249],
+                textColor: [71, 85, 105],
+                fontStyle: 'bold',
+                fontSize: 9,
+                halign: 'center',
             },
             columnStyles: {
-                0: { cellWidth: 10 },
-                1: { cellWidth: 40 },
-                2: { cellWidth: 30 },
+                0: { cellWidth: 10, halign: 'center' },
+                1: { cellWidth: 45, halign: 'left' },
+                2: { cellWidth: 30, halign: 'center' },
+            },
+            didParseCell: function (data) {
+                // Apply color coding to percentage cells (program columns and genel)
+                if (data.section === 'body' && data.column.index >= 3) {
+                    const cellValue = data.cell.text[0];
+                    const val = parseInt(cellValue);
+
+                    if (!isNaN(val)) {
+                        if (val < 60) {
+                            data.cell.styles.fillColor = [252, 165, 165]; // Red
+                            data.cell.styles.textColor = [153, 27, 27];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (val < 80) {
+                            data.cell.styles.fillColor = [253, 224, 71]; // Yellow
+                            data.cell.styles.textColor = [113, 63, 18];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else {
+                            data.cell.styles.fillColor = [134, 239, 172]; // Green
+                            data.cell.styles.textColor = [22, 101, 52];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+
+                // Style row number column
+                if (data.section === 'body' && data.column.index === 0) {
+                    data.cell.styles.textColor = [100, 116, 139];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+
+                // Style name column
+                if (data.section === 'body' && data.column.index === 1) {
+                    data.cell.styles.textColor = [30, 41, 59];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+
+                // Style class column
+                if (data.section === 'body' && data.column.index === 2) {
+                    data.cell.styles.textColor = [71, 85, 105];
+                }
             },
         });
 
-        doc.save('istatistikler.pdf');
+        // Add footer with generation date
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.text(
+                `Oluşturulma: ${new Date().toLocaleString('tr-TR')} | Sayfa ${i} / ${pageCount}`,
+                doc.internal.pageSize.width / 2,
+                doc.internal.pageSize.height - 10,
+                { align: 'center' }
+            );
+        }
+
+        doc.save(`istatistikler_${new Date().toLocaleDateString('tr-TR')}.pdf`);
     };
 
     return (
