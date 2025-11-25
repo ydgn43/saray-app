@@ -1236,8 +1236,19 @@ const Statistics = () => {
                                                 <Line
                                                     data={{
                                                         labels: (() => {
-                                                            // Get unique dates from attendance records
-                                                            const dates = [...new Set(attendanceRecords.map(r => r.date))].sort();
+                                                            // Filter records based on selected programs when in 'genel' view
+                                                            const filteredRecords = selectedProgram === 'genel'
+                                                                ? attendanceRecords.filter(r => {
+                                                                    const normalizedProgram = normalizeProgramName(r.program_name);
+                                                                    return programsForGenel.has(normalizedProgram);
+                                                                })
+                                                                : attendanceRecords.filter(r => {
+                                                                    const normalizedProgram = normalizeProgramName(r.program_name);
+                                                                    return normalizedProgram === selectedProgram;
+                                                                });
+
+                                                            // Get unique dates from filtered records
+                                                            const dates = [...new Set(filteredRecords.map(r => r.date))].sort();
                                                             // Format dates
                                                             return dates.map(date => {
                                                                 const d = new Date(date);
@@ -1245,23 +1256,34 @@ const Statistics = () => {
                                                             });
                                                         })(),
                                                         datasets: (() => {
-                                                            const dates = [...new Set(attendanceRecords.map(r => r.date))].sort();
+                                                            // Filter records based on selected programs when in 'genel' view
+                                                            const filteredRecords = selectedProgram === 'genel'
+                                                                ? attendanceRecords.filter(r => {
+                                                                    const normalizedProgram = normalizeProgramName(r.program_name);
+                                                                    return programsForGenel.has(normalizedProgram);
+                                                                })
+                                                                : attendanceRecords.filter(r => {
+                                                                    const normalizedProgram = normalizeProgramName(r.program_name);
+                                                                    return normalizedProgram === selectedProgram;
+                                                                });
+
+                                                            const dates = [...new Set(filteredRecords.map(r => r.date))].sort();
 
                                                             // Calculate attendance percentages for each date
                                                             const varData = dates.map(date => {
-                                                                const dayRecords = attendanceRecords.filter(r => r.date === date);
+                                                                const dayRecords = filteredRecords.filter(r => r.date === date);
                                                                 const varCount = dayRecords.filter(r => r.attendance_type_name === 'var').length;
                                                                 return dayRecords.length > 0 ? (varCount / dayRecords.length) * 100 : 0;
                                                             });
 
                                                             const izinliData = dates.map(date => {
-                                                                const dayRecords = attendanceRecords.filter(r => r.date === date);
+                                                                const dayRecords = filteredRecords.filter(r => r.date === date);
                                                                 const izinliCount = dayRecords.filter(r => r.attendance_type_name === 'izinli').length;
                                                                 return dayRecords.length > 0 ? (izinliCount / dayRecords.length) * 100 : 0;
                                                             });
 
                                                             const yokData = dates.map(date => {
-                                                                const dayRecords = attendanceRecords.filter(r => r.date === date);
+                                                                const dayRecords = filteredRecords.filter(r => r.date === date);
                                                                 const yokCount = dayRecords.filter(r => r.attendance_type_name === 'yok').length;
                                                                 return dayRecords.length > 0 ? (yokCount / dayRecords.length) * 100 : 0;
                                                             });
