@@ -532,38 +532,67 @@ const Statistics = () => {
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'İstatistikler');
-        XLSX.writeFile(wb, `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`);
+        XLSX.writeFile(wb, `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`, { cellStyles: true });
     };
 
     const handleExportToPDF = () => {
-        const doc = new jsPDF('l', 'mm', 'a4');
+        const doc = new jsPDF({
+            orientation: 'l',
+            unit: 'mm',
+            format: 'a4',
+            compress: true
+        });
 
-        // Add title
+        // Add title - use ASCII-safe text
         doc.setFontSize(16);
-        doc.setFont('helvetica', 'bold');
-        doc.text('İstatistikler Raporu', 14, 15);
+        doc.text('Istatistikler Raporu', 14, 15);
 
         // Add date range if filters are applied
         doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
         let subtitle = '';
         if (startDate || endDate) {
             subtitle += `Tarih: ${startDate || '...'} - ${endDate || '...'}`;
         }
         if (selectedClass !== '') {
             if (subtitle) subtitle += ' | ';
-            subtitle += `Seviye: ${getTurkishClassName(selectedClass)}`;
+            const className = getTurkishClassName(selectedClass)
+                .replace(/İ/g, 'I').replace(/ı/g, 'i')
+                .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+                .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+                .replace(/Ş/g, 'S').replace(/ş/g, 's')
+                .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+                .replace(/Ç/g, 'C').replace(/ç/g, 'c');
+            subtitle += `Seviye: ${className}`;
         }
         if (subtitle) {
             doc.text(subtitle, 14, 22);
         }
 
-        // Prepare table headers
-        const headers: string[] = ['#', 'İsim', 'Dahili Seviye'];
+        // Prepare table headers - convert Turkish characters for PDF compatibility
+        const headers: string[] = ['#', 'Isim', 'Dahili Seviye'];
         if (selectedProgram === 'genel') {
-            allPrograms.forEach(p => headers.push(PROGRAM_TURKISH_MAP[p] || p));
+            allPrograms.forEach(p => {
+                const turkishName = PROGRAM_TURKISH_MAP[p] || p;
+                // Convert Turkish characters to ASCII-safe equivalents for PDF
+                const pdfSafeName = turkishName
+                    .replace(/İ/g, 'I').replace(/ı/g, 'i')
+                    .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+                    .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+                    .replace(/Ş/g, 'S').replace(/ş/g, 's')
+                    .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+                    .replace(/Ç/g, 'C').replace(/ç/g, 'c');
+                headers.push(pdfSafeName);
+            });
         } else {
-            headers.push(PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram);
+            const turkishName = PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram;
+            const pdfSafeName = turkishName
+                .replace(/İ/g, 'I').replace(/ı/g, 'i')
+                .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+                .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+                .replace(/Ş/g, 'S').replace(/ş/g, 's')
+                .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+                .replace(/Ç/g, 'C').replace(/ç/g, 'c');
+            headers.push(pdfSafeName);
         }
         headers.push('Genel');
 
@@ -573,10 +602,27 @@ const Statistics = () => {
             const programPercentages = computeProgramPercentages(s, attendanceRecords);
             const programsWithRecordsSet = getProgramsWithRecords();
 
+            // Convert Turkish characters in names for PDF
+            const pdfSafeName = s.name
+                .replace(/İ/g, 'I').replace(/ı/g, 'i')
+                .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+                .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+                .replace(/Ş/g, 'S').replace(/ş/g, 's')
+                .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+                .replace(/Ç/g, 'C').replace(/ç/g, 'c');
+
+            const pdfSafeClass = getTurkishClassName(s.class_name)
+                .replace(/İ/g, 'I').replace(/ı/g, 'i')
+                .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
+                .replace(/Ü/g, 'U').replace(/ü/g, 'u')
+                .replace(/Ş/g, 'S').replace(/ş/g, 's')
+                .replace(/Ö/g, 'O').replace(/ö/g, 'o')
+                .replace(/Ç/g, 'C').replace(/ç/g, 'c');
+
             const row = [
                 String(i + 1),
-                s.name,
-                getTurkishClassName(s.class_name),
+                pdfSafeName,
+                pdfSafeClass,
             ];
 
             if (selectedProgram === 'genel') {
@@ -668,8 +714,9 @@ const Statistics = () => {
         doc.setTextColor(128, 128, 128);
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
+            const footerText = `Olusturulma: ${new Date().toLocaleString('tr-TR')} | Sayfa ${i} / ${pageCount}`;
             doc.text(
-                `Oluşturulma: ${new Date().toLocaleString('tr-TR')} | Sayfa ${i} / ${pageCount}`,
+                footerText,
                 doc.internal.pageSize.width / 2,
                 doc.internal.pageSize.height - 10,
                 { align: 'center' }
