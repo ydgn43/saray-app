@@ -460,16 +460,16 @@ const Statistics = () => {
                     const progData = programPercentages[p];
                     const val = progData ? (progData.var + progData.izinli) :
                         (programsWithRecordsSet.has(p) ? 100 : 0);
-                    row[PROGRAM_TURKISH_MAP[p] || p] = val + '%';
+                    row[PROGRAM_TURKISH_MAP[p] || p] = val;
                 });
             } else {
                 const progData = programPercentages[selectedProgram];
                 const val = progData ? (progData.var + progData.izinli) :
                     (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
-                row[PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram] = val + '%';
+                row[PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram] = val;
             }
 
-            row['Genel'] = genel + '%';
+            row['Genel'] = genel;
             return row;
         });
 
@@ -492,50 +492,94 @@ const Statistics = () => {
 
         ws['!cols'] = cols;
 
-        // Style header row
+        // Get the range
         const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const address = XLSX.utils.encode_col(C) + "1";
-            if (!ws[address]) continue;
-            ws[address].s = {
-                font: { bold: true, sz: 12 },
-                fill: { fgColor: { rgb: "F1F5F9" } },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-        }
 
-        // Apply conditional formatting colors to data cells
-        for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-            for (let C = range.s.c + 3; C <= range.e.c; ++C) { // Start from program columns
-                const address = XLSX.utils.encode_col(C) + (R + 1);
-                if (!ws[address]) continue;
+        // Apply styles to cells
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                if (!ws[cellAddress]) continue;
 
-                const val = parseInt(ws[address].v);
-                let bgColor = "86EFAC"; // Green
-                let fontColor = "166534";
+                // Initialize cell style
+                if (!ws[cellAddress].s) ws[cellAddress].s = {};
 
-                if (val < 60) {
-                    bgColor = "FCA5A5"; // Red
-                    fontColor = "991B1B";
-                } else if (val < 80) {
-                    bgColor = "FDE047"; // Yellow
-                    fontColor = "713F12";
+                // Header row (R === 0)
+                if (R === 0) {
+                    ws[cellAddress].s = {
+                        font: { bold: true, sz: 12, color: { rgb: "475569" } },
+                        fill: { fgColor: { rgb: "F1F5F9" } },
+                        alignment: { horizontal: "center", vertical: "center" },
+                        border: {
+                            top: { style: "thin", color: { rgb: "E2E8F0" } },
+                            bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+                            left: { style: "thin", color: { rgb: "E2E8F0" } },
+                            right: { style: "thin", color: { rgb: "E2E8F0" } }
+                        }
+                    };
                 }
+                // Data rows - apply conditional formatting to percentage columns (C >= 3)
+                else if (C >= 3) {
+                    const cellValue = ws[cellAddress].v;
+                    const val = typeof cellValue === 'number' ? cellValue : parseInt(cellValue);
 
-                ws[address].s = {
-                    fill: { fgColor: { rgb: bgColor } },
-                    font: { color: { rgb: fontColor }, bold: true },
-                    alignment: { horizontal: "center", vertical: "center" }
-                };
+                    if (!isNaN(val)) {
+                        let fillColor = "86EFAC"; // Green
+                        let fontColor = "166534";
+
+                        if (val < 60) {
+                            fillColor = "FCA5A5"; // Red
+                            fontColor = "991B1B";
+                        } else if (val < 80) {
+                            fillColor = "FDE047"; // Yellow
+                            fontColor = "713F12";
+                        }
+
+                        ws[cellAddress].s = {
+                            fill: { fgColor: { rgb: fillColor } },
+                            font: { color: { rgb: fontColor }, bold: true, sz: 10 },
+                            alignment: { horizontal: "center", vertical: "center" },
+                            border: {
+                                top: { style: "thin", color: { rgb: "E2E8F0" } },
+                                bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+                                left: { style: "thin", color: { rgb: "E2E8F0" } },
+                                right: { style: "thin", color: { rgb: "E2E8F0" } }
+                            },
+                            numFmt: "0%" // Format as percentage
+                        };
+
+                        // Update cell value to be decimal for percentage format
+                        ws[cellAddress].v = val / 100;
+                        ws[cellAddress].t = 'n'; // number type
+                    }
+                }
+                // Other data cells (# and name columns)
+                else if (R > 0) {
+                    ws[cellAddress].s = {
+                        alignment: {
+                            horizontal: C === 1 ? "left" : "center",
+                            vertical: "center"
+                        },
+                        font: {
+                            sz: 10,
+                            bold: C === 0 ? true : false,
+                            color: { rgb: C === 0 ? "64748B" : (C === 1 ? "1E293B" : "475569") }
+                        },
+                        border: {
+                            top: { style: "thin", color: { rgb: "F1F5F9" } },
+                            bottom: { style: "thin", color: { rgb: "F1F5F9" } },
+                            left: { style: "thin", color: { rgb: "F1F5F9" } },
+                            right: { style: "thin", color: { rgb: "F1F5F9" } }
+                        }
+                    };
+                }
             }
         }
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'İstatistikler');
-        XLSX.writeFile(wb, `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`, { cellStyles: true });
-    };
-
-    const handleExportToPDF = () => {
+        XLSX.writeFile(wb, `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`, { cellStyles: true, bookSST: true });
+    }; const handleExportToPDF = () => {
         const doc = new jsPDF({
             orientation: 'l',
             unit: 'mm',
