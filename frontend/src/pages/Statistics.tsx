@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import PageHeader from '../components/PageHeader';
@@ -443,16 +443,69 @@ const Statistics = () => {
         URL.revokeObjectURL(url);
     };
 
-    const handleExportToExcel = () => {
-        const data = sortedStats.map((s, i) => {
+    const handleExportToExcel = async () => {
+        // Create a new workbook and worksheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('İstatistikler');
+
+        // Define columns
+        const columns: any[] = [
+            { header: '#', key: 'num', width: 5 },
+            { header: 'İsim', key: 'name', width: 25 },
+            { header: 'Dahili Seviye', key: 'class', width: 20 },
+        ];
+
+        // Add program columns
+        if (selectedProgram === 'genel') {
+            allPrograms.forEach((p) => {
+                columns.push({
+                    header: PROGRAM_TURKISH_MAP[p] || p,
+                    key: p,
+                    width: 15
+                });
+            });
+        } else {
+            columns.push({
+                header: PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram,
+                key: selectedProgram,
+                width: 15
+            });
+        }
+        columns.push({ header: 'Genel', key: 'genel', width: 12 });
+
+        worksheet.columns = columns;
+
+        // Style header row
+        worksheet.getRow(1).eachCell((cell) => {
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFF1F5F9' }
+            };
+            cell.font = {
+                bold: true,
+                size: 12,
+                color: { argb: 'FF475569' }
+            };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            };
+        });
+
+        // Add data rows
+        sortedStats.forEach((s, i) => {
             const { genel } = getProgramSums(s);
             const programPercentages = computeProgramPercentages(s, attendanceRecords);
             const programsWithRecordsSet = getProgramsWithRecords();
 
-            const row: any = {
-                '#': i + 1,
-                'İsim': s.name,
-                'Dahili Seviye': getTurkishClassName(s.class_name),
+            const rowData: any = {
+                num: i + 1,
+                name: s.name,
+                class: getTurkishClassName(s.class_name),
             };
 
             if (selectedProgram === 'genel') {
@@ -460,125 +513,95 @@ const Statistics = () => {
                     const progData = programPercentages[p];
                     const val = progData ? (progData.var + progData.izinli) :
                         (programsWithRecordsSet.has(p) ? 100 : 0);
-                    row[PROGRAM_TURKISH_MAP[p] || p] = val;
+                    rowData[p] = val / 100; // Store as decimal for percentage
                 });
             } else {
                 const progData = programPercentages[selectedProgram];
                 const val = progData ? (progData.var + progData.izinli) :
                     (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
-                row[PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram] = val;
+                rowData[selectedProgram] = val / 100;
             }
 
-            row['Genel'] = genel;
-            return row;
+            rowData.genel = genel / 100;
+
+            const row = worksheet.addRow(rowData);
+
+            // Style data cells
+            row.eachCell((cell, colNumber) => {
+                // Row number column
+                if (colNumber === 1) {
+                    cell.font = { bold: true, size: 10, color: { argb: 'FF64748B' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        left: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        bottom: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        right: { style: 'thin', color: { argb: 'FFF1F5F9' } }
+                    };
+                }
+                // Name column
+                else if (colNumber === 2) {
+                    cell.font = { bold: true, size: 10, color: { argb: 'FF1E293B' } };
+                    cell.alignment = { horizontal: 'left', vertical: 'middle' };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        left: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        bottom: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        right: { style: 'thin', color: { argb: 'FFF1F5F9' } }
+                    };
+                }
+                // Class column
+                else if (colNumber === 3) {
+                    cell.font = { size: 10, color: { argb: 'FF475569' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        left: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        bottom: { style: 'thin', color: { argb: 'FFF1F5F9' } },
+                        right: { style: 'thin', color: { argb: 'FFF1F5F9' } }
+                    };
+                }
+                // Percentage columns (program columns and genel)
+                else {
+                    const val = typeof cell.value === 'number' ? cell.value * 100 : 0;
+                    let fillColor = 'FF86EFAC'; // Green
+                    let fontColor = 'FF166534';
+
+                    if (val < 60) {
+                        fillColor = 'FFFCA5A5'; // Red
+                        fontColor = 'FF991B1B';
+                    } else if (val < 80) {
+                        fillColor = 'FFFDE047'; // Yellow
+                        fontColor = 'FF713F12';
+                    }
+
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: fillColor }
+                    };
+                    cell.font = { bold: true, size: 10, color: { argb: fontColor } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.numFmt = '0%'; // Percentage format
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                    };
+                }
+            });
         });
 
-        const ws = XLSX.utils.json_to_sheet(data);
-
-        // Set column widths
-        const cols = [
-            { wch: 5 },  // #
-            { wch: 25 }, // İsim
-            { wch: 20 }, // Dahili Seviye
-        ];
-
-        // Add column widths for programs
-        if (selectedProgram === 'genel') {
-            allPrograms.forEach(() => cols.push({ wch: 15 }));
-        } else {
-            cols.push({ wch: 15 });
-        }
-        cols.push({ wch: 12 }); // Genel
-
-        ws['!cols'] = cols;
-
-        // Get the range
-        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-
-        // Apply styles to cells
-        for (let R = range.s.r; R <= range.e.r; ++R) {
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                if (!ws[cellAddress]) continue;
-
-                // Initialize cell style
-                if (!ws[cellAddress].s) ws[cellAddress].s = {};
-
-                // Header row (R === 0)
-                if (R === 0) {
-                    ws[cellAddress].s = {
-                        font: { bold: true, sz: 12, color: { rgb: "475569" } },
-                        fill: { fgColor: { rgb: "F1F5F9" } },
-                        alignment: { horizontal: "center", vertical: "center" },
-                        border: {
-                            top: { style: "thin", color: { rgb: "E2E8F0" } },
-                            bottom: { style: "thin", color: { rgb: "E2E8F0" } },
-                            left: { style: "thin", color: { rgb: "E2E8F0" } },
-                            right: { style: "thin", color: { rgb: "E2E8F0" } }
-                        }
-                    };
-                }
-                // Data rows - apply conditional formatting to percentage columns (C >= 3)
-                else if (C >= 3) {
-                    const cellValue = ws[cellAddress].v;
-                    const val = typeof cellValue === 'number' ? cellValue : parseInt(cellValue);
-
-                    if (!isNaN(val)) {
-                        let fillColor = "86EFAC"; // Green
-                        let fontColor = "166534";
-
-                        if (val < 60) {
-                            fillColor = "FCA5A5"; // Red
-                            fontColor = "991B1B";
-                        } else if (val < 80) {
-                            fillColor = "FDE047"; // Yellow
-                            fontColor = "713F12";
-                        }
-
-                        ws[cellAddress].s = {
-                            fill: { fgColor: { rgb: fillColor } },
-                            font: { color: { rgb: fontColor }, bold: true, sz: 10 },
-                            alignment: { horizontal: "center", vertical: "center" },
-                            border: {
-                                top: { style: "thin", color: { rgb: "E2E8F0" } },
-                                bottom: { style: "thin", color: { rgb: "E2E8F0" } },
-                                left: { style: "thin", color: { rgb: "E2E8F0" } },
-                                right: { style: "thin", color: { rgb: "E2E8F0" } }
-                            },
-                            numFmt: "0%" // Format as percentage
-                        };
-
-                        // Update cell value to be decimal for percentage format
-                        ws[cellAddress].v = val / 100;
-                        ws[cellAddress].t = 'n'; // number type
-                    }
-                }
-                // Other data cells (# and name columns)
-                else if (R > 0) {
-                    ws[cellAddress].s = {
-                        alignment: {
-                            horizontal: C === 1 ? "left" : "center",
-                            vertical: "center"
-                        },
-                        font: {
-                            sz: 10,
-                            bold: C === 0 ? true : false,
-                            color: { rgb: C === 0 ? "64748B" : (C === 1 ? "1E293B" : "475569") }
-                        },
-                        border: {
-                            top: { style: "thin", color: { rgb: "F1F5F9" } },
-                            bottom: { style: "thin", color: { rgb: "F1F5F9" } },
-                            left: { style: "thin", color: { rgb: "F1F5F9" } },
-                            right: { style: "thin", color: { rgb: "F1F5F9" } }
-                        }
-                    };
-                }
-            }
-        }
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'İstatistikler');
-        XLSX.writeFile(wb, `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`, { cellStyles: true, bookSST: true });
+        // Generate Excel file
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
     }; const handleExportToPDF = () => {
         const doc = new jsPDF({
             orientation: 'l',
