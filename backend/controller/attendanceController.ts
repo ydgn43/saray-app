@@ -9,7 +9,9 @@ export class AttendanceController {
     public async getAllAttendance(req: Request, res: Response) {
         try {
             const yurtid = req.selectedYurtId!;
-            const attendance = await this.attendanceService.getAllAttendance(yurtid);
+            const startDate = req.query.startDate as string | undefined;
+            const endDate = req.query.endDate as string | undefined;
+            const attendance = await this.attendanceService.getAllAttendance(yurtid, startDate, endDate);
             res.status(202).json(attendance);
         } catch {
             res.status(404).end();

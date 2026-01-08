@@ -533,15 +533,17 @@ const Attendance = () => {
       if (!record) return;
       const normClass = normalizeClassName(student.class_name);
       const label = `${student.first_name} ${student.last_name}`;
-      if (record.attendance_type_name?.toLowerCase() === 'yok') {
+
+      // Normalize the attendance type name for comparison
+      const attendanceType = record.attendance_type_name?.toLowerCase();
+
+      if (attendanceType === 'yok') {
         if (!yoklarByClass[normClass]) yoklarByClass[normClass] = [];
         yoklarByClass[normClass].push(label);
-      }
-      if (record.attendance_type_name?.toLowerCase() === 'gec') {
+      } else if (attendanceType === 'gec') {
         if (!gecByClass[normClass]) gecByClass[normClass] = [];
         gecByClass[normClass].push({ name: label, sebep: record.sebep });
-      }
-      if (record.attendance_type_name?.toLowerCase() === 'izinli') {
+      } else if (attendanceType === 'izinli') {
         if (!izinlilerByClass[normClass]) izinlilerByClass[normClass] = [];
         izinlilerByClass[normClass].push({ name: label, sebep: record.sebep });
       }
