@@ -4,9 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-    content="Efendim - Modern dijital yoklama ve öğrenci takip sistemi. Yurt ve okul yönetimini kolaylaştırın." />
-  <meta name="keywords" content="yoklama sistemi, öğrenci takibi, dijital yoklama, yurt yönetimi, okul yönetimi" />
+  <meta name="description" content="Efendim - Modern dijital yoklama ve öğrenci takip sistemi." />
   <title>Efendim - Modern Dijital Yoklama Sistemi</title>
   <link rel="icon" href="/favicon.png" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,394 +15,325 @@
       theme: {
         extend: {
           colors: {
-            primary: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              200: '#bfdbfe',
-              300: '#93c5fd',
-              400: '#60a5fa',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-              800: '#1e40af',
-              900: '#1e3a8a',
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+              300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+              600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
             }
+          },
+          fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'] },
+          keyframes: {
+            floatY: { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-12px)' } },
+            floatY2: { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
+            fadeUp: { '0%': { opacity: '0', transform: 'translateY(24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            blink: { '0%,49%': { opacity: '1' }, '50%,100%': { opacity: '0' } },
           },
           animation: {
-            'fade-in': 'fadeIn 0.6s ease-in-out',
-            'slide-up': 'slideUp 0.6s ease-out',
-            'slide-down': 'slideDown 0.6s ease-out',
-            'float': 'float 3s ease-in-out infinite',
-            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-          },
-          keyframes: {
-            fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
-            },
-            slideUp: {
-              '0%': { transform: 'translateY(30px)', opacity: '0' },
-              '100%': { transform: 'translateY(0)', opacity: '1' },
-            },
-            slideDown: {
-              '0%': { transform: 'translateY(-30px)', opacity: '0' },
-              '100%': { transform: 'translateY(0)', opacity: '1' },
-            },
-            float: {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-20px)' },
-            }
+            'float': 'floatY 4s ease-in-out infinite',
+            'float2': 'floatY2 3.5s ease-in-out infinite',
+            'fade-up': 'fadeUp 0.6s ease-out both',
+            'blink': 'blink 1s step-end infinite',
           }
         }
       }
     };
-
-    if (localStorage.theme === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
     }
   </script>
   <style>
+    /* ── Base ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     html,
     body {
       scroll-behavior: smooth;
       overflow-x: hidden;
     }
 
-    .gradient-text {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* ── Noise texture ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    /* ── Gradient text ── */
+    .grad {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      animation: gradientShift 3s ease infinite;
-      background-size: 200% 200%;
     }
 
-    .dark .gradient-text {
-      background: linear-gradient(135deg, #93c5fd 0%, #c084fc 100%);
+    .dark .grad {
+      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    @keyframes gradientShift {
-
-      0%,
-      100% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
+    /* ── Soft card ── */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .04), 0 8px 32px rgba(0, 0, 0, .06);
+      transition: box-shadow .25s, transform .25s;
     }
 
-    .glass-effect {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .06), 0 16px 48px rgba(0, 0, 0, .10);
+      transform: translateY(-3px);
     }
 
-    .dark .glass-effect {
-      background: rgba(17, 24, 39, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .dark .card {
+      background: #1e293b;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .2), 0 8px 32px rgba(0, 0, 0, .3);
     }
 
-    .screenshot-placeholder {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 400px;
-      border-radius: 12px;
+    /* ── Pill badge ── */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .4px;
+    }
+
+    /* ── Primary button ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, .35);
+      transition: transform .2s, box-shadow .2s;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 28px rgba(37, 99, 235, .45);
+    }
+
+    /* ── Ghost button ── */
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 26px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      background: transparent;
+      color: inherit;
+      border: 1.5px solid #e2e8f0;
+      transition: border-color .2s, background .2s;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn-ghost:hover {
+      border-color: #2563eb;
+      background: rgba(37, 99, 235, .05);
+    }
+
+    .dark .btn-ghost {
+      border-color: #334155;
+    }
+
+    .dark .btn-ghost:hover {
+      border-color: #60a5fa;
+      background: rgba(96, 165, 250, .08);
+    }
+
+    /* ── Typing cursor ── */
+    .cursor {
+      display: inline-block;
+      width: 3px;
+      height: .9em;
+      background: currentColor;
+      margin-left: 4px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    /* ── Floating badge ── */
+    .float-badge {
+      position: absolute;
+      background: #fff;
+      border-radius: 16px;
+      padding: 10px 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .10);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+    }
+
+    .dark .float-badge {
+      background: #1e293b;
+      color: #e2e8f0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
+    }
+
+    /* ── Section reveal ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ── Pricing highlight ── */
+    .pricing-highlight {
+      background: linear-gradient(145deg, #2563eb, #7c3aed);
+      color: #fff;
+      transform: scale(1.04);
+      box-shadow: 0 8px 40px rgba(37, 99, 235, .4);
+    }
+
+    /* ── Feature icon box ── */
+    .icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-align: center;
-      padding: 2rem;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s ease;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
+      font-size: 22px;
+      flex-shrink: 0;
     }
 
-    .screenshot-placeholder::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-      transform: rotate(45deg);
-      animation: shimmer 3s infinite;
+    /* ── Nav ── */
+    #navbar {
+      transition: background .3s, box-shadow .3s;
     }
 
-    @keyframes shimmer {
-      0% {
-        transform: translateX(-100%) translateY(-100%) rotate(45deg);
-      }
-
-      100% {
-        transform: translateX(100%) translateY(100%) rotate(45deg);
-      }
+    #navbar.scrolled {
+      background: rgba(255, 255, 255, .92) !important;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, .08);
     }
 
-    .screenshot-placeholder:hover {
-      transform: scale(1.02) translateY(-5px);
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    .dark #navbar.scrolled {
+      background: rgba(15, 23, 42, .92) !important;
     }
 
-    /* Particle animation */
-    .particle {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      opacity: 0.6;
-      animation: float-particle 20s infinite ease-in-out;
-    }
-
-    @keyframes float-particle {
-
-      0%,
-      100% {
-        transform: translate(0, 0) scale(1);
-        opacity: 0.6;
-      }
-
-      25% {
-        transform: translate(100px, -100px) scale(1.2);
-        opacity: 0.8;
-      }
-
-      50% {
-        transform: translate(-50px, -200px) scale(0.8);
-        opacity: 0.4;
-      }
-
-      75% {
-        transform: translate(-150px, -100px) scale(1.1);
-        opacity: 0.7;
-      }
-    }
-
-    /* Cursor trail effect */
-    .cursor-trail {
-      position: fixed;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(102, 126, 234, 0.6), transparent);
-      pointer-events: none;
-      z-index: 9999;
-      animation: fade-out 0.5s forwards;
-    }
-
-    @keyframes fade-out {
-      to {
-        transform: scale(2);
-        opacity: 0;
-      }
-    }
-
-    /* Tilt effect */
-    .tilt-card {
-      transform-style: preserve-3d;
-      transition: transform 0.1s ease;
-    }
-
-    .tilt-card:hover {
-      transform: perspective(1000px) rotateX(var(--rotate-x, 0)) rotateY(var(--rotate-y, 0));
-    }
-
-    /* Typing cursor */
-    .typing-cursor {
-      display: inline-block;
-      width: 3px;
-      height: 1.2em;
-      background: currentColor;
-      margin-left: 5px;
-      animation: blink 1s infinite;
-      vertical-align: text-bottom;
-    }
-
-    @keyframes blink {
-
-      0%,
-      49% {
-        opacity: 1;
-      }
-
-      50%,
-      100% {
-        opacity: 0;
-      }
-    }
-
-    /* Ripple effect */
-    .ripple {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.5);
-      transform: scale(0);
-      animation: ripple-animation 0.6s ease-out;
-      pointer-events: none;
-    }
-
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    /* Parallax layers */
-    .parallax-layer {
-      transition: transform 0.3s ease-out;
-    }
-
-    /* Glowing border */
-    .glow-border {
-      position: relative;
-      background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
-      background-size: 200% 100%;
-      animation: border-flow 3s linear infinite;
-    }
-
-    @keyframes border-flow {
-      0% {
-        background-position: 200% 0;
-      }
-
-      100% {
-        background-position: -200% 0;
-      }
-    }
-
-    /* Progress bar */
-    .progress-bar {
+    /* ── Progress bar ── */
+    #prog {
       position: fixed;
       top: 0;
       left: 0;
       height: 3px;
-      background: linear-gradient(90deg, #667eea, #764ba2);
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
       z-index: 9999;
-      transition: width 0.1s ease;
-    }
-
-    /* Stagger animation */
-    .stagger-item {
-      opacity: 0;
-      transform: translateY(30px);
-      animation: stagger-fade-in 0.6s ease forwards;
-    }
-
-    @keyframes stagger-fade-in {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Magnetic button effect */
-    .magnetic-btn {
-      transition: transform 0.2s ease;
-    }
-
-    /* Screenshot carousel */
-    .screenshot-carousel {
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .screenshot-carousel>* {
-      scroll-snap-align: center;
-    }
-
-    /* Number counter animation */
-    @keyframes count-up {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .count-up {
-      animation: count-up 0.6s ease-out;
-    }
-
-    /* Floating badges */
-    @keyframes float-badge {
-
-      0%,
-      100% {
-        transform: translateY(0) rotate(0deg);
-      }
-
-      50% {
-        transform: translateY(-10px) rotate(2deg);
-      }
-    }
-
-    .float-badge {
-      animation: float-badge 3s ease-in-out infinite;
-    }
-
-    /* Interactive hover glow */
-    .hover-glow {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hover-glow::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
-      transform: translate(-50%, -50%);
-      transition: width 0.4s ease, height 0.4s ease;
-    }
-
-    .hover-glow:hover::after {
-      width: 300px;
-      height: 300px;
-    }
-
-    /* Feature card reveal */
-    .feature-card {
-      opacity: 0;
-      transform: translateY(50px) rotateX(-10deg);
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .feature-card.revealed {
-      opacity: 1;
-      transform: translateY(0) rotateX(0);
-    }
-
-    /* Mouse follower spotlight */
-    .spotlight {
-      position: fixed;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(102, 126, 234, 0.1), transparent 70%);
+      transition: width .1s;
       pointer-events: none;
-      z-index: 1;
-      transform: translate(-50%, -50%);
-      transition: opacity 0.3s ease;
+    }
+
+    /* ── Masonry testimonials ── */
+    .masonry {
+      columns: 3;
+      column-gap: 20px;
+    }
+
+    .masonry-item {
+      break-inside: avoid;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .masonry {
+        columns: 2;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .masonry {
+        columns: 1;
+      }
+    }
+
+    /* ── Logo grid ── */
+    .logo-card {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
+      transition: transform .2s, box-shadow .2s;
+      cursor: default;
+    }
+
+    .logo-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    }
+
+    .dark .logo-card {
+      background: #1e293b;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .3);
+    }
+
+    /* ── Timeline ── */
+    .tl-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 5px;
+      box-shadow: 0 0 0 4px #fff;
+    }
+
+    .dark .tl-dot {
+      box-shadow: 0 0 0 4px #0f172a;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -412,1388 +341,1029 @@
       *,
       *::before,
       *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-
-      .particle,
-      .spotlight,
-      .cursor-trail {
-        display: none;
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
       }
     }
   </style>
 </head>
 
-<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 relative">
 
-  <!-- Progress Bar -->
-  <div class="progress-bar" id="progress-bar"></div>
+  <!-- Progress bar -->
+  <div id="prog" style="width:0"></div>
 
-  <!-- Mouse Spotlight Effect -->
-  <div class="spotlight" id="spotlight"></div>
-
-  <!-- Navbar -->
-  <nav
-    class="w-full py-4 px-6 lg:px-12 flex justify-between items-center fixed top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-50 shadow-sm border-b border-gray-200 dark:border-gray-800">
-    <div class="flex items-center gap-2">
-      <img src="/favicon.png" alt="Efendim Logo" class="w-8 h-8" onerror="this.style.display='none'" />
-      <h1 class="text-2xl font-bold gradient-text">Efendim</h1>
-    </div>
-    <div class="hidden md:flex items-center gap-6">
-      <a href="#features" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Özellikler</a>
-      <a href="#screenshots" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Ekran Görüntüleri</a>
-      <a href="#how-it-works" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Nasıl Çalışır</a>
-      <a href="#changelog" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Değişiklikler</a>
-      <a href="#testimonials" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Yorumlar</a>
-      <a href="https://app.efendim.nl"
-        class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-full transition-all shadow-lg hover:shadow-xl">
-        Giriş Yap
+  <!-- ═══════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════ -->
+  <nav id="navbar"
+    class="fixed top-0 inset-x-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center gap-8">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 mr-auto md:mr-0 flex-shrink-0">
+        <div
+          class="w-8 h-8 rounded-10 bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center rounded-xl">
+          <img src="/favicon.png" alt="" class="w-5 h-5 brightness-0 invert" onerror="this.style.display='none'" />
+        </div>
+        <span class="text-lg font-bold grad">Efendim</span>
       </a>
-      <button id="theme-toggle" class="ml-2 text-2xl hover:scale-110 transition-transform">
-        <i class="fas fa-moon dark:fa-sun"></i>
+
+      <!-- Center nav -->
+      <div class="hidden md:flex items-center gap-1 mx-auto">
+        <a href="#features"
+          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Özellikler</a>
+        <a href="#showcase"
+          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Arayüz</a>
+        <a href="#how"
+          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Nasıl
+          Çalışır</a>
+        <a href="#changelog"
+          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Değişiklikler</a>
+        <a href="#testimonials"
+          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Yorumlar</a>
+      </div>
+
+      <!-- Right actions -->
+      <div class="hidden md:flex items-center gap-3 ml-auto md:ml-0">
+        <button id="theme-toggle"
+          class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm">
+          <i class="fas fa-moon dark:hidden"></i>
+          <i class="fas fa-sun hidden dark:block"></i>
+        </button>
+        <a href="https://app.efendim.nl" class="btn-primary text-sm py-2.5 px-5">
+          Giriş Yap <i class="fas fa-arrow-right text-xs"></i>
+        </a>
+      </div>
+
+      <!-- Mobile hamburger -->
+      <button id="mob-toggle"
+        class="md:hidden ml-auto w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <i id="mob-icon" class="fas fa-bars text-slate-600 dark:text-slate-300"></i>
       </button>
     </div>
-    <button id="mobile-menu-toggle" class="md:hidden text-2xl">
-      <i class="fas fa-bars"></i>
-    </button>
+
+    <!-- Mobile menu -->
+    <div id="mob-menu"
+      class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-6 py-4 flex flex-col gap-2">
+      <a href="#features"
+        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Özellikler</a>
+      <a href="#showcase"
+        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Arayüz</a>
+      <a href="#how"
+        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Nasıl
+        Çalışır</a>
+      <a href="#changelog"
+        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Değişiklikler</a>
+      <a href="#testimonials"
+        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Yorumlar</a>
+      <div class="pt-2 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800">
+        <button id="theme-toggle-mob" class="btn-ghost text-sm py-2.5 flex-1 justify-center">🌓 Tema</button>
+        <a href="https://app.efendim.nl" class="btn-primary text-sm py-2.5 flex-1 justify-center">Giriş Yap</a>
+      </div>
+    </div>
   </nav>
 
-  <!-- Mobile Menu -->
-  <div id="mobile-menu" class="fixed inset-0 bg-white dark:bg-gray-900 z-40 hidden md:hidden pt-20 px-6">
-    <div class="flex flex-col gap-4">
-      <a href="#features" class="text-lg hover:text-blue-600 dark:hover:text-blue-400 transition">Özellikler</a>
-      <a href="#screenshots" class="text-lg hover:text-blue-600 dark:hover:text-blue-400 transition">Ekran
-        Görüntüleri</a>
-      <a href="#how-it-works" class="text-lg hover:text-blue-600 dark:hover:text-blue-400 transition">Nasıl Çalışır</a>
-      <a href="#changelog" class="text-lg hover:text-blue-600 dark:hover:text-blue-400 transition">Değişiklikler</a>
-      <a href="#testimonials" class="text-lg hover:text-blue-600 dark:hover:text-blue-400 transition">Yorumlar</a>
-      <a href="https://app.efendim.nl"
-        class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full text-center">
-        Giriş Yap
-      </a>
-      <button id="theme-toggle-mobile" class="text-left text-lg">
-        🌓 Tema Değiştir
-      </button>
-    </div>
-  </div>
-
-  <!-- Hero Section -->
-  <section
-    class="relative flex flex-col items-center justify-center text-center min-h-screen px-6 pt-20 overflow-hidden">
-    <!-- Background Gradient -->
+  <!-- ═══════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════ -->
+  <section class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-6 overflow-hidden">
+    <!-- Soft blobs -->
     <div
-      class="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 -z-10">
-    </div>
-
-    <!-- Floating Shapes -->
-    <div
-      class="absolute top-20 left-10 w-72 h-72 bg-blue-300 dark:bg-blue-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-30 animate-float">
+      class="absolute top-1/4 -left-32 w-96 h-96 bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-3xl pointer-events-none">
     </div>
     <div
-      class="absolute top-40 right-10 w-72 h-72 bg-purple-300 dark:bg-purple-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-30 animate-float"
-      style="animation-delay: 1s;"></div>
-    <div
-      class="absolute -bottom-8 left-1/2 w-72 h-72 bg-pink-300 dark:bg-pink-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-xl opacity-30 animate-float"
-      style="animation-delay: 2s;"></div>
+      class="absolute bottom-1/4 -right-32 w-96 h-96 bg-violet-200/40 dark:bg-violet-900/20 rounded-full blur-3xl pointer-events-none">
+    </div>
 
-    <div class="relative z-10 max-w-5xl mx-auto animate-fade-in">
-      <div
-        class="inline-block mb-4 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-semibold float-badge">
-        🚀 Yeni Nesil Yoklama Sistemi
+    <!-- Content -->
+    <div class="relative z-10 max-w-3xl mx-auto text-center animate-fade-up">
+      <div class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 mb-6">
+        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+        Yeni Nesil Yoklama Sistemi
       </div>
 
-      <h1 class="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight">
-        <span class="gradient-text">Efendim</span> ile<br />
-        <span class="text-gray-900 dark:text-white">Yoklama Artık <span id="typed-text"></span><span
-            class="typing-cursor"></span></span>
+      <h1 class="text-5xl md:text-7xl font-extrabold leading-[1.1] tracking-tight mb-6 text-slate-900 dark:text-white">
+        Yoklama Artık<br />
+        <span class="grad"><span id="typed"></span><span class="cursor"></span></span>
       </h1>
 
-      <p class="mt-6 text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed parallax-layer"
-        data-speed="0.5">
-        Öğrenci yoklamasını, program takibini ve raporlamayı tek bir platformdan yönetin.
-        Modern, hızlı ve kullanıcı dostu arayüz ile tanışın.
+      <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed mb-10">
+        Öğrenci takibini, program yönetimini ve raporlamayı tek platformdan yapın. Modern, hızlı, güvenli.
       </p>
 
-      <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <a href="https://app.efendim.nl"
-          class="group magnetic-btn hover-glow bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
-          Ücretsiz Başla
-          <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform inline-block"></i>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="https://app.efendim.nl" class="btn-primary">
+          Hemen Başla <i class="fas fa-arrow-right text-xs"></i>
         </a>
-        <a href="#screenshots"
-          class="magnetic-btn hover-glow bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-8 py-4 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500">
-          <i class="fas fa-play-circle mr-2"></i>
-          Demo İzle
+        <a href="#showcase" class="btn-ghost">
+          <i class="fas fa-play-circle text-blue-500"></i> Arayüzü Gör
         </a>
-      </div>
-
-      <!-- Stats -->
-      <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-        <div class="text-center stagger-item" style="animation-delay: 0.1s">
-          <div class="text-4xl font-bold text-blue-600 dark:text-blue-400 count-up" data-target="1000">0</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Aktif Kullanıcı</div>
-        </div>
-        <div class="text-center stagger-item" style="animation-delay: 0.2s">
-          <div class="text-4xl font-bold text-purple-600 dark:text-purple-400 count-up" data-target="50000">0</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Yoklama Kaydı</div>
-        </div>
-        <div class="text-center stagger-item" style="animation-delay: 0.3s">
-          <div class="text-4xl font-bold text-pink-600 dark:text-pink-400 count-up" data-target="99.9">0</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Çalışma Süresi</div>
-        </div>
-        <div class="text-center stagger-item" style="animation-delay: 0.4s">
-          <div class="text-4xl font-bold text-indigo-600 dark:text-indigo-400 count-up" data-target="4.9">0</div>
-          <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">Kullanıcı Puanı</div>
-        </div>
       </div>
     </div>
 
-    <!-- Scroll Indicator -->
-    <div class="absolute bottom-10 animate-bounce">
-      <i class="fas fa-chevron-down text-3xl text-gray-400"></i>
+    <!-- Floating widgets -->
+    <div class="relative z-10 w-full max-w-5xl mx-auto mt-20 hidden lg:block" style="height:260px">
+      <!-- Dashboard mockup center -->
+      <div class="card absolute left-1/2 -translate-x-1/2 w-full max-w-2xl"
+        style="top:0; padding:0; overflow:hidden; border-radius:20px;">
+        <div
+          class="h-8 bg-slate-100 dark:bg-slate-800 flex items-center gap-1.5 px-4 border-b border-slate-200 dark:border-slate-700">
+          <span class="w-3 h-3 rounded-full bg-red-400"></span>
+          <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+          <span class="w-3 h-3 rounded-full bg-green-400"></span>
+          <span
+            class="flex-1 mx-4 h-5 bg-slate-200 dark:bg-slate-700 rounded-full text-xs flex items-center justify-center text-slate-400 text-[10px]">app.efendim.nl/dashboard</span>
+        </div>
+        <div class="p-5 grid grid-cols-4 gap-3">
+          <div class="col-span-4 h-6 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center px-3 gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+            <span class="text-xs text-slate-400">Efendim Dashboard — Tüm sistemler çalışıyor</span>
+          </div>
+          <div class="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-blue-600">42</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Talebe</div>
+          </div>
+          <div class="bg-violet-50 dark:bg-violet-900/30 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-violet-600">94%</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Devam</div>
+          </div>
+          <div class="bg-emerald-50 dark:bg-emerald-900/30 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-emerald-600">6</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Program</div>
+          </div>
+          <div class="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-3 text-center">
+            <div class="text-2xl font-bold text-orange-500">3</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Kullanıcı</div>
+          </div>
+          <div class="col-span-4 flex gap-2">
+            <div
+              class="flex-1 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-end px-3 pb-2 gap-1 overflow-hidden">
+              <div class="w-3 rounded-t bg-blue-400" style="height:40%"></div>
+              <div class="w-3 rounded-t bg-blue-500" style="height:60%"></div>
+              <div class="w-3 rounded-t bg-blue-500" style="height:80%"></div>
+              <div class="w-3 rounded-t bg-blue-600" style="height:100%"></div>
+              <div class="w-3 rounded-t bg-blue-500" style="height:70%"></div>
+              <div class="w-3 rounded-t bg-blue-400" style="height:55%"></div>
+              <div class="w-3 rounded-t bg-blue-500" style="height:90%"></div>
+            </div>
+            <div class="flex-1 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-center">
+              <span class="text-xs text-slate-400">Bu Haftaki Yoklamalar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating badges -->
+      <div class="float-badge animate-float" style="top:-24px; left: 2%;">
+        <span class="w-7 h-7 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-sm"><i
+            class="fas fa-check"></i></span>
+        Yoklama Alındı
+      </div>
+      <div class="float-badge animate-float2" style="top:20px; right:2%;">
+        <span class="w-7 h-7 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-sm"><i
+            class="fas fa-chart-line"></i></span>
+        %94 Devam Oranı
+      </div>
+      <div class="float-badge animate-float" style="bottom:0; left:4%; animation-delay:.8s">
+        <span class="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 text-sm"><i
+            class="fas fa-users"></i></span>
+        42 Talebe Aktif
+      </div>
+      <div class="float-badge animate-float2" style="bottom:0; right:4%; animation-delay:.4s">
+        <span class="w-7 h-7 rounded-xl bg-orange-100 flex items-center justify-center text-orange-500 text-sm"><i
+            class="fas fa-bell"></i></span>
+        Canlı Senkronize
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="relative z-10 mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto w-full">
+      <div class="text-center reveal">
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="1000">0</div>
+        <div class="text-xs text-slate-500 mt-1">Aktif Kullanıcı</div>
+      </div>
+      <div class="text-center reveal" style="transition-delay:.1s">
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="50000">0</div>
+        <div class="text-xs text-slate-500 mt-1">Yoklama Kaydı</div>
+      </div>
+      <div class="text-center reveal" style="transition-delay:.2s">
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="99.9">0</div>
+        <div class="text-xs text-slate-500 mt-1">Çalışma Süresi</div>
+      </div>
+      <div class="text-center reveal" style="transition-delay:.3s">
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="4.9">0</div>
+        <div class="text-xs text-slate-500 mt-1">Kullanıcı Puanı</div>
+      </div>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-slate-400">
+      <i class="fas fa-chevron-down"></i>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section id="features" class="py-24 bg-white dark:bg-gray-900">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16 animate-slide-up">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">
-          <span class="gradient-text">Güçlü Özellikler</span>
-        </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          İhtiyacınız olan her şey, tek bir platformda
-        </p>
+  <!-- ═══════════════════════════════════════════
+     FEATURE SHOWCASE
+═══════════════════════════════════════════ -->
+  <section id="showcase" class="py-28 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <div class="pill bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 mb-4">
+          <i class="fas fa-desktop text-xs"></i> Arayüz Önizlemesi
+        </div>
+        <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Tasarlandı<span
+            class="grad"> sadelik için</span></h2>
+        <p class="text-slate-500 dark:text-slate-400 max-w-lg mx-auto text-sm mb-10">Karmaşık araçlara gerek yok. Temiz,
+          hızlı ve sezgisel bir deneyim.</p>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Feature 1 -->
-        <div
-          class="tilt-card feature-card group p-8 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
-          <div
-            class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-            <i class="fas fa-clipboard-check text-3xl text-white"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Hızlı Yoklama</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Tek tıkla yoklama alın. Sınıf, program ve öğrenci bazlı detaylı takip sistemi ile zamanınızı optimize edin.
-          </p>
-        </div>
+      <!-- Main visual -->
+      <div class="relative reveal" style="transition-delay:.1s">
+        <div class="rounded-[28px] p-1.5"
+          style="background: linear-gradient(135deg, rgba(37,99,235,.3), rgba(124,58,237,.3));">
+          <div class="card rounded-[22px] overflow-hidden" style="box-shadow: none;">
+            <!-- Tabs -->
+            <div
+              class="flex gap-1 p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+              <button
+                class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-700 shadow-sm text-slate-700 dark:text-slate-200"
+                data-tab="dashboard">Dashboard</button>
+              <button
+                class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 transition"
+                data-tab="yoklama">Yoklama</button>
+              <button
+                class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 transition"
+                data-tab="stats">İstatistikler</button>
+            </div>
 
-        <!-- Feature 2 -->
-        <div
-          class="tilt-card feature-card group p-8 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
-          <div
-            class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-            <i class="fas fa-chart-line text-3xl text-white"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Detaylı Analiz</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Grafikler ve tablolar ile yoklama verilerinizi analiz edin. İstatistiksel raporlar ve trendleri
-            görselleştirin.
-          </p>
-        </div>
+            <!-- Tab: Dashboard -->
+            <div id="tab-dashboard" class="tab-panel p-6">
+              <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-4">
+                  <div class="text-xs text-slate-500 mb-1">Toplam Talebe</div>
+                  <div class="text-2xl font-bold text-blue-600">42</div>
+                </div>
+                <div class="bg-violet-50 dark:bg-violet-900/20 rounded-2xl p-4">
+                  <div class="text-xs text-slate-500 mb-1">Devam Oranı</div>
+                  <div class="text-2xl font-bold text-violet-600">94%</div>
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4">
+                  <div class="text-xs text-slate-500 mb-1">Bu Ay Yoklama</div>
+                  <div class="text-2xl font-bold text-emerald-600">312</div>
+                </div>
+              </div>
+              <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 flex items-end gap-2 h-28 overflow-hidden">
+                <div class="flex-1 flex items-end gap-1.5 h-full">
+                  <div class="flex-1 rounded-t-lg bg-blue-500/80" style="height:50%"></div>
+                  <div class="flex-1 rounded-t-lg bg-blue-500" style="height:70%"></div>
+                  <div class="flex-1 rounded-t-lg bg-blue-600" style="height:90%"></div>
+                  <div class="flex-1 rounded-t-lg bg-blue-500" style="height:65%"></div>
+                  <div class="flex-1 rounded-t-lg bg-blue-500/80" style="height:80%"></div>
+                  <div class="flex-1 rounded-t-lg bg-blue-600" style="height:100%"></div>
+                  <div class="flex-1 rounded-t-lg bg-blue-500" style="height:75%"></div>
+                </div>
+                <div class="text-xs text-slate-400 whitespace-nowrap pl-2">Haftalık Yoklama Trendi</div>
+              </div>
+            </div>
 
-        <!-- Feature 3 -->
-        <div
-          class="tilt-card feature-card group p-8 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
-          <div
-            class="w-16 h-16 bg-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-            <i class="fas fa-cloud text-3xl text-white"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Bulut Tabanlı</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Verileriniz güvenli bulut sunucularında saklanır. Her yerden, her cihazdan erişim sağlayın.
-          </p>
-        </div>
+            <!-- Tab: Yoklama -->
+            <div id="tab-yoklama" class="tab-panel p-6 hidden">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">Sabah Namazı — 24 Şubat 2026</div>
+                <div class="pill bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs">● Canlı
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white text-xs font-bold">
+                    AK</div>
+                  <span class="flex-1 text-sm font-medium">Ahmet Kökçü</span>
+                  <div class="flex gap-2">
+                    <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500 text-white">Var</button>
+                    <button
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Yok</button>
+                    <button
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">İzinli</button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-xs font-bold">
+                    MU</div>
+                  <span class="flex-1 text-sm font-medium">Melih Uzun</span>
+                  <div class="flex gap-2">
+                    <button
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Var</button>
+                    <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white">Yok</button>
+                    <button
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">İzinli</button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                    FB</div>
+                  <span class="flex-1 text-sm font-medium">Fatih Burcu</span>
+                  <div class="flex gap-2">
+                    <button
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Var</button>
+                    <button
+                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Yok</button>
+                    <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-500 text-white">İzinli</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        <!-- Feature 4 -->
-        <div
-          class="tilt-card feature-card group p-8 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
-          <div
-            class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-            <i class="fas fa-users text-3xl text-white"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Öğrenci Yönetimi</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Öğrenci bilgilerini ekleyin, düzenleyin ve yönetin. Sınıf ve program bazlı organizasyon yapın.
-          </p>
-        </div>
-
-        <!-- Feature 5 -->
-        <div
-          class="tilt-card feature-card group p-8 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
-          <div
-            class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-            <i class="fas fa-calendar-alt text-3xl text-white"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Program Takibi</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Dönemsel programları oluşturun ve takip edin. Geçmiş kayıtlara kolayca erişin ve raporlayın.
-          </p>
-        </div>
-
-        <!-- Feature 6 -->
-        <div
-          class="tilt-card feature-card group p-8 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-800 dark:to-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2">
-          <div
-            class="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-            <i class="fas fa-shield-alt text-3xl text-white"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Güvenli & GDPR</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Verileriniz şifrelenir ve GDPR uyumlu güvenlik protokolleri ile korunur. Yetkilendirme ve rol yönetimi.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Screenshots Section -->
-  <section id="screenshots" class="py-24 bg-gray-50 dark:bg-gray-800">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16 animate-slide-up">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">
-          <span class="gradient-text">Arayüz Görüntüleri</span>
-        </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Modern ve kullanıcı dostu tasarım ile tanışın
-        </p>
-      </div>
-
-      <div class="space-y-24">
-        <!-- Screenshot 1 - Dashboard -->
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <div class="order-2 lg:order-1">
-            <div class="screenshot-placeholder">
-              <div>
-                <i class="fas fa-desktop text-6xl mb-4"></i>
-                <p>Dashboard Ekranı</p>
-                <p class="text-sm mt-2 opacity-80">Ekran görüntüsü buraya eklenecek</p>
+            <!-- Tab: Stats -->
+            <div id="tab-stats" class="tab-panel p-6 hidden">
+              <div class="text-sm font-semibold mb-4 text-slate-700 dark:text-slate-200">Program Bazlı Devam Oranı</div>
+              <div class="space-y-3">
+                <div>
+                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Sabah
+                      Namazı</span><span>94%</span></div>
+                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                    <div class="h-2 rounded-full bg-blue-500" style="width:94%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Öğle Namazı</span><span>88%</span>
+                  </div>
+                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                    <div class="h-2 rounded-full bg-violet-500" style="width:88%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Hatim</span><span>76%</span></div>
+                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                    <div class="h-2 rounded-full bg-emerald-500" style="width:76%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Yatsı
+                      Namazı</span><span>91%</span></div>
+                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
+                    <div class="h-2 rounded-full bg-orange-500" style="width:91%"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="order-1 lg:order-2 space-y-4">
-            <div
-              class="inline-block px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-semibold">
-              <i class="fas fa-chart-pie mr-2"></i>Dashboard
+        </div>
+
+        <!-- Floating indicator badges -->
+        <div class="float-badge hidden lg:flex animate-float" style="top:24px; left:-140px; animation-delay:.2s">
+          <span class="w-7 h-7 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-sm"><i
+              class="fas fa-bolt"></i></span>
+          Gerçek Zamanlı
+        </div>
+        <div class="float-badge hidden lg:flex animate-float2" style="top:80px; right:-130px; animation-delay:.6s">
+          <span class="w-7 h-7 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-sm"><i
+              class="fas fa-download"></i></span>
+          Excel / PDF
+        </div>
+        <div class="float-badge hidden lg:flex animate-float" style="bottom:40px; left:-120px; animation-delay:1s">
+          <span class="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 text-sm"><i
+              class="fas fa-mobile-alt"></i></span>
+          Mobil Uyumlu
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     FEATURE CARDS GRID
+═══════════════════════════════════════════ -->
+  <section id="features" class="py-20 px-6">
+    <div class="max-w-5xl mx-auto">
+      <!-- Outer panel -->
+      <div class="bg-slate-100/80 dark:bg-slate-900/60 rounded-[32px] p-8 md:p-12">
+        <div class="text-center mb-10 reveal">
+          <div class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 mb-4">
+            <i class="fas fa-sparkles text-xs"></i> Güçlü Özellikler
+          </div>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">İhtiyacınız olan<span
+              class="grad"> her şey</span></h2>
+          <p class="text-slate-500 dark:text-slate-400 mt-3 max-w-md mx-auto text-sm">Tek platformdan tüm yönetim
+            ihtiyaçlarınızı karşılayın.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Card -->
+          <div class="card p-6 reveal">
+            <div class="icon-box bg-blue-50 dark:bg-blue-900/30 text-blue-600 mb-4"><i
+                class="fas fa-clipboard-check"></i></div>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Hızlı Yoklama</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Tek tıkla yoklama alın. Sınıf ve
+              program bazlı takip ile zamanınızı optimize edin.</p>
+          </div>
+
+          <div class="card p-6 reveal" style="transition-delay:.05s">
+            <div class="icon-box bg-violet-50 dark:bg-violet-900/30 text-violet-600 mb-4"><i
+                class="fas fa-chart-line"></i></div>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Detaylı Analiz</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">İnteraktif grafikler ve tablolarla
+              verilerinizi görselleştirin. Trendleri kolayca takip edin.</p>
+          </div>
+
+          <div class="card p-6 reveal" style="transition-delay:.1s">
+            <div class="icon-box bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 mb-4"><i
+                class="fas fa-cloud"></i></div>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Bulut Tabanlı</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Verileriniz güvenli bulut
+              sunucularında. Her yerden, her cihazdan anında erişim.</p>
+          </div>
+
+          <div class="card p-6 reveal" style="transition-delay:.15s">
+            <div class="icon-box bg-orange-50 dark:bg-orange-900/30 text-orange-500 mb-4"><i class="fas fa-users"></i>
             </div>
-            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              Tüm Bilgiler Bir Bakışta
-            </h3>
-            <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              Ana gösterge panelinizde öğrenci sayıları, yoklama istatistikleri, günlük özetler ve grafiklerle
-              tüm önemli metrikleri görüntüleyin. Koyu/açık tema desteği ile göz yorgunluğunu azaltın.
-            </p>
-            <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Gerçek zamanlı istatistikler ve grafikler</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Özelleştirilebilir dashboard widget'ları</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Hızlı erişim ve kısayollar</span>
-              </li>
-            </ul>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Öğrenci Yönetimi</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Öğrenci bilgilerini ekleyin,
+              düzenleyin. Sınıf ve program bazlı organizasyon.</p>
+          </div>
+
+          <div class="card p-6 reveal" style="transition-delay:.2s">
+            <div class="icon-box bg-teal-50 dark:bg-teal-900/30 text-teal-600 mb-4"><i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Program Takibi</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Dönemsel programlar oluşturun, takip
+              edin. Geçmiş kayıtlara kolayca erişin.</p>
+          </div>
+
+          <div class="card p-6 reveal" style="transition-delay:.25s">
+            <div class="icon-box bg-rose-50 dark:bg-rose-900/30 text-rose-600 mb-4"><i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Güvenli & Rol Bazlı</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Admin, hoca ve yoklamacı rolleri. GDPR
+              uyumlu güvenlik protokolleri.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════ -->
+  <section id="how" class="py-20 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <div class="pill bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 mb-4">
+          <i class="fas fa-route text-xs"></i> Nasıl Çalışır?
+        </div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">3 adımda<span class="grad">
+            başlayın</span></h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="card p-8 text-center reveal">
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-5 shadow-lg shadow-blue-200 dark:shadow-blue-900">
+            1</div>
+          <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Kayıt Olun</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Referans kodunuzla ücretsiz hesap
+            oluşturun. Dakikalar içinde hazır.</p>
+        </div>
+        <div class="card p-8 text-center reveal" style="transition-delay:.1s">
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-5 shadow-lg shadow-violet-200 dark:shadow-violet-900">
+            2</div>
+          <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Sistemi Kurun</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Öğrencileri, sınıfları ve programları
+            ekleyin. Sistem otomatik organize eder.</p>
+        </div>
+        <div class="card p-8 text-center reveal" style="transition-delay:.2s">
+          <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-5 shadow-lg shadow-emerald-200 dark:shadow-emerald-900">
+            3</div>
+          <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Yoklama Alın</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Tek tıkla yoklama almaya başlayın.
+            Raporlayın, analiz edin, tasarruf edin.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     INTEGRATIONS / LOGO GRID
+═══════════════════════════════════════════ -->
+  <section class="py-20 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="reveal">
+        <div class="pill bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mb-4">
+          <i class="fas fa-plug text-xs"></i> Uyumluluk
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-3">Favori <span
+            class="grad">araçlarınızla</span> çalışır</h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mb-10">Excel, PDF ve daha fazlasına aktarın.</p>
+      </div>
+      <div class="flex flex-wrap justify-center gap-4 reveal" style="transition-delay:.1s">
+        <div class="logo-card" title="Microsoft Excel">📊</div>
+        <div class="logo-card" title="PDF">📄</div>
+        <div class="logo-card" title="CSV">🗂️</div>
+        <div class="logo-card" title="Grafik">📈</div>
+        <div class="logo-card" title="Bildirim">🔔</div>
+        <div class="logo-card" title="Mobil">📱</div>
+        <div class="logo-card" title="Güvenlik">🔒</div>
+        <div class="logo-card" title="Bulut">☁️</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     CHANGELOG
+═══════════════════════════════════════════ -->
+  <section id="changelog" class="py-20 px-6">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <div class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 mb-4">
+          <i class="fas fa-code-branch text-xs"></i> Değişiklik Günlüğü
+        </div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Sürekli <span
+            class="grad">gelişiyoruz</span></h2>
+      </div>
+
+      <div class="space-y-6">
+        <!-- v1.5 -->
+        <div class="card p-6 reveal">
+          <div class="flex items-start gap-4">
+            <div class="tl-dot bg-green-500 mt-1.5"></div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.5.0</span>
+                <span
+                  class="pill bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs py-0.5">YENİ</span>
+                <span class="text-xs text-slate-400 ml-auto">Ekim 2025</span>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs flex-shrink-0"></i>
+                  İstatistik hesaplama düzeltmeleri ve %101 hatası giderildi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs flex-shrink-0"></i> Yoklama
+                  sayfasında sıralama sistemi iyileştirildi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs flex-shrink-0"></i> Talebe
+                  portalı istatistikleri tutarlı hale getirildi</li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <!-- Screenshot 2 - Attendance -->
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <div class="space-y-4">
-            <div
-              class="inline-block px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-600 dark:text-purple-400 text-sm font-semibold">
-              <i class="fas fa-clipboard-check mr-2"></i>Yoklama
+        <!-- v1.4 -->
+        <div class="card p-6 reveal" style="transition-delay:.05s">
+          <div class="flex items-start gap-4">
+            <div class="tl-dot bg-blue-500 mt-1.5"></div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.4.0</span>
+                <span class="text-xs text-slate-400 ml-auto">Ekim 2025</span>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-0.5 text-xs flex-shrink-0"></i> Yoklama
+                  sayfasına "Tümünü Kaydet" butonu eklendi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-0.5 text-xs flex-shrink-0"></i> Toplu
+                  kaydetme için onay dialogu eklendi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-0.5 text-xs flex-shrink-0"></i> Kayıt
+                  sırasında görsel ilerleme göstergesi</li>
+              </ul>
             </div>
-            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              Saniyeler İçinde Yoklama Alın
-            </h3>
-            <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              Sınıf veya program seçerek öğrencilerinizin yoklamasını hızlıca alın.
-              Mevcut, izinli, izinsiz ve geçerli mazeretli seçenekleri ile detaylı kayıt tutun.
-            </p>
-            <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Sınıf ve program bazlı yoklama</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Toplu yoklama alma özellikleri</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Anlık kayıt ve senkronizasyon</span>
-              </li>
-            </ul>
           </div>
+        </div>
+
+        <!-- v1.3 -->
+        <div class="card p-6 reveal" style="transition-delay:.1s">
+          <div class="flex items-start gap-4">
+            <div class="tl-dot bg-violet-500 mt-1.5"></div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.3.0</span>
+                <span class="text-xs text-slate-400 ml-auto">Ekim 2025</span>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <li class="flex gap-2"><i class="fas fa-check text-violet-500 mt-0.5 text-xs flex-shrink-0"></i>
+                  Gelişmiş aktivite logları — tarih, program, talebe bilgileri</li>
+                <li class="flex gap-2"><i class="fas fa-check text-violet-500 mt-0.5 text-xs flex-shrink-0"></i> Her
+                  değişikliğin önceki/sonraki durumu gösterimi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- v1.0 -->
+        <div class="card p-6 reveal" style="transition-delay:.15s">
+          <div class="flex items-start gap-4">
+            <div class="tl-dot bg-orange-500 mt-1.5"></div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.0.0</span>
+                <span
+                  class="pill bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 text-xs py-0.5"><i
+                    class="fas fa-rocket text-xs mr-1"></i>İLK SÜRÜM</span>
+                <span class="text-xs text-slate-400 ml-auto">Ağustos 2025</span>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5 text-xs flex-shrink-0"></i> Hızlı
+                  yoklama, öğrenci yönetimi, program takibi</li>
+                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5 text-xs flex-shrink-0"></i> Rol
+                  tabanlı erişim: Admin, Hoca, Yoklamacı, Talebe</li>
+                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5 text-xs flex-shrink-0"></i> Koyu /
+                  açık tema desteği</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coming soon -->
+      <div class="mt-8 card p-6 reveal" style="transition-delay:.2s">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="icon-box bg-blue-50 dark:bg-blue-900/30 text-blue-600"><i class="fas fa-clock"></i></div>
           <div>
-            <div class="screenshot-placeholder" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);">
-              <div>
-                <i class="fas fa-clipboard-list text-6xl mb-4"></i>
-                <p>Yoklama Ekranı</p>
-                <p class="text-sm mt-2 opacity-80">Ekran görüntüsü buraya eklenecek</p>
-              </div>
+            <div class="font-bold text-slate-800 dark:text-slate-100">Yakında Gelecek</div>
+            <div class="text-xs text-slate-500">Üzerinde çalıştığımız özellikler</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"><i
+              class="fas fa-bolt text-xs"></i> Gerçek Zamanlı Sync</span>
+          <span class="pill bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"><i
+              class="fas fa-bell text-xs"></i> Bildirim Sistemi</span>
+          <span class="pill bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"><i
+              class="fas fa-mobile-alt text-xs"></i> Mobil Uygulama</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     TESTIMONIALS
+═══════════════════════════════════════════ -->
+  <section id="testimonials" class="py-20 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <div class="pill bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 mb-4">
+          <i class="fas fa-star text-xs"></i> Kullanıcı Yorumları
+        </div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-3">Kullanıcılarımız <span
+            class="grad">ne diyor?</span></h2>
+      </div>
+
+      <div class="masonry reveal">
+        <!-- Large card -->
+        <div class="masonry-item card p-7">
+          <div class="flex gap-1 mb-4">
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i>
+          </div>
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"Efendim sayesinde yoklama
+            işlemlerimiz çok hızlandı. Artık raporlama için saatlerce uğraşmıyoruz. Sistem gerçekten çok kullanıcı dostu
+            ve sezgisel."</p>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white text-sm font-bold">
+              MU</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Melih Uzun</div>
+              <div class="text-xs text-slate-500">MAT Müdürü</div>
             </div>
           </div>
         </div>
 
-        <!-- Screenshot 3 - Statistics -->
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <div class="order-2 lg:order-1">
-            <div class="screenshot-placeholder" style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);">
-              <div>
-                <i class="fas fa-chart-bar text-6xl mb-4"></i>
-                <p>İstatistik Ekranı</p>
-                <p class="text-sm mt-2 opacity-80">Ekran görüntüsü buraya eklenecek</p>
-              </div>
-            </div>
+        <!-- Small card -->
+        <div class="masonry-item card p-6">
+          <div class="flex gap-1 mb-3">
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i>
           </div>
-          <div class="order-1 lg:order-2 space-y-4">
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"Teknik bilgisi olmayan
+            personelimiz bile kolayca kullanabiliyor. Harika!"</p>
+          <div class="flex items-center gap-3">
             <div
-              class="inline-block px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400 text-sm font-semibold">
-              <i class="fas fa-chart-line mr-2"></i>İstatistikler
+              class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-sm font-bold">
+              AK</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Ahmet Kökçü</div>
+              <div class="text-xs text-slate-500">MAT Hoca</div>
             </div>
-            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              Kapsamlı Raporlama ve Analiz
-            </h3>
-            <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              Öğrenci ve sınıf bazlı detaylı istatistikler görüntüleyin. Grafik ve tablolarla
-              devamsızlık trendlerini takip edin, Excel'e aktarın.
-            </p>
-            <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>İnteraktif grafikler ve tablolar</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Excel ve PDF export özellikleri</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Tarih aralıklı filtreleme</span>
-              </li>
-            </ul>
           </div>
         </div>
 
-        <!-- Screenshot 4 - Student Management -->
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <div class="space-y-4">
-            <div
-              class="inline-block px-4 py-2 bg-orange-100 dark:bg-orange-900/30 rounded-full text-orange-600 dark:text-orange-400 text-sm font-semibold">
-              <i class="fas fa-user-graduate mr-2"></i>Öğrenci Yönetimi
-            </div>
-            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              Kolay Öğrenci Yönetimi
-            </h3>
-            <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-              Öğrenci ekleyin, düzenleyin ve silin. Sınıf atamaları yapın, öğrenci detaylarını
-              ve geçmiş yoklama kayıtlarını görüntüleyin.
-            </p>
-            <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Hızlı öğrenci ekleme ve düzenleme</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Toplu öğrenci import (Excel/CSV)</span>
-              </li>
-              <li class="flex items-start">
-                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                <span>Öğrenci bazlı geçmiş kayıtlar</span>
-              </li>
-            </ul>
+        <!-- Medium card -->
+        <div class="masonry-item card p-6">
+          <div class="flex gap-1 mb-3">
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i>
           </div>
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"İstatistik ve raporlama
+            özellikleri mükemmel. Detaylı veriler sunulabiliyor. Kesinlikle tavsiye ederim."</p>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+              FB</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Fatih Mehmet Burcu</div>
+              <div class="text-xs text-slate-500">Talebe</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stat card -->
+        <div class="masonry-item card p-6 bg-gradient-to-br from-blue-500 to-violet-600 text-white"
+          style="box-shadow: 0 8px 32px rgba(37,99,235,.3);">
+          <div class="text-5xl font-extrabold mb-2">4.9<span class="text-2xl">/5</span></div>
+          <div class="text-blue-100 text-sm mb-4">Ortalama kullanıcı puanı</div>
+          <div class="flex gap-1">
+            <i class="fas fa-star text-yellow-300 text-sm"></i><i class="fas fa-star text-yellow-300 text-sm"></i>
+            <i class="fas fa-star text-yellow-300 text-sm"></i><i class="fas fa-star text-yellow-300 text-sm"></i>
+            <i class="fas fa-star text-yellow-300 text-sm"></i>
+          </div>
+        </div>
+
+        <!-- Small card 2 -->
+        <div class="masonry-item card p-6">
+          <div class="flex gap-1 mb-3">
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
+            <i class="fas fa-star text-yellow-400 text-sm"></i>
+          </div>
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"Excel export özelliği sayesinde
+            raporlarımızı çok hızlı hazırlıyoruz."</p>
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+              RS</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Rıdvan Sönmez</div>
+              <div class="text-xs text-slate-500">Hoca</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     PRICING
+═══════════════════════════════════════════ -->
+  <section id="pricing" class="py-20 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-14 reveal">
+        <div class="pill bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mb-4">
+          <i class="fas fa-tag text-xs"></i> Fiyatlandırma
+        </div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Basit ve <span
+            class="grad">şeffaf</span> fiyatlar</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 items-center">
+        <!-- Starter -->
+        <div class="card p-7 reveal">
+          <div class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">Başlangıç</div>
+          <div class="text-4xl font-extrabold text-slate-900 dark:text-white mb-1">Ücretsiz</div>
+          <div class="text-xs text-slate-400 mb-6">Sonsuza kadar</div>
+          <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-8">
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> 1 Yurt / Okul</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> 30 Talebe</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Temel Raporlar</li>
+            <li class="flex gap-2"><i class="fas fa-times text-slate-300 mt-0.5 text-xs"></i> Excel Export</li>
+            <li class="flex gap-2"><i class="fas fa-times text-slate-300 mt-0.5 text-xs"></i> Çoklu Kullanıcı</li>
+          </ul>
+          <a href="https://app.efendim.nl" class="btn-ghost w-full justify-center text-sm py-3">Başla</a>
+        </div>
+
+        <!-- Pro (highlighted) -->
+        <div class="pricing-highlight rounded-[24px] p-7 reveal" style="transition-delay:.1s">
+          <div class="pill bg-white/20 text-white text-xs mb-4"><i class="fas fa-crown text-xs"></i> En Popüler</div>
+          <div class="text-sm font-semibold text-blue-100 mb-4">Profesyonel</div>
+          <div class="text-4xl font-extrabold text-white mb-1">€9<span class="text-lg font-medium">/ay</span></div>
+          <div class="text-xs text-blue-100 mb-6">Yıllık ödemede geçerli</div>
+          <ul class="space-y-3 text-sm text-blue-50 mb-8">
+            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> 3 Yurt / Okul</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> Sınırsız Talebe</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> Gelişmiş Raporlar</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> Excel & PDF Export</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> 5 Kullanıcı</li>
+          </ul>
+          <a href="https://app.efendim.nl"
+            class="w-full bg-white text-blue-600 font-semibold py-3 rounded-[12px] text-sm text-center block hover:bg-blue-50 transition">Hemen
+            Başla</a>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="card p-7 reveal" style="transition-delay:.2s">
+          <div class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">Kurumsal</div>
+          <div class="text-4xl font-extrabold text-slate-900 dark:text-white mb-1">Özel</div>
+          <div class="text-xs text-slate-400 mb-6">İletişime geçin</div>
+          <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-8">
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Sınırsız Yurt</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Sınırsız Talebe</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Özel Raporlar</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Sınırsız Kullanıcı</li>
+            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Öncelikli Destek</li>
+          </ul>
+          <a href="mailto:info@efendim.nl" class="btn-ghost w-full justify-center text-sm py-3">İletişim</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     CTA BANNER
+═══════════════════════════════════════════ -->
+  <section class="py-16 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="rounded-[28px] p-10 md:p-14 text-center reveal"
+        style="background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); box-shadow: 0 16px 60px rgba(37,99,235,.35);">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4">Hazır mısınız?</h2>
+        <p class="text-blue-100 text-lg mb-8 max-w-md mx-auto">Bugün başlayın ve yoklama yönetiminde fark yaratın.</p>
+        <a href="https://app.efendim.nl"
+          class="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-4 rounded-[14px] hover:bg-blue-50 transition shadow-lg">
+          <i class="fas fa-rocket"></i> Ücretsiz Başla
+        </a>
+        <p class="text-blue-200 text-xs mt-5">Kredi kartı gerekmez · Hemen erişim · İstediğiniz zaman iptal</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+  <footer class="py-16 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="bg-slate-900 dark:bg-slate-950 rounded-[28px] p-10 md:p-14 relative overflow-hidden">
+        <!-- Decorative blobs -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-violet-600/10 rounded-full blur-3xl pointer-events-none">
+        </div>
+
+        <!-- Floating small icons -->
+        <div class="float-badge animate-float"
+          style="position:absolute; top:24px; right:40px; background:rgba(255,255,255,.07); color:#94a3b8; box-shadow:none; border: 1px solid rgba(255,255,255,.1);">
+          <i class="fas fa-clipboard-check text-blue-400"></i> Yoklama
+        </div>
+        <div class="float-badge animate-float2"
+          style="position:absolute; bottom:24px; right:80px; background:rgba(255,255,255,.07); color:#94a3b8; box-shadow:none; border: 1px solid rgba(255,255,255,.1); animation-delay:.5s">
+          <i class="fas fa-chart-bar text-violet-400"></i> Analiz
+        </div>
+
+        <div class="relative z-10 grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <!-- Brand -->
+          <div class="lg:col-span-2">
+            <div class="flex items-center gap-2 mb-4">
+              <div
+                class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
+                <img src="/favicon.png" alt="" class="w-5 h-5 brightness-0 invert"
+                  onerror="this.style.display='none'" />
+              </div>
+              <span class="text-lg font-bold text-white">Efendim</span>
+            </div>
+            <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-5">Modern dijital yoklama ve öğrenci takip
+              sistemi. Eğitim kurumlarınızı dijitalleştirin.</p>
+            <div class="flex gap-3">
+              <a href="#"
+                class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition text-sm"><i
+                  class="fab fa-twitter"></i></a>
+              <a href="#"
+                class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition text-sm"><i
+                  class="fab fa-instagram"></i></a>
+              <a href="#"
+                class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition text-sm"><i
+                  class="fab fa-linkedin-in"></i></a>
+            </div>
+          </div>
+
+          <!-- Links -->
           <div>
-            <div class="screenshot-placeholder" style="background: linear-gradient(135deg, #f97316 0%, #facc15 100%);">
-              <div>
-                <i class="fas fa-users text-6xl mb-4"></i>
-                <p>Öğrenci Yönetim Ekranı</p>
-                <p class="text-sm mt-2 opacity-80">Ekran görüntüsü buraya eklenecek</p>
-              </div>
-            </div>
+            <h4 class="text-white font-semibold text-sm mb-4">Ürün</h4>
+            <ul class="space-y-2.5 text-sm text-slate-400">
+              <li><a href="#features" class="hover:text-white transition">Özellikler</a></li>
+              <li><a href="#showcase" class="hover:text-white transition">Arayüz</a></li>
+              <li><a href="#changelog" class="hover:text-white transition">Değişiklikler</a></li>
+              <li><a href="https://app.efendim.nl" class="hover:text-white transition">Giriş Yap</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="text-white font-semibold text-sm mb-4">Şirket</h4>
+            <ul class="space-y-2.5 text-sm text-slate-400">
+              <li><a href="#" class="hover:text-white transition">Hakkımızda</a></li>
+              <li><a href="mailto:info@efendim.nl" class="hover:text-white transition">İletişim</a></li>
+              <li><a href="#" class="hover:text-white transition">Gizlilik Politikası</a></li>
+              <li><a href="#" class="hover:text-white transition">Kullanım Koşulları</a></li>
+            </ul>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- How It Works Section -->
-  <section id="how-it-works" class="py-24 bg-white dark:bg-gray-900">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16 animate-slide-up">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">
-          <span class="gradient-text">Nasıl Çalışır?</span>
-        </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Sadece 3 basit adımda başlayın
-        </p>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-12 relative">
-        <!-- Connector Lines -->
         <div
-          class="hidden md:block absolute top-24 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+          class="relative z-10 mt-10 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span>© <span id="year"></span> Efendim. Tüm hakları saklıdır.</span>
+          <span>Made with <i class="fas fa-heart text-red-500 mx-1"></i> in Netherlands</span>
         </div>
-
-        <!-- Step 1 -->
-        <div class="relative text-center">
-          <div class="relative inline-block">
-            <div
-              class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-10">
-              <span class="text-3xl font-bold text-white">1</span>
-            </div>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Kayıt Olun</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Ücretsiz hesap oluşturun. Hiçbir kredi kartı bilgisi gerektirmez. Hemen kullanmaya başlayın.
-          </p>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="relative text-center">
-          <div class="relative inline-block">
-            <div
-              class="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-10">
-              <span class="text-3xl font-bold text-white">2</span>
-            </div>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Sistemi Kurun</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Öğrencilerinizi, sınıflarınızı ve programlarınızı ekleyin. Sistem otomatik olarak organize eder.
-          </p>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="relative text-center">
-          <div class="relative inline-block">
-            <div
-              class="w-20 h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg relative z-10">
-              <span class="text-3xl font-bold text-white">3</span>
-            </div>
-          </div>
-          <h3 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Yoklama Alın</h3>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Tek tıkla yoklama almaya başlayın. Raporlayın, analiz edin ve zamandan tasarruf edin.
-          </p>
-        </div>
-      </div>
-
-      <div class="text-center mt-16">
-        <a href="https://app.efendim.nl"
-          class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-2xl transition-all transform hover:scale-105">
-          Hemen Başla
-          <i class="fas fa-rocket"></i>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Changelog Section -->
-  <section id="changelog" class="py-24 bg-gray-50 dark:bg-gray-800">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16 animate-slide-up">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">
-          <span class="gradient-text">Değişiklik Günlüğü</span>
-        </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Sistemimize eklediğimiz yeni özellikler ve iyileştirmeler
-        </p>
-      </div>
-
-      <div class="max-w-4xl mx-auto">
-        <!-- Timeline -->
-        <div class="relative">
-          <!-- Timeline Line -->
-          <div
-            class="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 transform md:-translate-x-1/2">
-          </div>
-
-          <!-- Version 1.5.0 - Latest -->
-          <div class="relative mb-12 md:mb-16">
-            <div class="flex flex-col md:flex-row items-start md:items-center">
-              <!-- Timeline Dot -->
-              <div
-                class="absolute left-8 md:left-1/2 w-4 h-4 bg-green-500 rounded-full border-4 border-white dark:border-gray-800 transform md:-translate-x-1/2 shadow-lg animate-pulse">
-              </div>
-
-              <!-- Content -->
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
-                <div
-                  class="inline-block mb-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400 text-xs font-semibold">
-                  YENİ
-                </div>
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Versiyon 1.5.0</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Ekim 2025</p>
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pl-12 mt-4 md:mt-0">
-                <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>İstatistik Düzeltmeleri:</strong> Programlarda kayıt olmayan durumlar artık %100
-                        olarak gösteriliyor</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Sıralama Sistemi:</strong> Yoklama sayfasında gruplar artık ayarlar sayfasındaki
-                        sıraya göre gösteriliyor</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Tutarlı Hesaplama:</strong> Talebe portalı ve ana sayfa istatistikleri tutarlı hale
-                        getirildi</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Version 1.4.0 -->
-          <div class="relative mb-12 md:mb-16">
-            <div class="flex flex-col md:flex-row items-start md:items-center">
-              <div
-                class="absolute left-8 md:left-1/2 w-4 h-4 bg-blue-500 rounded-full border-4 border-white dark:border-gray-800 transform md:-translate-x-1/2 shadow-lg">
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Versiyon 1.4.0</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Ekim 2025</p>
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pl-12 mt-4 md:mt-0">
-                <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Manuel Kaydetme:</strong> Yoklama sayfasına "Tümünü Kaydet" butonu eklendi</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Onay Sistemi:</strong> Toplu kaydetme işlemleri için onay dialogu</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>İlerleme Göstergesi:</strong> Kayıt işlemi sırasında görsel geri bildirim</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Version 1.3.0 -->
-          <div class="relative mb-12 md:mb-16">
-            <div class="flex flex-col md:flex-row items-start md:items-center">
-              <div
-                class="absolute left-8 md:left-1/2 w-4 h-4 bg-purple-500 rounded-full border-4 border-white dark:border-gray-800 transform md:-translate-x-1/2 shadow-lg">
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Versiyon 1.3.0</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Ekim 2025</p>
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pl-12 mt-4 md:mt-0">
-                <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-purple-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Gelişmiş Aktivite Logları:</strong> Tarih, program ve talebe bilgileri
-                        eklendi</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-purple-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Detaylı Görünüm:</strong> Her değişikliğin önceki ve sonraki durumu
-                        gösteriliyor</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-purple-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Özet Bilgiler:</strong> Aktivite logları sayfasında anlamlı özetler</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Version 1.2.0 -->
-          <div class="relative mb-12 md:mb-16">
-            <div class="flex flex-col md:flex-row items-start md:items-center">
-              <div
-                class="absolute left-8 md:left-1/2 w-4 h-4 bg-pink-500 rounded-full border-4 border-white dark:border-gray-800 transform md:-translate-x-1/2 shadow-lg">
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Versiyon 1.2.0</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Ekim 2025</p>
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pl-12 mt-4 md:mt-0">
-                <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-pink-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Özelleştirilebilir Program ve Sınıflar:</strong> Kendi programlarınızı ve
-                        sınıflarınızı tanımlayın</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-pink-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Sıralama Yönetimi:</strong> Program ve sınıf sırasını özelleştirin</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-pink-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Görünen İsimler:</strong> Her program ve sınıf için özel görünen isimler</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Version 1.1.0 -->
-          <div class="relative mb-12 md:mb-16">
-            <div class="flex flex-col md:flex-row items-start md:items-center">
-              <div
-                class="absolute left-8 md:left-1/2 w-4 h-4 bg-indigo-500 rounded-full border-4 border-white dark:border-gray-800 transform md:-translate-x-1/2 shadow-lg">
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Versiyon 1.1.0</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Eylül 2025</p>
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pl-12 mt-4 md:mt-0">
-                <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-indigo-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Detaylı İstatistikler:</strong> Grafik ve tablolarla görselleştirme</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-indigo-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Excel/PDF Export:</strong> Raporları kolayca indirin</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-indigo-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Tarih Filtreleri:</strong> İstediğiniz tarih aralığını seçin</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Version 1.0.0 -->
-          <div class="relative">
-            <div class="flex flex-col md:flex-row items-start md:items-center">
-              <div
-                class="absolute left-8 md:left-1/2 w-4 h-4 bg-orange-500 rounded-full border-4 border-white dark:border-gray-800 transform md:-translate-x-1/2 shadow-lg">
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pr-12 md:text-right">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Versiyon 1.0.0</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Ağustos 2025</p>
-                <div
-                  class="inline-block px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full text-orange-600 dark:text-orange-400 text-xs font-semibold">
-                  <i class="fas fa-rocket mr-1"></i>İLK SÜRÜM
-                </div>
-              </div>
-
-              <div class="ml-16 md:ml-0 md:w-1/2 md:pl-12 mt-4 md:mt-0">
-                <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <ul class="space-y-3 text-gray-600 dark:text-gray-300">
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Hızlı Yoklama Sistemi:</strong> Tek tıkla yoklama alın</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Öğrenci Yönetimi:</strong> Talebelerinizi ekleyin ve yönetin</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Program Takibi:</strong> Farklı programlar için yoklama alın</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Rol Tabanlı Erişim:</strong> Admin, hoca, yoklamacı ve talebe rolleri</span>
-                    </li>
-                    <li class="flex items-start">
-                      <i class="fas fa-check-circle text-orange-500 mt-1 mr-3 flex-shrink-0"></i>
-                      <span><strong>Koyu/Açık Tema:</strong> Göz dostu arayüz seçenekleri</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Coming Soon -->
-        <div class="mt-16 text-center">
-          <div
-            class="inline-block bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-6 rounded-2xl text-white shadow-2xl">
-            <div class="flex items-center justify-center gap-3 mb-3">
-              <i class="fas fa-clock text-3xl"></i>
-              <h3 class="text-2xl font-bold">Yakında Gelecek</h3>
-            </div>
-            <p class="text-lg opacity-90 mb-4">Üzerinde çalıştığımız yeni özellikler:</p>
-            <div class="flex flex-wrap gap-3 justify-center">
-              <span class="px-4 py-2 bg-white/20 rounded-full text-sm font-semibold backdrop-blur-sm">
-                <i class="fas fa-bolt mr-2"></i>Gerçek Zamanlı Senkronizasyon
-              </span>
-              <span class="px-4 py-2 bg-white/20 rounded-full text-sm font-semibold backdrop-blur-sm">
-                <i class="fas fa-bell mr-2"></i>Bildirim Sistemi
-              </span>
-              <span class="px-4 py-2 bg-white/20 rounded-full text-sm font-semibold backdrop-blur-sm">
-                <i class="fas fa-mobile-alt mr-2"></i>Mobil Uygulama
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Testimonials Section -->
-  <section id="testimonials"
-    class="py-24 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16 animate-slide-up">
-        <h2 class="text-4xl md:text-5xl font-extrabold mb-4">
-          <span class="gradient-text">Kullanıcılarımız Ne Diyor?</span>
-        </h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Binlerce mutlu kullanıcıdan bazı yorumlar
-        </p>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-8">
-        <!-- Testimonial 1 -->
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all">
-          <div class="flex items-center mb-4">
-            <div
-              class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              MU
-            </div>
-            <div class="ml-4">
-              <h4 class="font-bold text-gray-900 dark:text-white">Melih Uzun</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">MAT Müdürü</p>
-            </div>
-          </div>
-          <div class="flex mb-4">
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            "Efendim sayesinde yoklama işlemlerimiz çok hızlandı. Artık raporlama için saatlerce uğraşmıyoruz. Harika
-            bir sistem!"
-          </p>
-        </div>
-
-        <!-- Testimonial 2 -->
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all">
-          <div class="flex items-center mb-4">
-            <div
-              class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              AK
-            </div>
-            <div class="ml-4">
-              <h4 class="font-bold text-gray-900 dark:text-white">Ahmet Kökçü</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">MAT Hoca</p>
-            </div>
-          </div>
-          <div class="flex mb-4">
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            "Kullanıcı arayüzü çok sade ve anlaşılır. Teknik bilgisi olmayan personelimiz bile rahatlıkla kullanıyor.
-            Teşekkürler!"
-          </p>
-        </div>
-
-        <!-- Testimonial 3 -->
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all">
-          <div class="flex items-center mb-4">
-            <div
-              class="w-12 h-12 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              FMB
-            </div>
-            <div class="ml-4">
-              <h4 class="font-bold text-gray-900 dark:text-white">Fatih Mehmet Burcu</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Talebe</p>
-            </div>
-          </div>
-          <div class="flex mb-4">
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-            <i class="fas fa-star text-yellow-400"></i>
-          </div>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            "İstatistik ve raporlama özellikleri mükemmel. Veli toplantılarında detaylı veriler sunulabiliyor.
-            Kesinlikle tavsiye ederim."
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white">
-    <div class="max-w-4xl mx-auto px-6 text-center">
-      <h2 class="text-4xl md:text-5xl font-extrabold mb-6">
-        Hemen Başlamaya Hazır mısınız?
-      </h2>
-      <p class="text-xl md:text-2xl mb-10 opacity-90">
-        Bugün ücretsiz kaydolun ve yoklama yönetiminde devrim yaratın
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <a href="https://app.efendim.nl"
-          class="bg-white text-blue-600 px-8 py-4 rounded-full text-lg font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
-          <i class="fas fa-rocket mr-2"></i>
-          Ücretsiz Başla
-        </a>
-        <a href="#features"
-          class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all">
-          <i class="fas fa-info-circle mr-2"></i>
-          Daha Fazla Bilgi
-        </a>
-      </div>
-      <p class="mt-8 text-sm opacity-75">
-        <i class="fas fa-shield-alt mr-2"></i>
-        Kredi kartı gerektirmez • 14 gün ücretsiz deneme • İstediğiniz zaman iptal edin
-      </p>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="py-12 bg-gray-900 dark:bg-black text-gray-300">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="grid md:grid-cols-4 gap-8 mb-8">
-        <!-- Brand -->
-        <div class="md:col-span-2">
-          <div class="flex items-center gap-2 mb-4">
-            <img src="/favicon.png" alt="Efendim Logo" class="w-8 h-8" onerror="this.style.display='none'" />
-            <h3 class="text-2xl font-bold text-white">Efendim</h3>
-          </div>
-          <p class="text-gray-400 mb-4 leading-relaxed">
-            Modern dijital yoklama ve öğrenci takip sistemi. Eğitim kurumlarınızı dijitalleştirin,
-            zamandan tasarruf edin, verimliliğinizi artırın.
-          </p>
-          <div class="flex gap-4">
-            <a href="#"
-              class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors">
-              <i class="fab fa-twitter"></i>
-            </a>
-            <a href="#"
-              class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors">
-              <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="#"
-              class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors">
-              <i class="fab fa-instagram"></i>
-            </a>
-            <a href="#"
-              class="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors">
-              <i class="fab fa-linkedin-in"></i>
-            </a>
-          </div>
-        </div>
-
-        <!-- Links -->
-        <div>
-          <h4 class="font-bold text-white mb-4">Ürün</h4>
-          <ul class="space-y-2">
-            <li><a href="#features" class="hover:text-blue-400 transition-colors">Özellikler</a></li>
-            <li><a href="#screenshots" class="hover:text-blue-400 transition-colors">Ekran Görüntüleri</a></li>
-            <li><a href="#how-it-works" class="hover:text-blue-400 transition-colors">Nasıl Çalışır</a></li>
-            <li><a href="https://app.efendim.nl" class="hover:text-blue-400 transition-colors">Giriş Yap</a></li>
-          </ul>
-        </div>
-
-        <!-- Company -->
-        <div>
-          <h4 class="font-bold text-white mb-4">Şirket</h4>
-          <ul class="space-y-2">
-            <li><a href="#" class="hover:text-blue-400 transition-colors">Hakkımızda</a></li>
-            <li><a href="#" class="hover:text-blue-400 transition-colors">İletişim</a></li>
-            <li><a href="#" class="hover:text-blue-400 transition-colors">Gizlilik Politikası</a></li>
-            <li><a href="#" class="hover:text-blue-400 transition-colors">Kullanım Koşulları</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="border-t border-gray-800 pt-8 text-center text-gray-500">
-        <p>© <span id="year"></span> Efendim. Tüm hakları saklıdır. Made with <i class="fas fa-heart text-red-500"></i>
-          in Netherlands</p>
       </div>
     </div>
   </footer>
 
-  <!-- Scripts -->
+  <!-- ═══════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════ -->
   <script>
-    // ==================== INITIALIZATION ====================
-    // Dynamic year
+    // Year
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // ==================== THEME TOGGLE ====================
-    const themeToggle = document.getElementById('theme-toggle');
+    // ── Theme toggle ──
     const html = document.documentElement;
-
-    function updateThemeIcon() {
-      const icon = themeToggle.querySelector('i');
-      if (html.classList.contains('dark')) {
-        icon.className = 'fas fa-sun';
-      } else {
-        icon.className = 'fas fa-moon';
-      }
-    }
-
-    updateThemeIcon();
-
-    themeToggle.addEventListener('click', () => {
-      if (html.classList.contains('dark')) {
-        html.classList.remove('dark');
-        localStorage.theme = 'light';
-      } else {
-        html.classList.add('dark');
-        localStorage.theme = 'dark';
-      }
-      updateThemeIcon();
-    });
-
-    // Theme toggle - Mobile
-    const themeToggleMobile = document.getElementById('theme-toggle-mobile');
-    if (themeToggleMobile) {
-      themeToggleMobile.addEventListener('click', () => {
-        if (html.classList.contains('dark')) {
-          html.classList.remove('dark');
-          localStorage.theme = 'light';
-        } else {
-          html.classList.add('dark');
-          localStorage.theme = 'dark';
-        }
-        updateThemeIcon();
-      });
-    }
-
-    // ==================== MOBILE MENU ====================
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    mobileMenuToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
-      const icon = mobileMenuToggle.querySelector('i');
-      if (mobileMenu.classList.contains('hidden')) {
-        icon.className = 'fas fa-bars';
-      } else {
-        icon.className = 'fas fa-times';
-      }
-    });
-
-    // Close mobile menu when clicking on a link
-    const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-    mobileMenuLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
-        mobileMenuToggle.querySelector('i').className = 'fas fa-bars';
+    ['theme-toggle', 'theme-toggle-mob'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
       });
     });
 
-    // ==================== SMOOTH SCROLL ====================
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          const offset = 80;
-          const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
-          window.scrollTo({
-            top: targetPosition,
-            behavior: 'smooth'
-          });
-        }
+    // ── Mobile menu ──
+    const mobToggle = document.getElementById('mob-toggle');
+    const mobMenu = document.getElementById('mob-menu');
+    const mobIcon = document.getElementById('mob-icon');
+    mobToggle.addEventListener('click', () => {
+      const open = mobMenu.classList.toggle('hidden');
+      mobIcon.className = open ? 'fas fa-bars text-slate-600 dark:text-slate-300' : 'fas fa-times text-slate-600 dark:text-slate-300';
+    });
+    mobMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      mobMenu.classList.add('hidden');
+      mobIcon.className = 'fas fa-bars text-slate-600 dark:text-slate-300';
+    }));
+
+    // ── Smooth scroll ──
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); window.scrollTo({ top: target.getBoundingClientRect().top + scrollY - 72, behavior: 'smooth' }); }
       });
     });
 
-    // ==================== TYPING ANIMATION ====================
-    const typedTextElement = document.getElementById('typed-text');
-    const words = ['Çok Kolay', 'Hızlı', 'Verimli', 'Modern', 'Güvenli'];
-    let wordIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
+    // ── Progress bar ──
+    const prog = document.getElementById('prog');
+    window.addEventListener('scroll', () => {
+      prog.style.width = (scrollY / (document.documentElement.scrollHeight - innerHeight) * 100) + '%';
+    });
 
-    function type() {
-      const currentWord = words[wordIndex];
+    // ── Navbar scroll ──
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', scrollY > 40));
 
-      if (isDeleting) {
-        typedTextElement.textContent = currentWord.substring(0, charIndex - 1);
-        charIndex--;
-      } else {
-        typedTextElement.textContent = currentWord.substring(0, charIndex + 1);
-        charIndex++;
-      }
+    // ── Reveal on scroll ──
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-      if (!isDeleting && charIndex === currentWord.length) {
-        isDeleting = true;
-        setTimeout(type, 2000);
-      } else if (isDeleting && charIndex === 0) {
-        isDeleting = false;
-        wordIndex = (wordIndex + 1) % words.length;
-        setTimeout(type, 500);
-      } else {
-        setTimeout(type, isDeleting ? 50 : 100);
-      }
-    }
+    // ── Typing animation ──
+    const words = ['Çok Kolay', 'Hızlı', 'Akıllı', 'Modern', 'Güvenli'];
+    let wi = 0, ci = 0, del = false;
+    const el = document.getElementById('typed');
+    (function type() {
+      const w = words[wi];
+      el.textContent = del ? w.slice(0, --ci) : w.slice(0, ++ci);
+      if (!del && ci === w.length) { del = true; setTimeout(type, 1800); }
+      else if (del && ci === 0) { del = false; wi = (wi + 1) % words.length; setTimeout(type, 400); }
+      else setTimeout(type, del ? 50 : 100);
+    })();
 
-    type();
-
-    // ==================== COUNTER ANIMATION ====================
-    function animateCounter(element) {
-      const target = parseFloat(element.getAttribute('data-target'));
-      const increment = target / 100;
-      let current = 0;
-      const isDecimal = target.toString().includes('.');
-
-      const updateCounter = () => {
-        current += increment;
-        if (current < target) {
-          element.textContent = isDecimal ? current.toFixed(1) : Math.floor(current);
-          requestAnimationFrame(updateCounter);
-        } else {
-          element.textContent = isDecimal ? target.toFixed(1) : target.toLocaleString();
-          if (!isDecimal && target >= 1000) {
-            element.textContent = target >= 1000 ? (target / 1000).toFixed(0) + 'K+' : target + '+';
-          } else if (target === 99.9) {
-            element.textContent = '99.9%';
-          } else if (target === 4.9) {
-            element.textContent = '4.9/5';
-          }
-        }
-      };
-
-      updateCounter();
-    }
-
-    // Start counters when visible
-    const counterObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          animateCounter(entry.target);
-          counterObserver.unobserve(entry.target);
-        }
+    // ── Counter ──
+    const cio = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target, target = parseFloat(el.dataset.target), dec = target.toString().includes('.');
+        let cur = 0, step = target / 80;
+        const t = setInterval(() => {
+          cur = Math.min(cur + step, target);
+          if (target === 99.9) el.textContent = cur.toFixed(1) + '%';
+          else if (target === 4.9) el.textContent = cur.toFixed(1) + '/5';
+          else if (target >= 1000) el.textContent = Math.floor(cur / 1000) + 'K+';
+          else el.textContent = Math.floor(cur) + '+';
+          if (cur >= target) clearInterval(t);
+        }, 20);
+        cio.unobserve(el);
       });
     }, { threshold: 0.5 });
+    document.querySelectorAll('.count-up').forEach(el => cio.observe(el));
 
-    document.querySelectorAll('.count-up').forEach(counter => {
-      counterObserver.observe(counter);
-    });
-
-    // ==================== FEATURE CARDS REVEAL ====================
-    const featureObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry, index) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.classList.add('revealed');
-          }, index * 100);
-          featureObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.feature-card').forEach(card => {
-      featureObserver.observe(card);
-    });
-
-    // ==================== SCROLL ANIMATIONS ====================
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, observerOptions);
-
-    // Observe all sections for animation
-    document.querySelectorAll('section > div').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(30px)';
-      el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-      observer.observe(el);
-    });
-
-    // ==================== PROGRESS BAR ====================
-    const progressBar = document.getElementById('progress-bar');
-
-    window.addEventListener('scroll', () => {
-      const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const scrolled = (window.pageYOffset / windowHeight) * 100;
-      progressBar.style.width = scrolled + '%';
-    });
-
-    // ==================== NAVBAR EFFECTS ====================
-    let lastScroll = 0;
-    const navbar = document.querySelector('nav');
-
-    window.addEventListener('scroll', () => {
-      const currentScroll = window.pageYOffset;
-
-      if (currentScroll > 100) {
-        navbar.classList.add('shadow-lg');
-      } else {
-        navbar.classList.remove('shadow-lg');
-      }
-
-      lastScroll = currentScroll;
-    });
-
-    // ==================== MOUSE SPOTLIGHT EFFECT ====================
-    const spotlight = document.getElementById('spotlight');
-    let mouseX = 0;
-    let mouseY = 0;
-    let spotlightX = 0;
-    let spotlightY = 0;
-
-    document.addEventListener('mousemove', (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    });
-
-    function animateSpotlight() {
-      spotlightX += (mouseX - spotlightX) * 0.1;
-      spotlightY += (mouseY - spotlightY) * 0.1;
-
-      spotlight.style.left = spotlightX + 'px';
-      spotlight.style.top = spotlightY + 'px';
-
-      requestAnimationFrame(animateSpotlight);
-    }
-
-    if (window.innerWidth > 768) {
-      animateSpotlight();
-    }
-
-    // ==================== CURSOR TRAIL EFFECT ====================
-    let cursorTrailTimeout;
-
-    document.addEventListener('mousemove', (e) => {
-      if (window.innerWidth <= 768) return;
-
-      clearTimeout(cursorTrailTimeout);
-      cursorTrailTimeout = setTimeout(() => {
-        const trail = document.createElement('div');
-        trail.className = 'cursor-trail';
-        trail.style.left = e.clientX + 'px';
-        trail.style.top = e.clientY + 'px';
-        document.body.appendChild(trail);
-
-        setTimeout(() => {
-          trail.remove();
-        }, 500);
-      }, 50);
-    });
-
-    // ==================== RIPPLE EFFECT ON BUTTONS ====================
-    document.querySelectorAll('a, button').forEach(button => {
-      button.addEventListener('click', function (e) {
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple';
-
-        const rect = this.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const x = e.clientX - rect.left - size / 2;
-        const y = e.clientY - rect.top - size / 2;
-
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
-        ripple.style.position = 'absolute';
-
-        this.style.position = 'relative';
-        this.style.overflow = 'hidden';
-        this.appendChild(ripple);
-
-        setTimeout(() => {
-          ripple.remove();
-        }, 600);
+    // ── Showcase tabs ──
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
+          b.classList.add('text-slate-500', 'dark:text-slate-400');
+        });
+        btn.classList.add('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
+        btn.classList.remove('text-slate-500', 'dark:text-slate-400');
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
       });
     });
 
-    // ==================== PARALLAX EFFECT ====================
-    window.addEventListener('scroll', () => {
-      const scrolled = window.pageYOffset;
-      document.querySelectorAll('.parallax-layer').forEach(layer => {
-        const speed = layer.dataset.speed || 0.5;
-        layer.style.transform = `translateY(${scrolled * speed}px)`;
-      });
-    });
-
-    // ==================== TILT EFFECT FOR CARDS ====================
-    document.querySelectorAll('.tilt-card').forEach(card => {
-      card.addEventListener('mousemove', function (e) {
-        if (window.innerWidth <= 768) return;
-
-        const rect = this.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        const rotateX = (y - centerY) / 10;
-        const rotateY = (centerX - x) / 10;
-
-        this.style.setProperty('--rotate-x', rotateX + 'deg');
-        this.style.setProperty('--rotate-y', rotateY + 'deg');
-      });
-
-      card.addEventListener('mouseleave', function () {
-        this.style.setProperty('--rotate-x', '0deg');
-        this.style.setProperty('--rotate-y', '0deg');
-      });
-    });
-
-    // ==================== MAGNETIC BUTTON EFFECT ====================
-    document.querySelectorAll('.magnetic-btn').forEach(button => {
-      button.addEventListener('mousemove', function (e) {
-        if (window.innerWidth <= 768) return;
-
-        const rect = this.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-
-        this.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) scale(1.05)`;
-      });
-
-      button.addEventListener('mouseleave', function () {
-        this.style.transform = 'translate(0, 0) scale(1)';
-      });
-    });
-
-    // ==================== SCREENSHOT HOVER EFFECTS ====================
-    document.querySelectorAll('.screenshot-placeholder').forEach(screenshot => {
-      screenshot.addEventListener('mouseenter', function () {
-        this.style.transform = 'scale(1.02) translateY(-5px)';
-      });
-
-      screenshot.addEventListener('mouseleave', function () {
-        this.style.transform = 'scale(1) translateY(0)';
-      });
-    });
-
-    // ==================== PARTICLE GENERATION ====================
-    function createParticles() {
-      if (window.innerWidth <= 768) return;
-
-      const heroSection = document.querySelector('section');
-      const colors = ['#667eea', '#764ba2', '#93c5fd', '#c084fc'];
-
-      for (let i = 0; i < 15; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.width = Math.random() * 100 + 50 + 'px';
-        particle.style.height = particle.style.width;
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.top = Math.random() * 100 + '%';
-        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-        particle.style.animationDelay = Math.random() * 5 + 's';
-        particle.style.animationDuration = Math.random() * 10 + 15 + 's';
-        heroSection.appendChild(particle);
-      }
-    }
-
-    createParticles();
-
-    // ==================== STAGGER ANIMATION ====================
-    document.querySelectorAll('.stagger-item').forEach((item, index) => {
-      item.style.animationDelay = (index * 0.1) + 's';
-    });
-
-    // ==================== SCROLL REVEAL FOR SCREENSHOTS ====================
-    const screenshotObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'scale(1) translateY(0)';
-        }
-      });
-    }, { threshold: 0.2 });
-
-    document.querySelectorAll('.screenshot-placeholder').forEach(screenshot => {
-      screenshot.style.opacity = '0';
-      screenshot.style.transform = 'scale(0.9) translateY(20px)';
-      screenshot.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
-      screenshotObserver.observe(screenshot);
-    });
-
-    // ==================== PERFORMANCE OPTIMIZATION ====================
-    // Throttle function for performance
-    function throttle(func, delay) {
-      let lastCall = 0;
-      return function (...args) {
-        const now = new Date().getTime();
-        if (now - lastCall < delay) return;
-        lastCall = now;
-        return func(...args);
-      };
-    }
-
-    // Apply throttling to scroll events
-    window.addEventListener('scroll', throttle(() => {
-      // Scroll-dependent animations here
-    }, 16)); // ~60fps
-
-    // ==================== EASTER EGG: KONAMI CODE ====================
-    let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    let konamiIndex = 0;
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === konamiCode.length) {
-          alert('🎉 Tebrikler! Gizli kodu buldunuz! Efendim ekibi sizi selamlıyor! 🚀');
-          document.body.style.animation = 'rainbow 2s infinite';
-          konamiIndex = 0;
-        }
-      } else {
-        konamiIndex = 0;
-      }
-    });
-
-    // ==================== CONSOLE MESSAGE ====================
-    console.log('%c🚀 Efendim - Modern Yoklama Sistemi', 'color: #667eea; font-size: 20px; font-weight: bold;');
-    console.log('%cGeliştirici misiniz? Ekibimize katılın! https://app.efendim.nl', 'color: #764ba2; font-size: 14px;');
+    console.log('%c🚀 Efendim', 'color:#2563eb;font-size:20px;font-weight:bold;');
   </script>
 </body>
 
