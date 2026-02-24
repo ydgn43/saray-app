@@ -9,8 +9,8 @@ export class AttendanceService {
         this.attendanceData = attendanceData;
     }
 
-    public async getAllAttendance(yurtid: number): Promise<AttendanceSequelize[]> {
-        return this.attendanceData.getAllAttendance(yurtid);
+    public async getAllAttendance(yurtid: number, startDate?: string, endDate?: string): Promise<AttendanceSequelize[]> {
+        return this.attendanceData.getAllAttendance(yurtid, startDate, endDate);
     }
 
     public async getAttendance(attendance: Attendance, yurtid: number): Promise<AttendanceSequelize | null> {

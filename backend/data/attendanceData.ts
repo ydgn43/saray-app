@@ -4,11 +4,17 @@ import { Attendance } from '../business/models/Attendance';
 import { Op } from 'sequelize';
 
 export default class AttendanceData {
-    public async getAllAttendance(yurtid: number): Promise<AttendanceSequelize[]> {
+    public async getAllAttendance(yurtid: number, startDate?: string, endDate?: string): Promise<AttendanceSequelize[]> {
+        const whereClause: any = { yurtid: yurtid };
+
+        if (startDate && endDate) {
+            whereClause.date = {
+                [Op.between]: [startDate, endDate]
+            };
+        }
+
         return AttendanceSequelize.findAll({
-            where: {
-                yurtid: yurtid
-            }
+            where: whereClause
         });
     }
 
