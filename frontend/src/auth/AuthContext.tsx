@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import config from '../config';
+import { registerLogoutCallback } from '../utils/authFetch';
 
 export type YurtInfo = {
     yurtId: number;
@@ -210,19 +211,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.location.href = '/';
     };
 
-    const logout = () => {
+    // Add this helper function to check if token is expired
+    function isTokenExpired(token: string): boolean {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expiry = payload.exp * 1000; // convert to ms
+            const now = Date.now();
+            const fiveMinutes = 5 * 60 * 1000;
+            // Return true if expired or will expire in next 5 minutes
+            return now >= expiry - fiveMinutes;
+        } catch {
+            return true;
+        }
+    }
+
+    const logout = useCallback(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('yurtName');
+        localStorage.removeItem('selectedYurt');
+        localStorage.removeItem('availableYurts');
         setUser(null);
         setToken(null);
         setYurtName(null);
-        setAvailableYurts([]);
-        setSelectedYurt(null);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('yurtName');
-        localStorage.removeItem('availableYurts');
-        localStorage.removeItem('selectedYurt');
-        window.location.href = "/login";
-    };
+        setYurtsData([], null);
+        window.location.href = '/login';
+    }, []);
+
+    // Register logout callback for authFetch
+    useEffect(() => {
+        registerLogoutCallback(logout);
+    }, [logout]);
+
+    // Check token expiry on app load and periodically
+    useEffect(() => {
+        const checkToken = () => {
+            const storedToken = localStorage.getItem('token');
+            if (storedToken && isTokenExpired(storedToken)) {
+                console.warn('🔒 Token expired - auto logging out');
+                logout();
+            }
+        };
+
+        // Check immediately on load
+        checkToken();
+
+        // Check every minute
+        const interval = setInterval(checkToken, 60 * 1000);
+        return () => clearInterval(interval);
+    }, [logout]);
 
     return (
         <AuthContext.Provider value={{
