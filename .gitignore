@@ -6,20 +6,33 @@ package-lock.json
 
 # OS files
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+desktop.ini
+ehthumbs.db
 
-# Editor directories and files
-.vscode/
+# Editor files
 .idea/
-*.swp
-*.swo
-*~
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Logs
-logs/
 *.log
+logs/
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
+# Node
+node_modules/
+
+# Environment
+.env
+.env.*
+
+# Misc
+*.pem
+*.key
+*.cert
