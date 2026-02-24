@@ -1,1369 +1,283 @@
 <!DOCTYPE html>
-<html lang="tr" class="scroll-smooth">
+<html lang="tr">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Efendim - Modern dijital yoklama ve öğrenci takip sistemi." />
-  <title>Efendim - Modern Dijital Yoklama Sistemi</title>
+  <title>Efendim - Çok Yakında</title>
   <link rel="icon" href="/favicon.png" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
-              300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
-              600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
-            }
-          },
-          fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'] },
-          keyframes: {
-            floatY: { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-12px)' } },
-            floatY2: { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
-            fadeUp: { '0%': { opacity: '0', transform: 'translateY(24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-            blink: { '0%,49%': { opacity: '1' }, '50%,100%': { opacity: '0' } },
-          },
-          animation: {
-            'float': 'floatY 4s ease-in-out infinite',
-            'float2': 'floatY2 3.5s ease-in-out infinite',
-            'fade-up': 'fadeUp 0.6s ease-out both',
-            'blink': 'blink 1s step-end infinite',
-          }
-        }
-      }
-    };
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    }
-  </script>
   <style>
-    /* ── Base ── */
-    *,
-    *::before,
-    *::after {
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+    * {
       box-sizing: border-box;
-    }
-
-    html,
-    body {
-      scroll-behavior: smooth;
-      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
     }
 
-    /* ── Noise texture ── */
+    /* Noise texture */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      opacity: 0.4;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
     }
 
-    /* ── Gradient text ── */
-    .grad {
-      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    /* Gradient blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      opacity: 0.15;
     }
 
-    .dark .grad {
-      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    /* ── Soft card ── */
+    @keyframes blink {
+
+      0%,
+      49% {
+        opacity: 1;
+      }
+
+      50%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(1);
+        opacity: .6;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    .fade-up {
+      animation: fadeUp .7s ease both;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 3px;
+      height: .85em;
+      background: #60a5fa;
+      margin-left: 3px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
     .card {
-      background: #fff;
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
       border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .04), 0 8px 32px rgba(0, 0, 0, .06);
-      transition: box-shadow .25s, transform .25s;
+      backdrop-filter: blur(12px);
     }
 
-    .card:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, .06), 0 16px 48px rgba(0, 0, 0, .10);
-      transform: translateY(-3px);
-    }
-
-    .dark .card {
-      background: #1e293b;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .2), 0 8px 32px rgba(0, 0, 0, .3);
-    }
-
-    /* ── Pill badge ── */
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: .4px;
-    }
-
-    /* ── Primary button ── */
-    .btn-primary {
+    .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 14px 28px;
+      padding: 14px 32px;
       border-radius: 14px;
       font-size: 15px;
       font-weight: 600;
       background: linear-gradient(135deg, #2563eb, #7c3aed);
       color: #fff;
-      box-shadow: 0 4px 16px rgba(37, 99, 235, .35);
-      transition: transform .2s, box-shadow .2s;
-      text-decoration: none;
-      cursor: pointer;
       border: none;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(37, 99, 235, .4);
+      transition: transform .2s, box-shadow .2s;
     }
 
-    .btn-primary:hover {
-      transform: scale(1.03);
-      box-shadow: 0 8px 28px rgba(37, 99, 235, .45);
+    .btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 8px 36px rgba(37, 99, 235, .55);
     }
 
-    /* ── Ghost button ── */
-    .btn-ghost {
+    /* Countdown */
+    .count-box {
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 16px;
+      padding: 16px 20px;
+      min-width: 72px;
+      text-align: center;
+    }
+
+    /* Dot pulse */
+    .dot-wrap {
+      position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 13px 26px;
-      border-radius: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      background: transparent;
-      color: inherit;
-      border: 1.5px solid #e2e8f0;
-      transition: border-color .2s, background .2s;
-      text-decoration: none;
-      cursor: pointer;
+      justify-content: center;
     }
 
-    .btn-ghost:hover {
-      border-color: #2563eb;
-      background: rgba(37, 99, 235, .05);
-    }
-
-    .dark .btn-ghost {
-      border-color: #334155;
-    }
-
-    .dark .btn-ghost:hover {
-      border-color: #60a5fa;
-      background: rgba(96, 165, 250, .08);
-    }
-
-    /* ── Typing cursor ── */
-    .cursor {
-      display: inline-block;
-      width: 3px;
-      height: .9em;
-      background: currentColor;
-      margin-left: 4px;
-      vertical-align: text-bottom;
-      animation: blink 1s step-end infinite;
-    }
-
-    /* ── Floating badge ── */
-    .float-badge {
+    .dot-wrap::before {
+      content: '';
       position: absolute;
-      background: #fff;
-      border-radius: 16px;
-      padding: 10px 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, .10);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #1e293b;
-      white-space: nowrap;
-    }
-
-    .dark .float-badge {
-      background: #1e293b;
-      color: #e2e8f0;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
-    }
-
-    /* ── Section reveal ── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity .6s ease, transform .6s ease;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: none;
-    }
-
-    /* ── Pricing highlight ── */
-    .pricing-highlight {
-      background: linear-gradient(145deg, #2563eb, #7c3aed);
-      color: #fff;
-      transform: scale(1.04);
-      box-shadow: 0 8px 40px rgba(37, 99, 235, .4);
-    }
-
-    /* ── Feature icon box ── */
-    .icon-box {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      flex-shrink: 0;
-    }
-
-    /* ── Nav ── */
-    #navbar {
-      transition: background .3s, box-shadow .3s;
-    }
-
-    #navbar.scrolled {
-      background: rgba(255, 255, 255, .92) !important;
-      box-shadow: 0 2px 20px rgba(0, 0, 0, .08);
-    }
-
-    .dark #navbar.scrolled {
-      background: rgba(15, 23, 42, .92) !important;
-    }
-
-    /* ── Progress bar ── */
-    #prog {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #2563eb, #7c3aed);
-      z-index: 9999;
-      transition: width .1s;
-      pointer-events: none;
-    }
-
-    /* ── Masonry testimonials ── */
-    .masonry {
-      columns: 3;
-      column-gap: 20px;
-    }
-
-    .masonry-item {
-      break-inside: avoid;
-      margin-bottom: 20px;
-    }
-
-    @media (max-width: 1024px) {
-      .masonry {
-        columns: 2;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .masonry {
-        columns: 1;
-      }
-    }
-
-    /* ── Logo grid ── */
-    .logo-card {
-      width: 72px;
-      height: 72px;
-      border-radius: 18px;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, .07);
-      transition: transform .2s, box-shadow .2s;
-      cursor: default;
-    }
-
-    .logo-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
-    }
-
-    .dark .logo-card {
-      background: #1e293b;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, .3);
-    }
-
-    /* ── Timeline ── */
-    .tl-dot {
-      width: 14px;
-      height: 14px;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 5px;
-      box-shadow: 0 0 0 4px #fff;
-    }
-
-    .dark .tl-dot {
-      box-shadow: 0 0 0 4px #0f172a;
-    }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 99px;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-
-      *,
-      *::before,
-      *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-      }
+      background: #22c55e;
+      animation: pulse-ring 1.4s ease-out infinite;
     }
   </style>
 </head>
 
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 relative">
+<body>
+  <!-- Blobs -->
+  <div class="blob" style="width:600px;height:600px;background:#2563eb;top:-200px;left:-200px;"></div>
+  <div class="blob" style="width:500px;height:500px;background:#7c3aed;bottom:-150px;right:-150px;"></div>
+  <div class="blob"
+    style="width:300px;height:300px;background:#0ea5e9;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
 
-  <!-- Progress bar -->
-  <div id="prog" style="width:0"></div>
+  <div class="relative z-10 flex flex-col items-center text-center px-6 py-16 max-w-2xl mx-auto">
 
-  <!-- ═══════════════════════════════════════════
-     NAVBAR
-═══════════════════════════════════════════ -->
-  <nav id="navbar"
-    class="fixed top-0 inset-x-0 z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center gap-8">
-      <!-- Logo -->
-      <a href="#" class="flex items-center gap-2 mr-auto md:mr-0 flex-shrink-0">
+    <!-- Logo -->
+    <div class="fade-up mb-10" style="animation-delay:.1s">
+      <div class="flex items-center gap-3 justify-center">
         <div
-          class="w-8 h-8 rounded-10 bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center rounded-xl">
-          <img src="/favicon.png" alt="" class="w-5 h-5 brightness-0 invert" onerror="this.style.display='none'" />
+          style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,99,235,.5);">
+          <img src="/favicon.png" alt="" style="width:26px;height:26px;filter:brightness(0) invert(1);"
+            onerror="this.style.display='none'" />
         </div>
-        <span class="text-lg font-bold grad">Efendim</span>
-      </a>
-
-      <!-- Center nav -->
-      <div class="hidden md:flex items-center gap-1 mx-auto">
-        <a href="#features"
-          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Özellikler</a>
-        <a href="#showcase"
-          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Arayüz</a>
-        <a href="#how"
-          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Nasıl
-          Çalışır</a>
-        <a href="#changelog"
-          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Değişiklikler</a>
-        <a href="#testimonials"
-          class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">Yorumlar</a>
-      </div>
-
-      <!-- Right actions -->
-      <div class="hidden md:flex items-center gap-3 ml-auto md:ml-0">
-        <button id="theme-toggle"
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm">
-          <i class="fas fa-moon dark:hidden"></i>
-          <i class="fas fa-sun hidden dark:block"></i>
-        </button>
-        <a href="/login" class="btn-primary text-sm py-2.5 px-5">
-          Giriş Yap <i class="fas fa-arrow-right text-xs"></i>
-        </a>
-      </div>
-
-      <!-- Mobile hamburger -->
-      <button id="mob-toggle"
-        class="md:hidden ml-auto w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-        <i id="mob-icon" class="fas fa-bars text-slate-600 dark:text-slate-300"></i>
-      </button>
-    </div>
-
-    <!-- Mobile menu -->
-    <div id="mob-menu"
-      class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-6 py-4 flex flex-col gap-2">
-      <a href="#features"
-        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Özellikler</a>
-      <a href="#showcase"
-        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Arayüz</a>
-      <a href="#how"
-        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Nasıl
-        Çalışır</a>
-      <a href="#changelog"
-        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Değişiklikler</a>
-      <a href="#testimonials"
-        class="py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 transition">Yorumlar</a>
-      <div class="pt-2 flex items-center gap-3 border-t border-slate-200 dark:border-slate-800">
-        <button id="theme-toggle-mob" class="btn-ghost text-sm py-2.5 flex-1 justify-center">🌓 Tema</button>
-        <a href="/login" class="btn-primary text-sm py-2.5 flex-1 justify-center">Giriş Yap</a>
-      </div>
-    </div>
-  </nav>
-
-  <!-- ═══════════════════════════════════════════
-     HERO
-═══════════════════════════════════════════ -->
-  <section class="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-6 overflow-hidden">
-    <!-- Soft blobs -->
-    <div
-      class="absolute top-1/4 -left-32 w-96 h-96 bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-3xl pointer-events-none">
-    </div>
-    <div
-      class="absolute bottom-1/4 -right-32 w-96 h-96 bg-violet-200/40 dark:bg-violet-900/20 rounded-full blur-3xl pointer-events-none">
-    </div>
-
-    <!-- Content -->
-    <div class="relative z-10 max-w-3xl mx-auto text-center animate-fade-up">
-      <div class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 mb-6">
-        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-        Yeni Nesil Yoklama Sistemi
-      </div>
-
-      <h1 class="text-5xl md:text-7xl font-extrabold leading-[1.1] tracking-tight mb-6 text-slate-900 dark:text-white">
-        Yoklama Artık<br />
-        <span class="grad"><span id="typed"></span><span class="cursor"></span></span>
-      </h1>
-
-      <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed mb-10">
-        Öğrenci takibini, program yönetimini ve raporlamayı tek platformdan yapın. Modern, hızlı, güvenli.
-      </p>
-
-      <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="/login" class="btn-primary">
-          Hemen Başla <i class="fas fa-arrow-right text-xs"></i>
-        </a>
-        <a href="#showcase" class="btn-ghost">
-          <i class="fas fa-play-circle text-blue-500"></i> Arayüzü Gör
-        </a>
+        <span style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px;">Efendim</span>
       </div>
     </div>
 
-    <!-- Floating widgets -->
-    <div class="relative z-10 w-full max-w-5xl mx-auto mt-20 hidden lg:block" style="height:260px">
-      <!-- Dashboard mockup center -->
-      <div class="card absolute left-1/2 -translate-x-1/2 w-full max-w-2xl"
-        style="top:0; padding:0; overflow:hidden; border-radius:20px;">
-        <div
-          class="h-8 bg-slate-100 dark:bg-slate-800 flex items-center gap-1.5 px-4 border-b border-slate-200 dark:border-slate-700">
-          <span class="w-3 h-3 rounded-full bg-red-400"></span>
-          <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
-          <span class="w-3 h-3 rounded-full bg-green-400"></span>
+    <!-- Live dot -->
+    <div class="fade-up mb-6" style="animation-delay:.2s">
+      <div
+        style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);">
+        <div class="dot-wrap" style="width:8px;height:8px;">
           <span
-            class="flex-1 mx-4 h-5 bg-slate-200 dark:bg-slate-700 rounded-full text-xs flex items-center justify-center text-slate-400 text-[10px]">app.efendim.nl/dashboard</span>
+            style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:block;position:relative;z-index:1;"></span>
         </div>
-        <div class="p-5 grid grid-cols-4 gap-3">
-          <div class="col-span-4 h-6 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center px-3 gap-2">
-            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-            <span class="text-xs text-slate-400">Efendim Dashboard — Tüm sistemler çalışıyor</span>
-          </div>
-          <div class="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-3 text-center">
-            <div class="text-2xl font-bold text-blue-600">42</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Talebe</div>
-          </div>
-          <div class="bg-violet-50 dark:bg-violet-900/30 rounded-xl p-3 text-center">
-            <div class="text-2xl font-bold text-violet-600">94%</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Devam</div>
-          </div>
-          <div class="bg-emerald-50 dark:bg-emerald-900/30 rounded-xl p-3 text-center">
-            <div class="text-2xl font-bold text-emerald-600">6</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Program</div>
-          </div>
-          <div class="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-3 text-center">
-            <div class="text-2xl font-bold text-orange-500">3</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Kullanıcı</div>
-          </div>
-          <div class="col-span-4 flex gap-2">
-            <div
-              class="flex-1 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-end px-3 pb-2 gap-1 overflow-hidden">
-              <div class="w-3 rounded-t bg-blue-400" style="height:40%"></div>
-              <div class="w-3 rounded-t bg-blue-500" style="height:60%"></div>
-              <div class="w-3 rounded-t bg-blue-500" style="height:80%"></div>
-              <div class="w-3 rounded-t bg-blue-600" style="height:100%"></div>
-              <div class="w-3 rounded-t bg-blue-500" style="height:70%"></div>
-              <div class="w-3 rounded-t bg-blue-400" style="height:55%"></div>
-              <div class="w-3 rounded-t bg-blue-500" style="height:90%"></div>
-            </div>
-            <div class="flex-1 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-xl flex items-center justify-center">
-              <span class="text-xs text-slate-400">Bu Haftaki Yoklamalar</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating badges -->
-      <div class="float-badge animate-float" style="top:-24px; left: 2%;">
-        <span class="w-7 h-7 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-sm"><i
-            class="fas fa-check"></i></span>
-        Yoklama Alındı
-      </div>
-      <div class="float-badge animate-float2" style="top:20px; right:2%;">
-        <span class="w-7 h-7 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-sm"><i
-            class="fas fa-chart-line"></i></span>
-        %94 Devam Oranı
-      </div>
-      <div class="float-badge animate-float" style="bottom:0; left:4%; animation-delay:.8s">
-        <span class="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 text-sm"><i
-            class="fas fa-users"></i></span>
-        42 Talebe Aktif
-      </div>
-      <div class="float-badge animate-float2" style="bottom:0; right:4%; animation-delay:.4s">
-        <span class="w-7 h-7 rounded-xl bg-orange-100 flex items-center justify-center text-orange-500 text-sm"><i
-            class="fas fa-bell"></i></span>
-        Canlı Senkronize
+        <span style="font-size:12px;font-weight:600;color:#4ade80;letter-spacing:.4px;">YAKINDA</span>
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="relative z-10 mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto w-full">
-      <div class="text-center reveal">
-        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="1000">0</div>
-        <div class="text-xs text-slate-500 mt-1">Aktif Kullanıcı</div>
+    <!-- Headline -->
+    <h1 class="fade-up"
+      style="animation-delay:.3s;font-size:clamp(2.5rem,8vw,4.5rem);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1.5px;margin-bottom:20px;">
+      Çok Yakında<br />
+      <span
+        style="background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+        <span id="typed"></span><span class="cursor"></span>
+      </span>
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="fade-up"
+      style="animation-delay:.4s;font-size:16px;color:#94a3b8;line-height:1.7;max-width:440px;margin-bottom:40px;">
+      Modern dijital yoklama ve öğrenci takip sistemi üzerinde çalışıyoruz. Yeni sürüm çok yakında burada olacak.
+    </p>
+
+    <!-- Countdown -->
+    <div class="fade-up flex items-center gap-3 mb-10" style="animation-delay:.5s">
+      <div class="count-box">
+        <div id="days" style="font-size:28px;font-weight:800;color:#fff;line-height:1;">00</div>
+        <div style="font-size:10px;color:#64748b;font-weight:600;margin-top:4px;letter-spacing:.5px;">GÜN</div>
       </div>
-      <div class="text-center reveal" style="transition-delay:.1s">
-        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="50000">0</div>
-        <div class="text-xs text-slate-500 mt-1">Yoklama Kaydı</div>
+      <span style="font-size:24px;font-weight:700;color:#334155;">:</span>
+      <div class="count-box">
+        <div id="hours" style="font-size:28px;font-weight:800;color:#fff;line-height:1;">00</div>
+        <div style="font-size:10px;color:#64748b;font-weight:600;margin-top:4px;letter-spacing:.5px;">SAAT</div>
       </div>
-      <div class="text-center reveal" style="transition-delay:.2s">
-        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="99.9">0</div>
-        <div class="text-xs text-slate-500 mt-1">Çalışma Süresi</div>
+      <span style="font-size:24px;font-weight:700;color:#334155;">:</span>
+      <div class="count-box">
+        <div id="mins" style="font-size:28px;font-weight:800;color:#fff;line-height:1;">00</div>
+        <div style="font-size:10px;color:#64748b;font-weight:600;margin-top:4px;letter-spacing:.5px;">DAKİKA</div>
       </div>
-      <div class="text-center reveal" style="transition-delay:.3s">
-        <div class="text-3xl font-extrabold text-slate-900 dark:text-white count-up" data-target="4.9">0</div>
-        <div class="text-xs text-slate-500 mt-1">Kullanıcı Puanı</div>
-      </div>
-    </div>
-
-    <!-- Scroll cue -->
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-slate-400">
-      <i class="fas fa-chevron-down"></i>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-     FEATURE SHOWCASE
-═══════════════════════════════════════════ -->
-  <section id="showcase" class="py-28 px-6">
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16 reveal">
-        <div class="pill bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 mb-4">
-          <i class="fas fa-desktop text-xs"></i> Arayüz Önizlemesi
-        </div>
-        <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Tasarlandı<span
-            class="grad"> sadelik için</span></h2>
-        <p class="text-slate-500 dark:text-slate-400 max-w-lg mx-auto text-sm mb-10">Karmaşık araçlara gerek yok. Temiz,
-          hızlı ve sezgisel bir deneyim.</p>
-      </div>
-
-      <!-- Main visual -->
-      <div class="relative reveal" style="transition-delay:.1s">
-        <div class="rounded-[28px] p-1.5"
-          style="background: linear-gradient(135deg, rgba(37,99,235,.3), rgba(124,58,237,.3));">
-          <div class="card rounded-[22px] overflow-hidden" style="box-shadow: none;">
-            <!-- Tabs -->
-            <div
-              class="flex gap-1 p-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
-              <button
-                class="tab-btn px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-700 shadow-sm text-slate-700 dark:text-slate-200"
-                data-tab="dashboard">Dashboard</button>
-              <button
-                class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 transition"
-                data-tab="yoklama">Yoklama</button>
-              <button
-                class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 transition"
-                data-tab="stats">İstatistikler</button>
-            </div>
-
-            <!-- Tab: Dashboard -->
-            <div id="tab-dashboard" class="tab-panel p-6">
-              <div class="grid grid-cols-3 gap-4 mb-4">
-                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-4">
-                  <div class="text-xs text-slate-500 mb-1">Toplam Talebe</div>
-                  <div class="text-2xl font-bold text-blue-600">42</div>
-                </div>
-                <div class="bg-violet-50 dark:bg-violet-900/20 rounded-2xl p-4">
-                  <div class="text-xs text-slate-500 mb-1">Devam Oranı</div>
-                  <div class="text-2xl font-bold text-violet-600">94%</div>
-                </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4">
-                  <div class="text-xs text-slate-500 mb-1">Bu Ay Yoklama</div>
-                  <div class="text-2xl font-bold text-emerald-600">312</div>
-                </div>
-              </div>
-              <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 flex items-end gap-2 h-28 overflow-hidden">
-                <div class="flex-1 flex items-end gap-1.5 h-full">
-                  <div class="flex-1 rounded-t-lg bg-blue-500/80" style="height:50%"></div>
-                  <div class="flex-1 rounded-t-lg bg-blue-500" style="height:70%"></div>
-                  <div class="flex-1 rounded-t-lg bg-blue-600" style="height:90%"></div>
-                  <div class="flex-1 rounded-t-lg bg-blue-500" style="height:65%"></div>
-                  <div class="flex-1 rounded-t-lg bg-blue-500/80" style="height:80%"></div>
-                  <div class="flex-1 rounded-t-lg bg-blue-600" style="height:100%"></div>
-                  <div class="flex-1 rounded-t-lg bg-blue-500" style="height:75%"></div>
-                </div>
-                <div class="text-xs text-slate-400 whitespace-nowrap pl-2">Haftalık Yoklama Trendi</div>
-              </div>
-            </div>
-
-            <!-- Tab: Yoklama -->
-            <div id="tab-yoklama" class="tab-panel p-6 hidden">
-              <div class="flex items-center justify-between mb-4">
-                <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">Sabah Namazı — 24 Şubat 2026</div>
-                <div class="pill bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs">● Canlı
-                </div>
-              </div>
-              <div class="space-y-2">
-                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                  <div
-                    class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white text-xs font-bold">
-                    AK</div>
-                  <span class="flex-1 text-sm font-medium">Ahmet Kökçü</span>
-                  <div class="flex gap-2">
-                    <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500 text-white">Var</button>
-                    <button
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Yok</button>
-                    <button
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">İzinli</button>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                  <div
-                    class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-xs font-bold">
-                    MU</div>
-                  <span class="flex-1 text-sm font-medium">Melih Uzun</span>
-                  <div class="flex gap-2">
-                    <button
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Var</button>
-                    <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white">Yok</button>
-                    <button
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">İzinli</button>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                  <div
-                    class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
-                    FB</div>
-                  <span class="flex-1 text-sm font-medium">Fatih Burcu</span>
-                  <div class="flex gap-2">
-                    <button
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Var</button>
-                    <button
-                      class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Yok</button>
-                    <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-500 text-white">İzinli</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab: Stats -->
-            <div id="tab-stats" class="tab-panel p-6 hidden">
-              <div class="text-sm font-semibold mb-4 text-slate-700 dark:text-slate-200">Program Bazlı Devam Oranı</div>
-              <div class="space-y-3">
-                <div>
-                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Sabah
-                      Namazı</span><span>94%</span></div>
-                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                    <div class="h-2 rounded-full bg-blue-500" style="width:94%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Öğle Namazı</span><span>88%</span>
-                  </div>
-                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                    <div class="h-2 rounded-full bg-violet-500" style="width:88%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Hatim</span><span>76%</span></div>
-                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                    <div class="h-2 rounded-full bg-emerald-500" style="width:76%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Yatsı
-                      Namazı</span><span>91%</span></div>
-                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full">
-                    <div class="h-2 rounded-full bg-orange-500" style="width:91%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Floating indicator badges -->
-        <div class="float-badge hidden lg:flex animate-float" style="top:24px; left:-140px; animation-delay:.2s">
-          <span class="w-7 h-7 rounded-xl bg-green-100 flex items-center justify-center text-green-600 text-sm"><i
-              class="fas fa-bolt"></i></span>
-          Gerçek Zamanlı
-        </div>
-        <div class="float-badge hidden lg:flex animate-float2" style="top:80px; right:-130px; animation-delay:.6s">
-          <span class="w-7 h-7 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-sm"><i
-              class="fas fa-download"></i></span>
-          Excel / PDF
-        </div>
-        <div class="float-badge hidden lg:flex animate-float" style="bottom:40px; left:-120px; animation-delay:1s">
-          <span class="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600 text-sm"><i
-              class="fas fa-mobile-alt"></i></span>
-          Mobil Uyumlu
-        </div>
+      <span style="font-size:24px;font-weight:700;color:#334155;">:</span>
+      <div class="count-box">
+        <div id="secs" style="font-size:28px;font-weight:800;color:#fff;line-height:1;">00</div>
+        <div style="font-size:10px;color:#64748b;font-weight:600;margin-top:4px;letter-spacing:.5px;">SANİYE</div>
       </div>
     </div>
-  </section>
 
-  <!-- ═══════════════════════════════════════════
-     FEATURE CARDS GRID
-═══════════════════════════════════════════ -->
-  <section id="features" class="py-20 px-6">
-    <div class="max-w-5xl mx-auto">
-      <!-- Outer panel -->
-      <div class="bg-slate-100/80 dark:bg-slate-900/60 rounded-[32px] p-8 md:p-12">
-        <div class="text-center mb-10 reveal">
-          <div class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 mb-4">
-            <i class="fas fa-sparkles text-xs"></i> Güçlü Özellikler
-          </div>
-          <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">İhtiyacınız olan<span
-              class="grad"> her şey</span></h2>
-          <p class="text-slate-500 dark:text-slate-400 mt-3 max-w-md mx-auto text-sm">Tek platformdan tüm yönetim
-            ihtiyaçlarınızı karşılayın.</p>
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- Card -->
-          <div class="card p-6 reveal">
-            <div class="icon-box bg-blue-50 dark:bg-blue-900/30 text-blue-600 mb-4"><i
-                class="fas fa-clipboard-check"></i></div>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Hızlı Yoklama</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Tek tıkla yoklama alın. Sınıf ve
-              program bazlı takip ile zamanınızı optimize edin.</p>
-          </div>
-
-          <div class="card p-6 reveal" style="transition-delay:.05s">
-            <div class="icon-box bg-violet-50 dark:bg-violet-900/30 text-violet-600 mb-4"><i
-                class="fas fa-chart-line"></i></div>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Detaylı Analiz</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">İnteraktif grafikler ve tablolarla
-              verilerinizi görselleştirin. Trendleri kolayca takip edin.</p>
-          </div>
-
-          <div class="card p-6 reveal" style="transition-delay:.1s">
-            <div class="icon-box bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 mb-4"><i
-                class="fas fa-cloud"></i></div>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Bulut Tabanlı</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Verileriniz güvenli bulut
-              sunucularında. Her yerden, her cihazdan anında erişim.</p>
-          </div>
-
-          <div class="card p-6 reveal" style="transition-delay:.15s">
-            <div class="icon-box bg-orange-50 dark:bg-orange-900/30 text-orange-500 mb-4"><i class="fas fa-users"></i>
-            </div>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Öğrenci Yönetimi</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Öğrenci bilgilerini ekleyin,
-              düzenleyin. Sınıf ve program bazlı organizasyon.</p>
-          </div>
-
-          <div class="card p-6 reveal" style="transition-delay:.2s">
-            <div class="icon-box bg-teal-50 dark:bg-teal-900/30 text-teal-600 mb-4"><i class="fas fa-calendar-alt"></i>
-            </div>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Program Takibi</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Dönemsel programlar oluşturun, takip
-              edin. Geçmiş kayıtlara kolayca erişin.</p>
-          </div>
-
-          <div class="card p-6 reveal" style="transition-delay:.25s">
-            <div class="icon-box bg-rose-50 dark:bg-rose-900/30 text-rose-600 mb-4"><i class="fas fa-shield-alt"></i>
-            </div>
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Güvenli & Rol Bazlı</h3>
-            <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Admin, hoca ve yoklamacı rolleri. GDPR
-              uyumlu güvenlik protokolleri.</p>
-          </div>
-        </div>
-      </div>
+    <!-- CTA -->
+    <div class="fade-up flex flex-col sm:flex-row gap-3 items-center" style="animation-delay:.6s">
+      <a href="/login" class="btn">
+        Giriş Yap
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </a>
     </div>
-  </section>
 
-  <!-- ═══════════════════════════════════════════
-     HOW IT WORKS
-═══════════════════════════════════════════ -->
-  <section id="how" class="py-20 px-6">
-    <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-14 reveal">
-        <div class="pill bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 mb-4">
-          <i class="fas fa-route text-xs"></i> Nasıl Çalışır?
-        </div>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">3 adımda<span class="grad">
-            başlayın</span></h2>
-      </div>
-      <div class="grid md:grid-cols-3 gap-6">
-        <div class="card p-8 text-center reveal">
-          <div
-            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-5 shadow-lg shadow-blue-200 dark:shadow-blue-900">
-            1</div>
-          <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Kayıt Olun</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Referans kodunuzla ücretsiz hesap
-            oluşturun. Dakikalar içinde hazır.</p>
-        </div>
-        <div class="card p-8 text-center reveal" style="transition-delay:.1s">
-          <div
-            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-5 shadow-lg shadow-violet-200 dark:shadow-violet-900">
-            2</div>
-          <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Sistemi Kurun</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Öğrencileri, sınıfları ve programları
-            ekleyin. Sistem otomatik organize eder.</p>
-        </div>
-        <div class="card p-8 text-center reveal" style="transition-delay:.2s">
-          <div
-            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-5 shadow-lg shadow-emerald-200 dark:shadow-emerald-900">
-            3</div>
-          <h3 class="font-bold text-slate-800 dark:text-slate-100 mb-2">Yoklama Alın</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Tek tıkla yoklama almaya başlayın.
-            Raporlayın, analiz edin, tasarruf edin.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- Footer note -->
+    <p class="fade-up" style="animation-delay:.7s;margin-top:48px;font-size:12px;color:#334155;">
+      © <span id="year"></span> Efendim · Tüm hakları saklıdır.
+    </p>
+  </div>
 
-  <!-- ═══════════════════════════════════════════
-     INTEGRATIONS / LOGO GRID
-═══════════════════════════════════════════ -->
-  <section class="py-20 px-6">
-    <div class="max-w-3xl mx-auto text-center">
-      <div class="reveal">
-        <div class="pill bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mb-4">
-          <i class="fas fa-plug text-xs"></i> Uyumluluk
-        </div>
-        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-3">Favori <span
-            class="grad">araçlarınızla</span> çalışır</h2>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mb-10">Excel, PDF ve daha fazlasına aktarın.</p>
-      </div>
-      <div class="flex flex-wrap justify-center gap-4 reveal" style="transition-delay:.1s">
-        <div class="logo-card" title="Microsoft Excel">📊</div>
-        <div class="logo-card" title="PDF">📄</div>
-        <div class="logo-card" title="CSV">🗂️</div>
-        <div class="logo-card" title="Grafik">📈</div>
-        <div class="logo-card" title="Bildirim">🔔</div>
-        <div class="logo-card" title="Mobil">📱</div>
-        <div class="logo-card" title="Güvenlik">🔒</div>
-        <div class="logo-card" title="Bulut">☁️</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-     CHANGELOG
-═══════════════════════════════════════════ -->
-  <section id="changelog" class="py-20 px-6">
-    <div class="max-w-3xl mx-auto">
-      <div class="text-center mb-14 reveal">
-        <div class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 mb-4">
-          <i class="fas fa-code-branch text-xs"></i> Değişiklik Günlüğü
-        </div>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Sürekli <span
-            class="grad">gelişiyoruz</span></h2>
-      </div>
-
-      <div class="space-y-6">
-        <!-- v1.5 -->
-        <div class="card p-6 reveal">
-          <div class="flex items-start gap-4">
-            <div class="tl-dot bg-green-500 mt-1.5"></div>
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3 flex-wrap">
-                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.5.0</span>
-                <span
-                  class="pill bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs py-0.5">YENİ</span>
-                <span class="text-xs text-slate-400 ml-auto">Ekim 2025</span>
-              </div>
-              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs flex-shrink-0"></i>
-                  İstatistik hesaplama düzeltmeleri ve %101 hatası giderildi</li>
-                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs flex-shrink-0"></i> Yoklama
-                  sayfasında sıralama sistemi iyileştirildi</li>
-                <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs flex-shrink-0"></i> Talebe
-                  portalı istatistikleri tutarlı hale getirildi</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- v1.4 -->
-        <div class="card p-6 reveal" style="transition-delay:.05s">
-          <div class="flex items-start gap-4">
-            <div class="tl-dot bg-blue-500 mt-1.5"></div>
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3 flex-wrap">
-                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.4.0</span>
-                <span class="text-xs text-slate-400 ml-auto">Ekim 2025</span>
-              </div>
-              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-0.5 text-xs flex-shrink-0"></i> Yoklama
-                  sayfasına "Tümünü Kaydet" butonu eklendi</li>
-                <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-0.5 text-xs flex-shrink-0"></i> Toplu
-                  kaydetme için onay dialogu eklendi</li>
-                <li class="flex gap-2"><i class="fas fa-check text-blue-500 mt-0.5 text-xs flex-shrink-0"></i> Kayıt
-                  sırasında görsel ilerleme göstergesi</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- v1.3 -->
-        <div class="card p-6 reveal" style="transition-delay:.1s">
-          <div class="flex items-start gap-4">
-            <div class="tl-dot bg-violet-500 mt-1.5"></div>
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3 flex-wrap">
-                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.3.0</span>
-                <span class="text-xs text-slate-400 ml-auto">Ekim 2025</span>
-              </div>
-              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                <li class="flex gap-2"><i class="fas fa-check text-violet-500 mt-0.5 text-xs flex-shrink-0"></i>
-                  Gelişmiş aktivite logları — tarih, program, talebe bilgileri</li>
-                <li class="flex gap-2"><i class="fas fa-check text-violet-500 mt-0.5 text-xs flex-shrink-0"></i> Her
-                  değişikliğin önceki/sonraki durumu gösterimi</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- v1.0 -->
-        <div class="card p-6 reveal" style="transition-delay:.15s">
-          <div class="flex items-start gap-4">
-            <div class="tl-dot bg-orange-500 mt-1.5"></div>
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-3 flex-wrap">
-                <span class="font-bold text-slate-800 dark:text-slate-100">Versiyon 1.0.0</span>
-                <span
-                  class="pill bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 text-xs py-0.5"><i
-                    class="fas fa-rocket text-xs mr-1"></i>İLK SÜRÜM</span>
-                <span class="text-xs text-slate-400 ml-auto">Ağustos 2025</span>
-              </div>
-              <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5 text-xs flex-shrink-0"></i> Hızlı
-                  yoklama, öğrenci yönetimi, program takibi</li>
-                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5 text-xs flex-shrink-0"></i> Rol
-                  tabanlı erişim: Admin, Hoca, Yoklamacı, Talebe</li>
-                <li class="flex gap-2"><i class="fas fa-check text-orange-500 mt-0.5 text-xs flex-shrink-0"></i> Koyu /
-                  açık tema desteği</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Coming soon -->
-      <div class="mt-8 card p-6 reveal" style="transition-delay:.2s">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="icon-box bg-blue-50 dark:bg-blue-900/30 text-blue-600"><i class="fas fa-clock"></i></div>
-          <div>
-            <div class="font-bold text-slate-800 dark:text-slate-100">Yakında Gelecek</div>
-            <div class="text-xs text-slate-500">Üzerinde çalıştığımız özellikler</div>
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <span class="pill bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"><i
-              class="fas fa-bolt text-xs"></i> Gerçek Zamanlı Sync</span>
-          <span class="pill bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"><i
-              class="fas fa-bell text-xs"></i> Bildirim Sistemi</span>
-          <span class="pill bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"><i
-              class="fas fa-mobile-alt text-xs"></i> Mobil Uygulama</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-     TESTIMONIALS
-═══════════════════════════════════════════ -->
-  <section id="testimonials" class="py-20 px-6">
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-14 reveal">
-        <div class="pill bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 mb-4">
-          <i class="fas fa-star text-xs"></i> Kullanıcı Yorumları
-        </div>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white mb-3">Kullanıcılarımız <span
-            class="grad">ne diyor?</span></h2>
-      </div>
-
-      <div class="masonry reveal">
-        <!-- Large card -->
-        <div class="masonry-item card p-7">
-          <div class="flex gap-1 mb-4">
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i>
-          </div>
-          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"Efendim sayesinde yoklama
-            işlemlerimiz çok hızlandı. Artık raporlama için saatlerce uğraşmıyoruz. Sistem gerçekten çok kullanıcı dostu
-            ve sezgisel."</p>
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white text-sm font-bold">
-              MU</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Melih Uzun</div>
-              <div class="text-xs text-slate-500">MAT Müdürü</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Small card -->
-        <div class="masonry-item card p-6">
-          <div class="flex gap-1 mb-3">
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i>
-          </div>
-          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"Teknik bilgisi olmayan
-            personelimiz bile kolayca kullanabiliyor. Harika!"</p>
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-sm font-bold">
-              AK</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Ahmet Kökçü</div>
-              <div class="text-xs text-slate-500">MAT Hoca</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Medium card -->
-        <div class="masonry-item card p-6">
-          <div class="flex gap-1 mb-3">
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i>
-          </div>
-          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"İstatistik ve raporlama
-            özellikleri mükemmel. Detaylı veriler sunulabiliyor. Kesinlikle tavsiye ederim."</p>
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
-              FB</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Fatih Mehmet Burcu</div>
-              <div class="text-xs text-slate-500">Talebe</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stat card -->
-        <div class="masonry-item card p-6 bg-gradient-to-br from-blue-500 to-violet-600 text-white"
-          style="box-shadow: 0 8px 32px rgba(37,99,235,.3);">
-          <div class="text-5xl font-extrabold mb-2">4.9<span class="text-2xl">/5</span></div>
-          <div class="text-blue-100 text-sm mb-4">Ortalama kullanıcı puanı</div>
-          <div class="flex gap-1">
-            <i class="fas fa-star text-yellow-300 text-sm"></i><i class="fas fa-star text-yellow-300 text-sm"></i>
-            <i class="fas fa-star text-yellow-300 text-sm"></i><i class="fas fa-star text-yellow-300 text-sm"></i>
-            <i class="fas fa-star text-yellow-300 text-sm"></i>
-          </div>
-        </div>
-
-        <!-- Small card 2 -->
-        <div class="masonry-item card p-6">
-          <div class="flex gap-1 mb-3">
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i><i class="fas fa-star text-yellow-400 text-sm"></i>
-            <i class="fas fa-star text-yellow-400 text-sm"></i>
-          </div>
-          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">"Excel export özelliği sayesinde
-            raporlarımızı çok hızlı hazırlıyoruz."</p>
-          <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
-              RS</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">Rıdvan Sönmez</div>
-              <div class="text-xs text-slate-500">Hoca</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-     PRICING
-═══════════════════════════════════════════ -->
-  <section id="pricing" class="py-20 px-6">
-    <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-14 reveal">
-        <div class="pill bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mb-4">
-          <i class="fas fa-tag text-xs"></i> Fiyatlandırma
-        </div>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Basit ve <span
-            class="grad">şeffaf</span> fiyatlar</h2>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-6 items-center">
-        <!-- Starter -->
-        <div class="card p-7 reveal">
-          <div class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">Başlangıç</div>
-          <div class="text-4xl font-extrabold text-slate-900 dark:text-white mb-1">Ücretsiz</div>
-          <div class="text-xs text-slate-400 mb-6">Sonsuza kadar</div>
-          <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-8">
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> 1 Yurt / Okul</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> 30 Talebe</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Temel Raporlar</li>
-            <li class="flex gap-2"><i class="fas fa-times text-slate-300 mt-0.5 text-xs"></i> Excel Export</li>
-            <li class="flex gap-2"><i class="fas fa-times text-slate-300 mt-0.5 text-xs"></i> Çoklu Kullanıcı</li>
-          </ul>
-          <a href="/login" class="btn-ghost w-full justify-center text-sm py-3">Başla</a>
-        </div>
-
-        <!-- Pro (highlighted) -->
-        <div class="pricing-highlight rounded-[24px] p-7 reveal" style="transition-delay:.1s">
-          <div class="pill bg-white/20 text-white text-xs mb-4"><i class="fas fa-crown text-xs"></i> En Popüler</div>
-          <div class="text-sm font-semibold text-blue-100 mb-4">Profesyonel</div>
-          <div class="text-4xl font-extrabold text-white mb-1">€9<span class="text-lg font-medium">/ay</span></div>
-          <div class="text-xs text-blue-100 mb-6">Yıllık ödemede geçerli</div>
-          <ul class="space-y-3 text-sm text-blue-50 mb-8">
-            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> 3 Yurt / Okul</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> Sınırsız Talebe</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> Gelişmiş Raporlar</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> Excel & PDF Export</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-300 mt-0.5 text-xs"></i> 5 Kullanıcı</li>
-          </ul>
-          <a href="/login"
-            class="w-full bg-white text-blue-600 font-semibold py-3 rounded-[12px] text-sm text-center block hover:bg-blue-50 transition">Hemen
-            Başla</a>
-        </div>
-
-        <!-- Enterprise -->
-        <div class="card p-7 reveal" style="transition-delay:.2s">
-          <div class="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-4">Kurumsal</div>
-          <div class="text-4xl font-extrabold text-slate-900 dark:text-white mb-1">Özel</div>
-          <div class="text-xs text-slate-400 mb-6">İletişime geçin</div>
-          <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-8">
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Sınırsız Yurt</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Sınırsız Talebe</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Özel Raporlar</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Sınırsız Kullanıcı</li>
-            <li class="flex gap-2"><i class="fas fa-check text-green-500 mt-0.5 text-xs"></i> Öncelikli Destek</li>
-          </ul>
-          <a href="mailto:info@efendim.nl" class="btn-ghost w-full justify-center text-sm py-3">İletişim</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-     CTA BANNER
-═══════════════════════════════════════════ -->
-  <section class="py-16 px-6">
-    <div class="max-w-4xl mx-auto">
-      <div class="rounded-[28px] p-10 md:p-14 text-center reveal"
-        style="background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%); box-shadow: 0 16px 60px rgba(37,99,235,.35);">
-        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4">Hazır mısınız?</h2>
-        <p class="text-blue-100 text-lg mb-8 max-w-md mx-auto">Bugün başlayın ve yoklama yönetiminde fark yaratın.</p>
-        <a href="/login"
-          class="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-4 rounded-[14px] hover:bg-blue-50 transition shadow-lg">
-          <i class="fas fa-rocket"></i> Ücretsiz Başla
-        </a>
-        <p class="text-blue-200 text-xs mt-5">Kredi kartı gerekmez · Hemen erişim · İstediğiniz zaman iptal</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-     FOOTER
-═══════════════════════════════════════════ -->
-  <footer class="py-16 px-6">
-    <div class="max-w-5xl mx-auto">
-      <div class="bg-slate-900 dark:bg-slate-950 rounded-[28px] p-10 md:p-14 relative overflow-hidden">
-        <!-- Decorative blobs -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-48 h-48 bg-violet-600/10 rounded-full blur-3xl pointer-events-none">
-        </div>
-
-        <!-- Floating small icons -->
-        <div class="float-badge animate-float"
-          style="position:absolute; top:24px; right:40px; background:rgba(255,255,255,.07); color:#94a3b8; box-shadow:none; border: 1px solid rgba(255,255,255,.1);">
-          <i class="fas fa-clipboard-check text-blue-400"></i> Yoklama
-        </div>
-        <div class="float-badge animate-float2"
-          style="position:absolute; bottom:24px; right:80px; background:rgba(255,255,255,.07); color:#94a3b8; box-shadow:none; border: 1px solid rgba(255,255,255,.1); animation-delay:.5s">
-          <i class="fas fa-chart-bar text-violet-400"></i> Analiz
-        </div>
-
-        <div class="relative z-10 grid md:grid-cols-2 lg:grid-cols-4 gap-10">
-          <!-- Brand -->
-          <div class="lg:col-span-2">
-            <div class="flex items-center gap-2 mb-4">
-              <div
-                class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
-                <img src="/favicon.png" alt="" class="w-5 h-5 brightness-0 invert"
-                  onerror="this.style.display='none'" />
-              </div>
-              <span class="text-lg font-bold text-white">Efendim</span>
-            </div>
-            <p class="text-slate-400 text-sm leading-relaxed max-w-xs mb-5">Modern dijital yoklama ve öğrenci takip
-              sistemi. Eğitim kurumlarınızı dijitalleştirin.</p>
-            <div class="flex gap-3">
-              <a href="#"
-                class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition text-sm"><i
-                  class="fab fa-twitter"></i></a>
-              <a href="#"
-                class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition text-sm"><i
-                  class="fab fa-instagram"></i></a>
-              <a href="#"
-                class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-blue-600 flex items-center justify-center text-slate-400 hover:text-white transition text-sm"><i
-                  class="fab fa-linkedin-in"></i></a>
-            </div>
-          </div>
-
-          <!-- Links -->
-          <div>
-            <h4 class="text-white font-semibold text-sm mb-4">Ürün</h4>
-            <ul class="space-y-2.5 text-sm text-slate-400">
-              <li><a href="#features" class="hover:text-white transition">Özellikler</a></li>
-              <li><a href="#showcase" class="hover:text-white transition">Arayüz</a></li>
-              <li><a href="#changelog" class="hover:text-white transition">Değişiklikler</a></li>
-              <li><a href="/login" class="hover:text-white transition">Giriş Yap</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 class="text-white font-semibold text-sm mb-4">Şirket</h4>
-            <ul class="space-y-2.5 text-sm text-slate-400">
-              <li><a href="#" class="hover:text-white transition">Hakkımızda</a></li>
-              <li><a href="mailto:info@efendim.nl" class="hover:text-white transition">İletişim</a></li>
-              <li><a href="#" class="hover:text-white transition">Gizlilik Politikası</a></li>
-              <li><a href="#" class="hover:text-white transition">Kullanım Koşulları</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div
-          class="relative z-10 mt-10 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <span>© <span id="year"></span> Efendim. Tüm hakları saklıdır.</span>
-          <span>Made with <i class="fas fa-heart text-red-500 mx-1"></i> in Netherlands</span>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ═══════════════════════════════════════════
-     SCRIPTS
-═══════════════════════════════════════════ -->
   <script>
     // Year
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // ── Theme toggle ──
-    const html = document.documentElement;
-    ['theme-toggle', 'theme-toggle-mob'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (btn) btn.addEventListener('click', () => {
-        html.classList.toggle('dark');
-        localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-      });
-    });
-
-    // ── Mobile menu ──
-    const mobToggle = document.getElementById('mob-toggle');
-    const mobMenu = document.getElementById('mob-menu');
-    const mobIcon = document.getElementById('mob-icon');
-    mobToggle.addEventListener('click', () => {
-      const open = mobMenu.classList.toggle('hidden');
-      mobIcon.className = open ? 'fas fa-bars text-slate-600 dark:text-slate-300' : 'fas fa-times text-slate-600 dark:text-slate-300';
-    });
-    mobMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-      mobMenu.classList.add('hidden');
-      mobIcon.className = 'fas fa-bars text-slate-600 dark:text-slate-300';
-    }));
-
-    // ── Smooth scroll ──
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        const target = document.querySelector(a.getAttribute('href'));
-        if (target) { e.preventDefault(); window.scrollTo({ top: target.getBoundingClientRect().top + scrollY - 72, behavior: 'smooth' }); }
-      });
-    });
-
-    // ── Progress bar ──
-    const prog = document.getElementById('prog');
-    window.addEventListener('scroll', () => {
-      prog.style.width = (scrollY / (document.documentElement.scrollHeight - innerHeight) * 100) + '%';
-    });
-
-    // ── Navbar scroll ──
-    const navbar = document.getElementById('navbar');
-    window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', scrollY > 40));
-
-    // ── Reveal on scroll ──
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-    // ── Typing animation ──
-    const words = ['Çok Kolay', 'Hızlı', 'Akıllı', 'Modern', 'Güvenli'];
+    // Typing animation
+    const words = ['Geliyor', 'Hazırlanıyor', 'Yenileniyor'];
     let wi = 0, ci = 0, del = false;
     const el = document.getElementById('typed');
     (function type() {
       const w = words[wi];
       el.textContent = del ? w.slice(0, --ci) : w.slice(0, ++ci);
-      if (!del && ci === w.length) { del = true; setTimeout(type, 1800); }
+      if (!del && ci === w.length) { del = true; setTimeout(type, 2000); }
       else if (del && ci === 0) { del = false; wi = (wi + 1) % words.length; setTimeout(type, 400); }
-      else setTimeout(type, del ? 50 : 100);
+      else setTimeout(type, del ? 50 : 110);
     })();
 
-    // ── Counter ──
-    const cio = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        const el = e.target, target = parseFloat(el.dataset.target), dec = target.toString().includes('.');
-        let cur = 0, step = target / 80;
-        const t = setInterval(() => {
-          cur = Math.min(cur + step, target);
-          if (target === 99.9) el.textContent = cur.toFixed(1) + '%';
-          else if (target === 4.9) el.textContent = cur.toFixed(1) + '/5';
-          else if (target >= 1000) el.textContent = Math.floor(cur / 1000) + 'K+';
-          else el.textContent = Math.floor(cur) + '+';
-          if (cur >= target) clearInterval(t);
-        }, 20);
-        cio.unobserve(el);
-      });
-    }, { threshold: 0.5 });
-    document.querySelectorAll('.count-up').forEach(el => cio.observe(el));
-
-    // ── Showcase tabs ──
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => {
-          b.classList.remove('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
-          b.classList.add('text-slate-500', 'dark:text-slate-400');
-        });
-        btn.classList.add('bg-white', 'dark:bg-slate-700', 'shadow-sm', 'text-slate-700', 'dark:text-slate-200');
-        btn.classList.remove('text-slate-500', 'dark:text-slate-400');
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-        document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
-      });
-    });
-
-    console.log('%c🚀 Efendim', 'color:#2563eb;font-size:20px;font-weight:bold;');
+    // Countdown — set your launch date here
+    const LAUNCH = new Date('2026-06-01T00:00:00');
+    function tick() {
+      const diff = LAUNCH - Date.now();
+      if (diff <= 0) {
+        ['days', 'hours', 'mins', 'secs'].forEach(id => document.getElementById(id).textContent = '00');
+        return;
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('days').textContent = String(d).padStart(2, '0');
+      document.getElementById('hours').textContent = String(h).padStart(2, '0');
+      document.getElementById('mins').textContent = String(m).padStart(2, '0');
+      document.getElementById('secs').textContent = String(s).padStart(2, '0');
+    }
+    tick();
+    setInterval(tick, 1000);
   </script>
 </body>
 
