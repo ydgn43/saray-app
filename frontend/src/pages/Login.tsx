@@ -7,10 +7,10 @@ import {
     Lock,
     ArrowRight,
     ExclamationCircle,
-    CheckCircleFill,
     ClipboardData,
     PeopleFill,
-    GraphUpArrow
+    GraphUpArrow,
+    CheckCircleFill,
 } from 'react-bootstrap-icons';
 import { authFetch } from '../utils/authFetch';
 import config from '../config';
@@ -26,11 +26,20 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [activeSlide, setActiveSlide] = useState(0);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Auto-advance carousel dots
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveSlide(prev => (prev + 1) % 3);
+        }, 3000);
+        return () => clearInterval(interval);
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -49,28 +58,18 @@ export default function Login() {
                 const data = await res.json();
                 login(data.user, data.token);
 
-                // Store yurt information (returned for all users now)
                 if (data.availableYurts && data.availableYurts.length > 0) {
                     const yurts = data.availableYurts;
                     const primaryYurt = data.selectedYurt || yurts.find((y: any) => y.isPrimary) || yurts[0];
-
-                    console.log('📋 Loaded yurts on login:', yurts.length, 'Primary:', primaryYurt?.yurtName);
-
-                    // Store in localStorage
                     localStorage.setItem('availableYurts', JSON.stringify(yurts));
                     localStorage.setItem('selectedYurt', JSON.stringify(primaryYurt));
                     localStorage.setItem('yurtName', primaryYurt.yurtName);
-
-                    // Update AuthContext state immediately
                     setYurtName(primaryYurt.yurtName);
                     setYurtsData(yurts, primaryYurt);
                 } else if (data.yurtName) {
-                    // Fallback: if only yurtName is provided
                     setYurtName(data.yurtName);
                     localStorage.setItem('yurtName', data.yurtName);
                 } else {
-                    // No yurts assigned - clear any old data
-                    console.log('⚠️ No yurts assigned to user');
                     localStorage.removeItem('yurtName');
                     localStorage.removeItem('selectedYurt');
                     localStorage.removeItem('availableYurts');
@@ -78,7 +77,6 @@ export default function Login() {
                     setYurtsData([], null);
                 }
 
-                // Redirect based on user role
                 if (data.user.role === 'super-admin') {
                     navigate('/super-admin');
                 } else {
@@ -95,634 +93,457 @@ export default function Login() {
         }
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.2,
-            },
+    const slides = [
+        {
+            icon: <ClipboardData size={40} color="#4ade80" />,
+            title: 'Kolay Yoklama',
+            desc: 'Hızlı ve pratik yoklama alma sistemi',
         },
-    };
+        {
+            icon: <PeopleFill size={40} color="#4ade80" />,
+            title: 'Talebe Takibi',
+            desc: 'Detaylı öğrenci bilgileri ve geçmiş kayıtları',
+        },
+        {
+            icon: <GraphUpArrow size={40} color="#4ade80" />,
+            title: 'Gelişmiş Raporlar',
+            desc: 'İstatistikler ve analiz araçları',
+        },
+    ];
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { type: 'spring', stiffness: 300, damping: 24 },
-        },
-    };
+    // Shared input style
+    const inputStyle = (field: string): React.CSSProperties => ({
+        paddingLeft: '48px',
+        height: '52px',
+        border: focusedField === field ? '1.5px solid #22c55e' : '1.5px solid #e5e7eb',
+        borderRadius: '14px',
+        fontSize: '15px',
+        transition: 'all 0.2s',
+        backgroundColor: '#f9fafb',
+        outline: 'none',
+        width: '100%',
+        color: '#111827',
+    });
 
     return (
         <div
             style={{
                 minHeight: '100vh',
-                background: isMobile ? 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)' : '#ffffff',
+                backgroundColor: '#f3f4f6',
                 display: 'flex',
-                alignItems: 'stretch',
-                position: 'relative',
-                overflow: 'hidden',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: isMobile ? '16px' : '32px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
             }}
         >
-            {/* Left Side - App Showcase (Desktop Only) */}
-            {!isMobile && (
-                <motion.div
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
+            {/* Main Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                style={{
+                    width: '100%',
+                    maxWidth: isMobile ? '440px' : '900px',
+                    background: '#ffffff',
+                    borderRadius: '24px',
+                    boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    minHeight: isMobile ? 'auto' : '580px',
+                }}
+            >
+                {/* ─── LEFT: Form Section ─── */}
+                <div
                     style={{
-                        flex: 1,
-                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+                        flex: '1 1 50%',
+                        padding: isMobile ? '36px 28px' : '52px 48px',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
-                        padding: '80px 60px',
-                        position: 'relative',
-                        overflow: 'hidden',
                     }}
                 >
-                    {/* Animated Background Elements */}
-                    <motion.div
-                        style={{
-                            position: 'absolute',
-                            top: '-20%',
-                            left: '-10%',
-                            width: '600px',
-                            height: '600px',
-                            borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            filter: 'blur(80px)',
-                        }}
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            x: [0, 30, 0],
-                            y: [0, 50, 0],
-                        }}
-                        transition={{
-                            duration: 8,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                        }}
-                    />
-                    <motion.div
-                        style={{
-                            position: 'absolute',
-                            bottom: '-20%',
-                            right: '-10%',
-                            width: '500px',
-                            height: '500px',
-                            borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.08)',
-                            filter: 'blur(80px)',
-                        }}
-                        animate={{
-                            scale: [1, 1.3, 1],
-                            x: [0, -40, 0],
-                            y: [0, -30, 0],
-                        }}
-                        transition={{
-                            duration: 10,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                        }}
-                    />
+                    {/* Logo + Headline */}
+                    <div style={{ marginBottom: '32px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                            <div
+                                style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #16a34a, #4ade80)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <img
+                                    src={logo}
+                                    alt="Logo"
+                                    style={{ width: '22px', height: '22px', filter: 'brightness(0) invert(1)' }}
+                                />
+                            </div>
+                            <span style={{ fontSize: '15px', fontWeight: '600', color: '#6b7280' }}>Efendim App</span>
+                        </div>
+                        <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#111827', margin: '0 0 8px 0', lineHeight: 1.2 }}>
+                            Hoş Geldiniz
+                        </h1>
+                        <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+                            Devam etmek için hesabınıza giriş yapın.
+                        </p>
+                    </div>
 
-                    <div style={{ position: 'relative', zIndex: 1, maxWidth: '600px' }}>
-                        {/* Logo and Title */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            style={{ marginBottom: '60px' }}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                                <div
+                    {/* Form */}
+                    <form onSubmit={handleSubmit} autoComplete="on">
+                        {/* Username */}
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                                Kullanıcı Adı
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <PersonCircle
                                     style={{
-                                        width: '60px',
-                                        height: '60px',
-                                        borderRadius: '16px',
-                                        background: 'rgba(255, 255, 255, 0.2)',
-                                        backdropFilter: 'blur(10px)',
+                                        position: 'absolute', left: '16px', top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: focusedField === 'username' ? '#22c55e' : '#d1d5db',
+                                        fontSize: '18px', pointerEvents: 'none', zIndex: 1,
+                                        transition: 'color 0.2s',
+                                    }}
+                                />
+                                <input
+                                    className="form-control"
+                                    placeholder="Kullanıcı Adınız"
+                                    value={username}
+                                    onChange={e => setUsername(e.target.value)}
+                                    onFocus={() => setFocusedField('username')}
+                                    onBlur={() => setFocusedField(null)}
+                                    autoFocus
+                                    disabled={loading}
+                                    style={inputStyle('username')}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div style={{ marginBottom: '8px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>
+                                Şifre
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <Lock
+                                    style={{
+                                        position: 'absolute', left: '16px', top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: focusedField === 'password' ? '#22c55e' : '#d1d5db',
+                                        fontSize: '18px', pointerEvents: 'none', zIndex: 1,
+                                        transition: 'color 0.2s',
+                                    }}
+                                />
+                                <input
+                                    className="form-control"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    onFocus={() => setFocusedField('password')}
+                                    onBlur={() => setFocusedField(null)}
+                                    disabled={loading}
+                                    style={inputStyle('password')}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Forgot password */}
+                        <div style={{ textAlign: 'right', marginBottom: '24px' }}>
+                            <Link
+                                to="/forgot-password"
+                                style={{ color: '#22c55e', fontSize: '13px', fontWeight: '500', textDecoration: 'none' }}
+                            >
+                                Şifremi Unuttum
+                            </Link>
+                        </div>
+
+                        {/* Submit Button */}
+                        <motion.button
+                            type="submit"
+                            disabled={loading}
+                            whileHover={!loading ? { scale: 1.02 } : {}}
+                            whileTap={!loading ? { scale: 0.98 } : {}}
+                            style={{
+                                width: '100%',
+                                height: '52px',
+                                borderRadius: '14px',
+                                border: 'none',
+                                background: loading
+                                    ? '#d1d5db'
+                                    : 'linear-gradient(135deg, #16a34a 0%, #4ade80 100%)',
+                                color: 'white',
+                                fontSize: '15px',
+                                fontWeight: '600',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                boxShadow: loading ? 'none' : '0 4px 16px rgba(34,197,94,0.35)',
+                                transition: 'all 0.3s',
+                                marginBottom: '20px',
+                            }}
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm" style={{ width: '16px', height: '16px' }} />
+                                    <span>Giriş yapılıyor...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Giriş Yap</span>
+                                    <ArrowRight size={18} />
+                                </>
+                            )}
+                        </motion.button>
+
+                        {/* Divider */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+                            <span style={{ fontSize: '12px', color: '#9ca3af', whiteSpace: 'nowrap' }}>veya ile devam et</span>
+                            <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+                        </div>
+
+                        {/* Social Buttons */}
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '28px' }}>
+                            {[
+                                { label: 'G', color: '#ea4335', title: 'Google' },
+                                { label: 'M', color: '#0078d4', title: 'Microsoft' },
+                                { label: 'A', color: '#000000', title: 'Apple' },
+                            ].map((social) => (
+                                <motion.button
+                                    key={social.label}
+                                    type="button"
+                                    whileHover={{ scale: 1.08, boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}
+                                    whileTap={{ scale: 0.95 }}
+                                    title={social.title}
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '50%',
+                                        border: '1.5px solid #e5e7eb',
+                                        background: '#fff',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                    }}
-                                >
-                                    <img
-                                        src={logo}
-                                        alt="Logo"
-                                        style={{
-                                            width: '36px',
-                                            height: '36px',
-                                            filter: 'brightness(0) invert(1)',
-                                        }}
-                                    />
-                                </div>
-                                <h1
-                                    style={{
-                                        fontSize: '36px',
+                                        cursor: 'pointer',
+                                        fontSize: '15px',
                                         fontWeight: '700',
-                                        color: 'white',
-                                        margin: 0,
+                                        color: social.color,
+                                        transition: 'all 0.2s',
                                     }}
                                 >
-                                    Efendim App
-                                </h1>
-                            </div>
-                            <h2
-                                style={{
-                                    fontSize: '42px',
-                                    fontWeight: '700',
-                                    color: 'white',
-                                    marginBottom: '16px',
-                                    lineHeight: '1.2',
-                                }}
-                            >
-                                Talebe Yönetiminde
-                                <br />
-                                Yeni Nesil Çözüm
-                            </h2>
-                            <p
-                                style={{
-                                    fontSize: '18px',
-                                    color: 'rgba(255, 255, 255, 0.9)',
-                                    lineHeight: '1.6',
-                                }}
-                            >
-                                Yoklama, öğrenci takibi ve raporlama işlemlerinizi kolaylaştıran modern yönetim sistemi
-                            </p>
-                        </motion.div>
-
-                        {/* Features */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                            style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
-                        >
-                            {[
-                                {
-                                    icon: <ClipboardData size={24} />,
-                                    title: 'Kolay Yoklama',
-                                    description: 'Hızlı ve pratik yoklama alma sistemi',
-                                },
-                                {
-                                    icon: <PeopleFill size={24} />,
-                                    title: 'Talebe Takibi',
-                                    description: 'Detaylı öğrenci bilgileri ve geçmiş kayıtları',
-                                },
-                                {
-                                    icon: <GraphUpArrow size={24} />,
-                                    title: 'Gelişmiş Raporlar',
-                                    description: 'İstatistikler ve analiz araçları',
-                                },
-                            ].map((feature, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.5 + index * 0.1 }}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'flex-start',
-                                        gap: '16px',
-                                        padding: '20px',
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        backdropFilter: 'blur(10px)',
-                                        borderRadius: '16px',
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                                    }}
-                                    whileHover={{
-                                        background: 'rgba(255, 255, 255, 0.15)',
-                                        scale: 1.02,
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            width: '48px',
-                                            height: '48px',
-                                            borderRadius: '12px',
-                                            background: 'rgba(255, 255, 255, 0.2)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: 'white',
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        {feature.icon}
-                                    </div>
-                                    <div>
-                                        <h3
-                                            style={{
-                                                fontSize: '18px',
-                                                fontWeight: '600',
-                                                color: 'white',
-                                                marginBottom: '4px',
-                                            }}
-                                        >
-                                            {feature.title}
-                                        </h3>
-                                        <p
-                                            style={{
-                                                fontSize: '14px',
-                                                color: 'rgba(255, 255, 255, 0.8)',
-                                                margin: 0,
-                                            }}
-                                        >
-                                            {feature.description}
-                                        </p>
-                                    </div>
-                                </motion.div>
+                                    {social.label}
+                                </motion.button>
                             ))}
-                        </motion.div>
-                    </div>
-                </motion.div>
-            )}
+                        </div>
 
-            {/* Right Side - Login Form */}
-            <div
-                style={{
-                    width: isMobile ? '100%' : '480px',
-                    minWidth: isMobile ? 'auto' : '480px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: isMobile ? '20px' : '40px',
-                    position: 'relative',
-                    background: isMobile ? 'transparent' : '#ffffff',
-                }}
-            >
-                {/* Mobile Background Elements */}
-                {isMobile && (
-                    <>
-                        <motion.div
-                            style={{
-                                position: 'absolute',
-                                top: '-10%',
-                                right: '-5%',
-                                width: '500px',
-                                height: '500px',
-                                borderRadius: '50%',
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                filter: 'blur(80px)',
-                            }}
-                            animate={{
-                                scale: [1, 1.2, 1],
-                                x: [0, 50, 0],
-                                y: [0, 30, 0],
-                            }}
-                            transition={{
-                                duration: 8,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                            }}
-                        />
-                        <motion.div
-                            style={{
-                                position: 'absolute',
-                                bottom: '-10%',
-                                left: '-5%',
-                                width: '400px',
-                                height: '400px',
-                                borderRadius: '50%',
-                                background: 'rgba(255, 255, 255, 0.08)',
-                                filter: 'blur(80px)',
-                            }}
-                            animate={{
-                                scale: [1, 1.3, 1],
-                                x: [0, -30, 0],
-                                y: [0, -50, 0],
-                            }}
-                            transition={{
-                                duration: 10,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                            }}
-                        />
-                    </>
-                )}
+                        {/* Error */}
+                        <AnimatePresence>
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -8 }}
+                                    style={{
+                                        padding: '12px 16px',
+                                        borderRadius: '12px',
+                                        background: 'rgba(239,68,68,0.08)',
+                                        border: '1px solid rgba(239,68,68,0.2)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        marginBottom: '16px',
+                                    }}
+                                >
+                                    <ExclamationCircle style={{ color: '#dc2626', fontSize: '18px', flexShrink: 0 }} />
+                                    <span style={{ color: '#dc2626', fontSize: '13px', fontWeight: '500' }}>{error}</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
-                    style={{
-                        position: 'relative',
-                        zIndex: 1,
-                        width: '100%',
-                        maxWidth: '440px',
-                    }}
-                >
+                        {/* Signup link */}
+                        <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '13px', margin: 0 }}>
+                            Hesabınız yok mu?{' '}
+                            <Link to="/signup" style={{ color: '#16a34a', fontWeight: '600', textDecoration: 'none' }}>
+                                Kayıt Ol
+                            </Link>
+                        </p>
+                    </form>
+                </div>
+
+                {/* ─── RIGHT: Visual Panel ─── */}
+                {!isMobile && (
                     <div
                         style={{
-                            background: 'rgba(255, 255, 255, 0.95)',
-                            backdropFilter: 'blur(20px)',
-                            borderRadius: '24px',
-                            padding: '48px 40px',
-                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                            flex: '1 1 50%',
+                            background: 'linear-gradient(160deg, #f0fdf4 0%, #dcfce7 60%, #bbf7d0 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '52px 40px',
+                            position: 'relative',
+                            overflow: 'hidden',
                         }}
                     >
+                        {/* Decorative background circles */}
+                        <div style={{
+                            position: 'absolute', top: '-60px', right: '-60px',
+                            width: '220px', height: '220px', borderRadius: '50%',
+                            background: 'rgba(74,222,128,0.15)',
+                        }} />
+                        <div style={{
+                            position: 'absolute', bottom: '-40px', left: '-40px',
+                            width: '160px', height: '160px', borderRadius: '50%',
+                            background: 'rgba(34,197,94,0.12)',
+                        }} />
+
+                        {/* Floating badge - top left */}
                         <motion.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                        >
-                            {/* Logo */}
-                            <motion.div
-                                variants={itemVariants}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    marginBottom: '24px',
-                                }}
-                            >
-                                <motion.div
-                                    style={{
-                                        width: '80px',
-                                        height: '80px',
-                                        borderRadius: '20px',
-                                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        boxShadow: '0 8px 24px rgba(59, 130, 246, 0.4)',
-                                    }}
-                                    whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <img
-                                        src={logo}
-                                        alt="Logo"
-                                        style={{
-                                            width: '50px',
-                                            height: '50px',
-                                            filter: 'brightness(0) invert(1)',
-                                        }}
-                                    />
-                                </motion.div>
-                            </motion.div>
-
-                            {/* Title */}
-                            <motion.div variants={itemVariants} style={{ textAlign: 'center', marginBottom: '32px' }}>
-                                <h1
-                                    style={{
-                                        fontSize: '32px',
-                                        fontWeight: '700',
-                                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        WebkitTextFillColor: 'transparent',
-                                        backgroundClip: 'text',
-                                        marginBottom: '8px',
-                                    }}
-                                >
-                                    Hoş Geldiniz
-                                </h1>
-                                <p style={{ color: '#6b7280', fontSize: '15px', margin: 0 }}>
-                                    Hesabınıza giriş yapın
-                                </p>
-                            </motion.div>
-
-                            {/* Form */}
-                            <form onSubmit={handleSubmit} autoComplete="on">
-                                {/* Username Field */}
-                                <motion.div variants={itemVariants} style={{ marginBottom: '20px' }}>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            color: '#374151',
-                                            marginBottom: '8px',
-                                        }}
-                                    >
-                                        Kullanıcı Adı
-                                    </label>
-                                    <div style={{ position: 'relative' }}>
-                                        <PersonCircle
-                                            style={{
-                                                position: 'absolute',
-                                                left: '16px',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                color: focusedField === 'username' ? '#3b82f6' : '#9ca3af',
-                                                transition: 'color 0.2s',
-                                                fontSize: '20px',
-                                                pointerEvents: 'none',
-                                                zIndex: 1,
-                                            }}
-                                        />
-                                        <motion.input
-                                            className="form-control"
-                                            placeholder="Kullanıcı Adınız"
-                                            value={username}
-                                            onChange={e => setUsername(e.target.value)}
-                                            onFocus={() => setFocusedField('username')}
-                                            onBlur={() => setFocusedField(null)}
-                                            autoFocus
-                                            disabled={loading}
-                                            style={{
-                                                paddingLeft: '48px',
-                                                height: '52px',
-                                                border: focusedField === 'username' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                                                borderRadius: '12px',
-                                                fontSize: '15px',
-                                                transition: 'all 0.2s',
-                                                backgroundColor: '#f9fafb',
-                                            }}
-                                            whileFocus={{ scale: 1.01 }}
-                                        />
-                                    </div>
-                                </motion.div>
-
-                                {/* Password Field */}
-                                <motion.div variants={itemVariants} style={{ marginBottom: '12px' }}>
-                                    <label
-                                        style={{
-                                            display: 'block',
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            color: '#374151',
-                                            marginBottom: '8px',
-                                        }}
-                                    >
-                                        Şifre
-                                    </label>
-                                    <div style={{ position: 'relative' }}>
-                                        <Lock
-                                            style={{
-                                                position: 'absolute',
-                                                left: '16px',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                color: focusedField === 'password' ? '#3b82f6' : '#9ca3af',
-                                                transition: 'color 0.2s',
-                                                fontSize: '20px',
-                                                pointerEvents: 'none',
-                                                zIndex: 1,
-                                            }}
-                                        />
-                                        <motion.input
-                                            className="form-control"
-                                            type="password"
-                                            placeholder="••••••••"
-                                            value={password}
-                                            onChange={e => setPassword(e.target.value)}
-                                            onFocus={() => setFocusedField('password')}
-                                            onBlur={() => setFocusedField(null)}
-                                            disabled={loading}
-                                            style={{
-                                                paddingLeft: '48px',
-                                                height: '52px',
-                                                border: focusedField === 'password' ? '2px solid #3b82f6' : '2px solid #e5e7eb',
-                                                borderRadius: '12px',
-                                                fontSize: '15px',
-                                                transition: 'all 0.2s',
-                                                backgroundColor: '#f9fafb',
-                                            }}
-                                            whileFocus={{ scale: 1.01 }}
-                                        />
-                                    </div>
-                                </motion.div>
-
-                                {/* Forgot Password Link */}
-                                <motion.div variants={itemVariants} style={{ textAlign: 'right', marginBottom: '28px' }}>
-                                    <Link
-                                        to="/forgot-password"
-                                        style={{
-                                            color: '#3b82f6',
-                                            fontSize: '14px',
-                                            fontWeight: '500',
-                                            textDecoration: 'none',
-                                        }}
-                                    >
-                                        Şifremi Unuttum
-                                    </Link>
-                                </motion.div>
-
-                                {/* Submit Button */}
-                                <motion.button
-                                    variants={itemVariants}
-                                    type="submit"
-                                    disabled={loading}
-                                    style={{
-                                        width: '100%',
-                                        height: '56px',
-                                        borderRadius: '12px',
-                                        border: 'none',
-                                        background: loading
-                                            ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)'
-                                            : 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-                                        color: 'white',
-                                        fontSize: '16px',
-                                        fontWeight: '600',
-                                        cursor: loading ? 'not-allowed' : 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        boxShadow: loading ? 'none' : '0 4px 16px rgba(59, 130, 246, 0.4)',
-                                        transition: 'all 0.3s',
-                                    }}
-                                    whileHover={!loading ? { scale: 1.02, boxShadow: '0 6px 24px rgba(59, 130, 246, 0.5)' } : {}}
-                                    whileTap={!loading ? { scale: 0.98 } : {}}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <span
-                                                className="spinner-border spinner-border-sm"
-                                                style={{ width: '18px', height: '18px' }}
-                                            />
-                                            <span>Giriş yapılıyor...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>Giriş Yap</span>
-                                            <ArrowRight size={20} />
-                                        </>
-                                    )}
-                                </motion.button>
-
-                                {/* Error Message */}
-                                <AnimatePresence>
-                                    {error && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10, height: 0 }}
-                                            animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                            exit={{ opacity: 0, y: -10, height: 0 }}
-                                            transition={{ duration: 0.3 }}
-                                            style={{
-                                                marginTop: '20px',
-                                                padding: '16px',
-                                                borderRadius: '12px',
-                                                background: 'rgba(239, 68, 68, 0.1)',
-                                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '12px',
-                                            }}
-                                        >
-                                            <ExclamationCircle
-                                                style={{
-                                                    color: '#dc2626',
-                                                    fontSize: '20px',
-                                                    flexShrink: 0,
-                                                }}
-                                            />
-                                            <span
-                                                style={{
-                                                    color: '#dc2626',
-                                                    fontSize: '14px',
-                                                    fontWeight: '500',
-                                                }}
-                                            >
-                                                {error}
-                                            </span>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                {/* Signup Link */}
-                                <motion.div variants={itemVariants} style={{ textAlign: 'center', marginTop: '24px' }}>
-                                    <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
-                                        Hesabınız yok mu?{' '}
-                                        <Link
-                                            to="/signup"
-                                            style={{
-                                                color: '#3b82f6',
-                                                fontWeight: '600',
-                                                textDecoration: 'none',
-                                            }}
-                                        >
-                                            Kayıt Ol
-                                        </Link>
-                                    </p>
-                                </motion.div>
-                            </form>
-                        </motion.div>
-                    </div>
-
-                    {/* Footer Text - Only show on mobile */}
-                    {isMobile && (
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.6 }}
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                             style={{
-                                textAlign: 'center',
-                                marginTop: '24px',
-                                color: 'rgba(255, 255, 255, 0.9)',
-                                fontSize: '14px',
-                                fontWeight: '500',
+                                position: 'absolute', top: '60px', left: '32px',
+                                background: '#fff',
+                                borderRadius: '14px',
+                                padding: '10px 14px',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
                             }}
                         >
-                            © 2025 Efendim App. Tüm hakları saklıdır.
-                        </motion.p>
-                    )}
-                </motion.div>
-            </div>
+                            <CheckCircleFill color="#22c55e" size={16} />
+                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#111827' }}>Yoklama Alındı</span>
+                        </motion.div>
+
+                        {/* Floating badge - bottom right */}
+                        <motion.div
+                            animate={{ y: [0, 8, 0] }}
+                            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                            style={{
+                                position: 'absolute', bottom: '90px', right: '28px',
+                                background: '#fff',
+                                borderRadius: '14px',
+                                padding: '10px 14px',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                            }}
+                        >
+                            <GraphUpArrow color="#22c55e" size={16} />
+                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#111827' }}>%94 Devam</span>
+                        </motion.div>
+
+                        {/* Floating user badges */}
+                        <motion.div
+                            animate={{ y: [0, -6, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                            style={{
+                                position: 'absolute', top: '120px', right: '28px',
+                                background: '#fff',
+                                borderRadius: '14px',
+                                padding: '10px 14px',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                            }}
+                        >
+                            <PeopleFill color="#22c55e" size={16} />
+                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#111827' }}>42 Talebe</span>
+                        </motion.div>
+
+                        {/* Main illustration placeholder */}
+                        <motion.div
+                            animate={{ scale: [1, 1.02, 1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                            style={{
+                                width: '180px',
+                                height: '180px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #86efac 0%, #4ade80 50%, #22c55e 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 12px 40px rgba(34,197,94,0.25)',
+                                marginBottom: '28px',
+                                position: 'relative',
+                                zIndex: 1,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: '130px',
+                                    height: '130px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(255,255,255,0.3)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <img
+                                    src={logo}
+                                    alt="Illustration"
+                                    style={{
+                                        width: '70px',
+                                        height: '70px',
+                                        filter: 'brightness(0) invert(1)',
+                                        opacity: 0.9,
+                                    }}
+                                />
+                            </div>
+                        </motion.div>
+
+                        {/* Slide text */}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeSlide}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.4 }}
+                                style={{ textAlign: 'center', marginBottom: '20px', position: 'relative', zIndex: 1 }}
+                            >
+                                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#15803d', margin: '0 0 6px 0' }}>
+                                    {slides[activeSlide].title}
+                                </h3>
+                                <p style={{ fontSize: '13px', color: '#4b7c59', margin: 0, maxWidth: '220px' }}>
+                                    {slides[activeSlide].desc}
+                                </p>
+                            </motion.div>
+                        </AnimatePresence>
+
+                        {/* Pagination dots */}
+                        <div style={{ display: 'flex', gap: '8px', position: 'relative', zIndex: 1 }}>
+                            {slides.map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    onClick={() => setActiveSlide(i)}
+                                    animate={{ width: activeSlide === i ? '24px' : '8px' }}
+                                    transition={{ duration: 0.3 }}
+                                    style={{
+                                        height: '8px',
+                                        borderRadius: '4px',
+                                        background: activeSlide === i ? '#16a34a' : '#86efac',
+                                        cursor: 'pointer',
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </motion.div>
         </div>
     );
 }
