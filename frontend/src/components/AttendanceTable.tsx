@@ -83,7 +83,7 @@ const normalizeClassName = (str: string) => {
 
 const rowVariants = {
   hidden: { opacity: 0, y: 18, scale: 0.99 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 100, damping: 16 } },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 100, damping: 16 } },
   exit: { opacity: 0, y: 18, scale: 0.97, transition: { duration: 0.15 } }
 };
 
