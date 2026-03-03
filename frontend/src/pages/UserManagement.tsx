@@ -184,7 +184,7 @@ const UserManagement = () => {
                                     <button className="btn btn-sm btn-warning me-2" onClick={() => startEdit(u)}>Düzenle</button>
                                     <button className="btn btn-sm btn-danger me-2" onClick={() => handleDelete(u)}>Sil</button>
                                     <button className="btn btn-sm btn-info" onClick={() => handleGenerateResetCode(u)} disabled={saving}>
-                                        🔑 Şifre Kodu
+                                        Şifre Kodu
                                     </button>
                                 </td>
                             </tr>
