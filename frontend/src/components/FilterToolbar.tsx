@@ -8,10 +8,10 @@ import { classGroupedColors } from '../constants';
 interface Props {
     onFilterChange: (className: string) => void;
     selectedFilters: string[];
-    classNames: string[];
+    classOptions: { value: string; label: string }[];
 }
 
-const FilterToolbar: React.FC<Props> = ({ onFilterChange, selectedFilters, classNames }) => {
+const FilterToolbar: React.FC<Props> = ({ onFilterChange, selectedFilters, classOptions }) => {
     const [open, setOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -39,17 +39,17 @@ const FilterToolbar: React.FC<Props> = ({ onFilterChange, selectedFilters, class
                             transition={{ duration: 0.3 }}
                         >
                             <div className="d-flex flex-wrap gap-2">
-                                {classNames.map((name) => (
+                                {classOptions.map(({ value, label }) => (
                                     <button
-                                        key={name}
-                                        onClick={() => onFilterChange(name)}
+                                        key={value}
+                                        onClick={() => onFilterChange(value)}
                                         className={`badge rounded-pill border border-dark px-3 py-2 text-dark fw-semibold`}
                                         style={{
-                                            backgroundColor: classGroupedColors[name.toLowerCase()] || '#eee',
-                                            opacity: selectedFilters.includes(name) ? 1 : 0.5,
+                                            backgroundColor: classGroupedColors[value.toLowerCase()] || '#eee',
+                                            opacity: selectedFilters.includes(value) ? 1 : 0.5,
                                         }}
                                     >
-                                        {name[0].toUpperCase() + name.slice(1)}
+                                        {label}
                                     </button>
                                 ))}
                             </div>

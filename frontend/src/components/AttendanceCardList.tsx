@@ -15,6 +15,8 @@ interface Props {
     date: string;
     program: string;
     onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
+    sortMode: 'group' | 'alphabet' | 'attendance';
+    onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
     availableClasses?: Class[];
     recentlyUpdatedStudents?: Set<number>;
 }
@@ -35,42 +37,61 @@ const AttendanceCardList: React.FC<Props> = ({
     date,
     program,
     onUpdateAttendance,
+    sortMode,
+    onSortChange,
     availableClasses = [],
     recentlyUpdatedStudents = new Set(),
 }) => {
-    // Sort students by class display_order from availableClasses
-    const normalizeClassName = (name: string) => name.replace(/\s+/g, '').toLowerCase();
+    // Keep order from parent (Attendance.tsx handles sorting mode).
+    const sortedStudents = students;
 
-    const sortedStudents = (() => {
-        // Create a map of normalized class names to display_order
-        const orderMap: Record<string, number> = {};
-        availableClasses.forEach(cls => {
-            const normalized = normalizeClassName(cls.class_name);
-            orderMap[normalized] = cls.display_order ?? 999;
-        });
+    const normalizeClassName = (name: string) => {
+        let out = name.trim().toLowerCase().replace(/ /g, '_');
+        if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
+        return out;
+    };
 
-        return [...students].sort((a, b) => {
-            const aClass = normalizeClassName(a.class_name);
-            const bClass = normalizeClassName(b.class_name);
-            const aOrder = orderMap[aClass] ?? 999;
-            const bOrder = orderMap[bClass] ?? 999;
-
-            if (aOrder !== bOrder) {
-                return aOrder - bOrder;
-            }
-            // If same class, sort by first name then last name
-            if (a.first_name !== b.first_name) return a.first_name.localeCompare(b.first_name);
-            return a.last_name.localeCompare(b.last_name);
-        });
-    })();
+    const getClassDisplayName = (className: string) => {
+        const matched = availableClasses.find(
+            cls => normalizeClassName(cls.class_name) === normalizeClassName(className)
+        );
+        return matched?.display_name || className;
+    };
 
     return (
-        <motion.div
-            className="d-flex flex-column gap-3 px-2"
-            variants={listVariants}
-            initial="hidden"
-            animate="show"
-        >
+        <div className="px-2">
+            <div className="d-flex justify-content-end mb-2">
+                <div className="btn-group btn-group-sm" role="group" aria-label="Yoklama siralama modu">
+                    <button
+                        type="button"
+                        className={`btn ${sortMode === 'group' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => onSortChange('group')}
+                    >
+                        Grup
+                    </button>
+                    <button
+                        type="button"
+                        className={`btn ${sortMode === 'alphabet' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => onSortChange('alphabet')}
+                    >
+                        A-Z
+                    </button>
+                    <button
+                        type="button"
+                        className={`btn ${sortMode === 'attendance' ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => onSortChange('attendance')}
+                    >
+                        Durum
+                    </button>
+                </div>
+            </div>
+
+            <motion.div
+                className="d-flex flex-column gap-3"
+                variants={listVariants}
+                initial="hidden"
+                animate="show"
+            >
             <AnimatePresence>
                 {sortedStudents.map((student) => {
                     const record = attendanceData.find(a => a.studentid === student.studentid);
@@ -97,13 +118,15 @@ const AttendanceCardList: React.FC<Props> = ({
                                 record={record}
                                 date={date}
                                 program={program}
+                                classDisplayName={getClassDisplayName(student.class_name)}
                                 onUpdateAttendance={onUpdateAttendance}
                             />
                         </motion.div>
                     );
                 })}
             </AnimatePresence>
-        </motion.div>
+            </motion.div>
+        </div>
     );
 };
 

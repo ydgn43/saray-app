@@ -17,6 +17,8 @@ interface Props {
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: string, sebep?: string) => void;
+  sortMode: 'group' | 'alphabet' | 'attendance';
+  onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
   onUpdateSebep?: (studentId: number, type: string, sebep: string) => void;
   showCreateButton: boolean;
   onCreate: () => void;
@@ -33,6 +35,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
   date,
   program,
   onUpdateAttendance,
+  sortMode,
+  onSortChange,
   onUpdateSebep,
   showCreateButton,
   onCreate,
@@ -79,7 +83,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
       {showTable && isMobile && (
         <div className="d-flex justify-content-end mb-2">
           <button
-            className="btn btn-outline-primary btn-sm"
+            className="btn btn-outline-secondary btn-sm"
             onClick={toggleView}
           >
             Görünüm: {useRowView ? 'Kart' : 'Satır'}
@@ -96,6 +100,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               date={date}
               program={program}
               onUpdateAttendance={onUpdateAttendance}
+              sortMode={sortMode}
+              onSortChange={onSortChange}
               availableClasses={availableClasses}
               recentlyUpdatedStudents={recentlyUpdatedStudents}
             />
@@ -106,6 +112,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               date={date}
               program={program}
               onUpdateAttendance={onUpdateAttendance}
+              sortMode={sortMode}
+              onSortChange={onSortChange}
               availableClasses={availableClasses}
               recentlyUpdatedStudents={recentlyUpdatedStudents}
             />
@@ -117,6 +125,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
             date={date}
             program={program}
             onUpdateAttendance={onUpdateAttendance}
+            sortMode={sortMode}
+            onSortChange={onSortChange}
             availableClasses={availableClasses}
             recentlyUpdatedStudents={recentlyUpdatedStudents}
           />

@@ -51,6 +51,8 @@ type Props = {
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: string, sebep: string) => void;
+  sortMode: 'group' | 'alphabet' | 'attendance';
+  onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
   availableClasses?: Class[];
   recentlyUpdatedStudents?: Set<number>;
 };
@@ -95,6 +97,8 @@ const AttendanceTable: React.FC<Props> = ({
   date,
   program,
   onUpdateAttendance,
+  sortMode,
+  onSortChange,
   availableClasses = [],
   recentlyUpdatedStudents = new Set(),
 }) => {
@@ -166,8 +170,41 @@ const AttendanceTable: React.FC<Props> = ({
     });
   })();
 
+  const getClassDisplayName = (className: string) => {
+    const matched = availableClasses.find(
+      cls => normalizeClassName(cls.class_name) === normalizeClassName(className)
+    );
+    return matched?.display_name || className;
+  };
+
   return (
     <div className="mt-4">
+      <div className="d-flex justify-content-end mb-2">
+        <div className="btn-group btn-group-sm" role="group" aria-label="Yoklama siralama modu">
+          <button
+            type="button"
+            className={`btn ${sortMode === 'group' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => onSortChange('group')}
+          >
+            Grup
+          </button>
+          <button
+            type="button"
+            className={`btn ${sortMode === 'alphabet' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => onSortChange('alphabet')}
+          >
+            A-Z
+          </button>
+          <button
+            type="button"
+            className={`btn ${sortMode === 'attendance' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => onSortChange('attendance')}
+          >
+            Durum
+          </button>
+        </div>
+      </div>
+
       <table className="table table-striped align-middle">
         <thead>
           <tr>
@@ -181,18 +218,19 @@ const AttendanceTable: React.FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {classNames.map((groupName) => {
+          {sortMode === 'group' ? classNames.map((groupName) => {
             const groupStudents = grouped[groupName];
             if (!groupStudents) return null;
             const color = classGroupedColors[groupName] || '#f8f9fa';
             const borderColor = darkenColor(color, 35);
             // Find the original class name for display
             const originalClassName = students.find(s => normalizeClassName(s.class_name) === groupName)?.class_name || groupName;
+            const classDisplayName = getClassDisplayName(originalClassName);
             return (
               <React.Fragment key={groupName}>
                 <tr className="table-group-header">
                   <td colSpan={7} style={{ backgroundColor: color, borderLeft: `4px solid ${borderColor}` }}>
-                    <strong className="text-primary">{originalClassName}</strong>
+                    <strong className="text-primary">{classDisplayName}</strong>
                   </td>
                 </tr>
                 <AnimatePresence>
@@ -204,10 +242,6 @@ const AttendanceTable: React.FC<Props> = ({
                       : color;
 
                     const sebepVal = sebepDrafts[student.studentid] ?? '';
-                    const sebepIsOther =
-                      (current === 'gec' || current === 'izinli') &&
-                      !(sebepOptions.includes(sebepVal) || sebepVal === '');
-
                     const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
 
                     return (
@@ -310,7 +344,118 @@ const AttendanceTable: React.FC<Props> = ({
                 </AnimatePresence>
               </React.Fragment>
             );
-          })}
+          }) : (
+            <AnimatePresence>
+              {students.map((student, index) => {
+                const record = attendanceData.find((a) => a.studentid === student.studentid);
+                const current = (record?.attendance_type_name?.toLowerCase() || 'yok') as AttendanceType;
+                const baseColor = classGroupedColors[normalizeClassName(student.class_name)] || '#f8f9fa';
+                const rowHighlight = recentlyUpdated[student.studentid]
+                  ? hexToRgba(darkenColor(baseColor, 35), 0.20)
+                  : baseColor;
+                const sebepVal = sebepDrafts[student.studentid] ?? '';
+                const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
+
+                return (
+                  <motion.tr
+                    key={student.studentid}
+                    variants={rowVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    layout
+                    style={{
+                      backgroundColor: isRecentlyUpdated ? 'rgba(13, 110, 253, 0.1)' : rowHighlight,
+                      transition: 'background-color 0.7s cubic-bezier(.4,0,.2,1)',
+                      boxShadow: isRecentlyUpdated ? '0 0 10px rgba(13, 110, 253, 0.4)' : undefined
+                    }}
+                  >
+                    <td>{index + 1}</td>
+                    <td>
+                      <div>{`${student.first_name} ${student.last_name}`}</div>
+                      <small className="text-muted">{getClassDisplayName(student.class_name)}</small>
+                    </td>
+                    {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
+                      <td key={type}>
+                        <button
+                          className={`btn btn-sm ${current === type ? activeClass(type) : fadedClass(type)}`}
+                          style={{ minWidth: 38 }}
+                          onClick={() => handleButtonChange(student.studentid, type)}
+                          type="button"
+                        >
+                          {typeLabels[type]}
+                        </button>
+                      </td>
+                    ))}
+                    <td>
+                      <div className="d-flex align-items-center" style={{ gap: '0.5rem', minWidth: '180px' }}>
+                        <select
+                          className="form-select form-select-sm"
+                          value={
+                            (current === 'gec' || current === 'izinli')
+                              ? (sebepOptions.includes(sebepVal) ? sebepVal : (sebepVal === '__diger__' ? 'diger' : sebepVal ? 'diger' : ''))
+                              : ''
+                          }
+                          disabled={!(current === 'gec' || current === 'izinli')}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === 'diger') {
+                              handleSebepChange(student.studentid, '__diger__', current);
+                            } else {
+                              handleSebepChange(student.studentid, val, current);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: !(current === 'gec' || current === 'izinli') ? '#f5f5f5' : undefined,
+                            cursor: !(current === 'gec' || current === 'izinli') ? 'not-allowed' : undefined,
+                            opacity: !(current === 'gec' || current === 'izinli') ? 0.7 : 1,
+                            maxWidth: 100
+                          }}
+                        >
+                          <option value="">Seçin</option>
+                          <option value="Banyo">Banyo</option>
+                          <option value="Hasta">Hasta</option>
+                          <option value="Rahatsiz">Rahatsız</option>
+                          <option value="Okul">Okul</option>
+                          <option value="diger">Diğer</option>
+                        </select>
+                        <input
+                          className="form-control form-control-sm"
+                          style={{ minWidth: 80, maxWidth: 120 }}
+                          placeholder="Sebep girin"
+                          value={
+                            (current === 'gec' || current === 'izinli')
+                              ? (sebepVal === '__diger__' ? '' : (!sebepOptions.includes(sebepVal) && sebepVal !== '' ? sebepVal : ''))
+                              : ''
+                          }
+                          onChange={e => handleSebepChange(student.studentid, e.target.value, current)}
+                          disabled={
+                            !(current === 'gec' || current === 'izinli') ||
+                            (sebepOptions.includes(sebepVal) || sebepVal === '' || sebepVal !== '__diger__' && sebepVal.length === 0)
+                          }
+                        />
+
+                        <motion.span
+                          animate={{ opacity: savedIndicators[student.studentid] ? 1 : 0 }}
+                          transition={{ duration: 0.22 }}
+                          style={{
+                            minWidth: 24,
+                            minHeight: 24,
+                            display: 'inline-flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginLeft: 4,
+                          }}
+                        >
+                          ✓
+                        </motion.span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </AnimatePresence>
+          )}
         </tbody>
       </table>
     </div>

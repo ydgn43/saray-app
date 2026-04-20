@@ -8,10 +8,6 @@ interface Class {
   display_order?: number | null;
 }
 
-function normalizeClassName(name: string) {
-  return name.replace(/\s+/g, '').toLowerCase();
-}
-
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 
 interface Props {
@@ -20,6 +16,8 @@ interface Props {
   date: string;
   program: string;
   onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
+  sortMode: 'group' | 'alphabet' | 'attendance';
+  onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
   availableClasses?: Class[];
   recentlyUpdatedStudents?: Set<number>;
 }
@@ -39,6 +37,8 @@ const AttendanceRowList: React.FC<Props> = ({
   date,
   program,
   onUpdateAttendance,
+  sortMode,
+  onSortChange,
   availableClasses = [],
   recentlyUpdatedStudents = new Set(),
 }) => {
@@ -75,29 +75,21 @@ const AttendanceRowList: React.FC<Props> = ({
     return classGroupedColors[key] || '#dee2e6';
   };
 
-  // Sort students by class display_order, then by name
-  const sortedStudents = (() => {
-    // Create a map of normalized class names to display_order
-    const orderMap: Record<string, number> = {};
-    availableClasses.forEach(cls => {
-      const normalized = normalizeClassName(cls.class_name);
-      orderMap[normalized] = cls.display_order ?? 999;
-    });
+  const normalizeClassName = (name: string) => {
+    let out = name.trim().toLowerCase().replace(/ /g, '_');
+    if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
+    return out;
+  };
 
-    return [...students].sort((a, b) => {
-      const aClass = normalizeClassName(a.class_name);
-      const bClass = normalizeClassName(b.class_name);
-      const aOrder = orderMap[aClass] ?? 999;
-      const bOrder = orderMap[bClass] ?? 999;
+  const getClassDisplayName = (className: string) => {
+    const matched = availableClasses.find(
+      cls => normalizeClassName(cls.class_name) === normalizeClassName(className)
+    );
+    return matched?.display_name || className;
+  };
 
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder;
-      }
-      // If same class, sort by first name then last name
-      if (a.first_name !== b.first_name) return a.first_name.localeCompare(b.first_name);
-      return a.last_name.localeCompare(b.last_name);
-    });
-  })();
+  // Keep order from parent (Attendance.tsx handles sorting mode).
+  const sortedStudents = students;
 
   // After creating new attendance date:
   const handleCreateAttendance = async () => {
@@ -123,7 +115,34 @@ const AttendanceRowList: React.FC<Props> = ({
   };
 
   return (
-    <div className="d-flex flex-column gap-3">
+    <div>
+      <div className="d-flex justify-content-end mb-2">
+        <div className="btn-group btn-group-sm" role="group" aria-label="Yoklama siralama modu">
+          <button
+            type="button"
+            className={`btn ${sortMode === 'group' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => onSortChange('group')}
+          >
+            Grup
+          </button>
+          <button
+            type="button"
+            className={`btn ${sortMode === 'alphabet' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => onSortChange('alphabet')}
+          >
+            A-Z
+          </button>
+          <button
+            type="button"
+            className={`btn ${sortMode === 'attendance' ? 'btn-primary' : 'btn-outline-primary'}`}
+            onClick={() => onSortChange('attendance')}
+          >
+            Durum
+          </button>
+        </div>
+      </div>
+
+      <div className="d-flex flex-column gap-3">
       {sortedStudents.map((student) => {
         const current = getAttendanceType(student.studentid);
         const sebep = sebepDrafts[student.studentid] ?? '';
@@ -145,7 +164,12 @@ const AttendanceRowList: React.FC<Props> = ({
           >
             <div className="d-flex align-items-center justify-content-between gap-2">
               <div className="fw-bold flex-grow-1 text-truncate d-flex align-items-center gap-2 ms-2">
-                {student.first_name} {student.last_name}
+                <div className="d-flex flex-column">
+                  <span>{student.first_name} {student.last_name}</span>
+                  <small className="text-muted" style={{ fontWeight: 500 }}>
+                    {getClassDisplayName(student.class_name)}
+                  </small>
+                </div>
               </div>
               <div className="d-flex gap-1 flex-shrink-0">
                 {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
@@ -226,6 +250,7 @@ const AttendanceRowList: React.FC<Props> = ({
           </div>
         );
       })}
+      </div>
     </div>
   );
 };

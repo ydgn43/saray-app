@@ -27,6 +27,13 @@ interface Class {
   display_order?: number | null;
 }
 
+interface ClassFilterOption {
+  value: string;
+  label: string;
+}
+
+type SortMode = 'group' | 'alphabet' | 'attendance';
+
 const normalizeClassName = (str: string) => {
   let out = str.trim().toLowerCase().replace(/ /g, '_');
   if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
@@ -58,6 +65,7 @@ const Attendance = () => {
   const [date, setDate] = useState<string>(getTodayString());
   const [program, setProgram] = useState<string>('');
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [sortMode, setSortMode] = useState<SortMode>('group');
   const [availablePrograms, setAvailablePrograms] = useState<Program[]>([]);
   const [availableClasses, setAvailableClasses] = useState<Class[]>([]);
 
@@ -162,10 +170,14 @@ const Attendance = () => {
   useEffect(() => {
     const savedDate = localStorage.getItem('attendance-date');
     const savedProgram = localStorage.getItem('attendance-program');
+    const savedSortMode = localStorage.getItem('attendance-sort-mode') as SortMode | null;
     // Only use saved date if it exists, otherwise keep today's date
     if (savedDate) setDate(savedDate);
     if (savedProgram) {
       setProgram(savedProgram);
+    }
+    if (savedSortMode && ['group', 'alphabet', 'attendance'].includes(savedSortMode)) {
+      setSortMode(savedSortMode);
     }
   }, []);
 
@@ -181,6 +193,9 @@ const Attendance = () => {
       localStorage.setItem('attendance-program', program);
     }
   }, [program]);
+  useEffect(() => {
+    localStorage.setItem('attendance-sort-mode', sortMode);
+  }, [sortMode]);
 
   // Date navigation helpers
   const changeDate = (days: number) => {
@@ -517,10 +532,59 @@ const Attendance = () => {
     }
   };
 
-  // --- Filtered students by selected classes ---
-  const filteredStudents = (selectedClasses.length > 0
+  // --- Filtered + sorted students ---
+  const getAttendanceRank = (studentId: number) => {
+    const type = attendanceData
+      .find(a => a.studentid === studentId)
+      ?.attendance_type_name
+      ?.toLowerCase();
+
+    const rankMap: Record<string, number> = {
+      yok: 0,
+      izinli: 1,
+      gec: 2,
+      var: 3,
+    };
+
+    return rankMap[type || ''] ?? 4;
+  };
+
+  const classOrderMap = availableClasses.reduce((acc, cls) => {
+    acc[normalizeClassName(cls.class_name)] = cls.display_order ?? 999;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const classFilterOptions: ClassFilterOption[] = [...new Set(students.map(s => s.class_name))]
+    .map((className) => {
+      const matched = availableClasses.find(
+        cls => normalizeClassName(cls.class_name) === normalizeClassName(className)
+      );
+      return {
+        value: className,
+        label: matched?.display_name || className,
+      };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label, 'tr'));
+
+  const filteredStudents = [...(selectedClasses.length > 0
     ? students.filter(s => selectedClasses.includes(s.class_name))
-    : students).sort((a, b) => a.first_name.localeCompare(b.first_name, 'tr'));
+    : students)].sort((a, b) => {
+      if (sortMode === 'attendance') {
+        const rankDiff = getAttendanceRank(a.studentid) - getAttendanceRank(b.studentid);
+        if (rankDiff !== 0) return rankDiff;
+      }
+
+      if (sortMode === 'group') {
+        const classDiff =
+          (classOrderMap[normalizeClassName(a.class_name)] ?? 999) -
+          (classOrderMap[normalizeClassName(b.class_name)] ?? 999);
+        if (classDiff !== 0) return classDiff;
+      }
+
+      const firstNameDiff = a.first_name.localeCompare(b.first_name, 'tr');
+      if (firstNameDiff !== 0) return firstNameDiff;
+      return a.last_name.localeCompare(b.last_name, 'tr');
+    });
 
   const handleShareAbsentees = () => {
     // Grouping by type and class
@@ -978,6 +1042,8 @@ const Attendance = () => {
             date={date}
             program={program}
             onUpdateAttendance={handleUpdateAttendance}
+            sortMode={sortMode}
+            onSortChange={setSortMode}
             showCreateButton={showCreateButton}
             onCreate={handleCreateAttendance}
             fetchAttendanceData={loadAttendanceData}
@@ -1013,7 +1079,7 @@ const Attendance = () => {
             )
           }
           selectedFilters={selectedClasses}
-          classNames={[...new Set(students.map(s => s.class_name))]}
+          classOptions={classFilterOptions}
         />
         <BackToTopButton />
       </div>

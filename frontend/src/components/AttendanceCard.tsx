@@ -10,6 +10,7 @@ interface Props {
     record?: Attendance;
     date: string;
     program: string;
+    classDisplayName?: string;
     onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
 }
 
@@ -68,7 +69,7 @@ function hexToRgba(hex: string, alpha: number): string {
     return `rgba(${r},${g},${b},${alpha})`;
 }
 
-const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onUpdateAttendance }) => {
+const AttendanceCard: React.FC<Props> = ({ student, record, date, program, classDisplayName, onUpdateAttendance }) => {
     const [attendanceType, setAttendanceType] = useState<AttendanceType>(
         (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
     );
@@ -191,7 +192,7 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, onUpd
             <div className="card-body py-3 px-4">
                 <h5 className="mb-1">{student.first_name} {student.last_name}</h5>
                 <p className="mb-2 text-muted small">
-                    {student.class_name}
+                    {classDisplayName || student.class_name}
                 </p>
                 <div className="d-flex flex-wrap gap-2 mt-2">
                     {typeOptions.map((type) => (
