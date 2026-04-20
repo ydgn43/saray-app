@@ -28,6 +28,16 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
 
+    function isTokenExpired(jwtToken: string): boolean {
+        try {
+            const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+            if (!payload?.exp) return true;
+            return Date.now() >= payload.exp * 1000;
+        } catch {
+            return true;
+        }
+    }
+
     // Listen for token changes (after login)
     useEffect(() => {
         const handleStorageChange = () => {
@@ -65,6 +75,20 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
             return;
         }
 
+        if (isTokenExpired(token)) {
+            console.warn('🔒 WebSocket token expired, logging out');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setToken(null);
+            setIsConnected(false);
+            if (socket) {
+                socket.disconnect();
+                setSocket(null);
+            }
+            window.location.href = '/login';
+            return;
+        }
+
         // Disconnect existing socket before creating new one
         if (socket) {
             console.log('🔌 Disconnecting old WebSocket connection');
@@ -98,6 +122,13 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         socketInstance.on('connect_error', (error) => {
             console.error('❌ WebSocket connection error:', error.message);
             setIsConnected(false);
+
+            if (error.message.toLowerCase().includes('expired')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setToken(null);
+                window.location.href = '/login';
+            }
         });
 
         socketInstance.on('error', (error) => {

@@ -28,6 +28,13 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: Error) => void
         console.log(`🔐 Socket authenticated: ${decoded.username} (${decoded.role})`);
         next();
     } catch (error) {
+        const isExpired = error instanceof jwt.TokenExpiredError || (error as any)?.name === 'TokenExpiredError';
+
+        if (isExpired) {
+            console.warn('Socket authentication failed: token expired');
+            return next(new Error('Authentication error: Token expired'));
+        }
+
         console.error('Socket authentication failed:', error);
         next(new Error('Authentication error: Invalid token'));
     }

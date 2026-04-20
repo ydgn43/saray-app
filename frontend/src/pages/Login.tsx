@@ -12,7 +12,6 @@ import {
     GraphUpArrow,
     CheckCircleFill,
 } from 'react-bootstrap-icons';
-import { authFetch } from '../utils/authFetch';
 import config from '../config';
 import logo from '../images/logo.png';
 
@@ -48,7 +47,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const res = await authFetch(`${config.API_BASE_URL}/auth/login`, {
+            const res = await fetch(`${config.API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
