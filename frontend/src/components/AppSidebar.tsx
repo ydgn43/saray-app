@@ -2,7 +2,7 @@
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate, FaHistory, FaShieldAlt } from 'react-icons/fa';
+import { FaListAlt, FaChartBar, FaUser, FaCog, FaHome, FaSignOutAlt, FaUserCheck, FaKey, FaUserGraduate, FaHistory, FaShieldAlt, FaDoorOpen } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import logo from '../images/logo.png'; // Adjust the path if needed
 import packageJson from '../../package.json';
@@ -151,6 +151,14 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                             onClick={mobileMode ? onToggle : undefined}
                                         >
                                             İstatistik
+                                        </MenuItem>
+                                        <MenuItem
+                                            active={location.pathname === '/exit-tracking'}
+                                            icon={<IconComponent icon={FaDoorOpen} />}
+                                            component={<Link to="/exit-tracking" />}
+                                            onClick={mobileMode ? onToggle : undefined}
+                                        >
+                                            Çıkış/Giriş Takibi
                                         </MenuItem>
                                     </>
                                 )}

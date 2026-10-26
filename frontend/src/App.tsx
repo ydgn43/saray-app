@@ -20,6 +20,7 @@ import ReferenceCodeManagement from './pages/ReferenceCodeManagement';
 import StudentPortal from './pages/StudentPortal';
 import ActivityLogs from './pages/ActivityLogs';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import ExitTracking from './pages/ExitTracking';
 
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
@@ -152,6 +153,20 @@ function App() {
                       <IzinliTalebeler />
                     </PageTransition>
                   </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/exit-tracking"
+              element={
+                <PrivateRoute>
+                  <RequireRole roles={['admin', 'hoca', 'yoklamaci', 'super-admin']}>
+                    <Layout>
+                      <PageTransition>
+                        <ExitTracking />
+                      </PageTransition>
+                    </Layout>
+                  </RequireRole>
                 </PrivateRoute>
               }
             />

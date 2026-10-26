@@ -17,6 +17,7 @@ import { activityLogRouter } from './routes/activityLogRoute';
 import yurtRouter from './routes/yurtRoute';
 import yurtManagementRouter from './routes/yurtManagementRoute';
 import superAdminRouter from './routes/superAdminRoute';
+import exitRouter from './routes/exitRoute';
 import { initializeWebSocket } from './websocket/socketServer';
 
 const app = express();
@@ -62,6 +63,7 @@ app.use('/activity-logs', activityLogRouter);
 app.use('/yurts', yurtRouter);
 app.use('/yurt-management', yurtManagementRouter);
 app.use('/super-admin', superAdminRouter);
+app.use('/exit', exitRouter);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
