@@ -142,6 +142,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
             console.log('🔌 Disconnecting WebSocket');
             socketInstance.disconnect();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]); // Re-run when token changes
 
     const emit = useCallback((event: string, data: any) => {

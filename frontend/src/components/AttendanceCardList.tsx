@@ -92,39 +92,39 @@ const AttendanceCardList: React.FC<Props> = ({
                 initial="hidden"
                 animate="show"
             >
-            <AnimatePresence>
-                {sortedStudents.map((student) => {
-                    const record = attendanceData.find(a => a.studentid === student.studentid);
-                    const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
+                <AnimatePresence>
+                    {sortedStudents.map((student) => {
+                        const record = attendanceData.find(a => a.studentid === student.studentid);
+                        const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
 
-                    return (
-                        <motion.div
-                            key={student.studentid}
-                            variants={cardVariants}
-                            initial="hidden"
-                            animate={isRecentlyUpdated ? {
-                                ...cardVariants.show,
-                                boxShadow: "0 0 20px rgba(13, 110, 253, 0.5)",
-                                scale: 1.02
-                            } : "show"}
-                            exit="exit"
-                            layout
-                            style={{
-                                transition: isRecentlyUpdated ? "box-shadow 0.3s, scale 0.3s" : undefined
-                            }}
-                        >
-                            <AttendanceCard
-                                student={student}
-                                record={record}
-                                date={date}
-                                program={program}
-                                classDisplayName={getClassDisplayName(student.class_name)}
-                                onUpdateAttendance={onUpdateAttendance}
-                            />
-                        </motion.div>
-                    );
-                })}
-            </AnimatePresence>
+                        return (
+                            <motion.div
+                                key={student.studentid}
+                                variants={cardVariants}
+                                initial="hidden"
+                                animate={isRecentlyUpdated ? {
+                                    ...cardVariants.show,
+                                    boxShadow: "0 0 20px rgba(13, 110, 253, 0.5)",
+                                    scale: 1.02
+                                } : "show"}
+                                exit="exit"
+                                layout
+                                style={{
+                                    transition: isRecentlyUpdated ? "box-shadow 0.3s, scale 0.3s" : undefined
+                                }}
+                            >
+                                <AttendanceCard
+                                    student={student}
+                                    record={record}
+                                    date={date}
+                                    program={program}
+                                    classDisplayName={getClassDisplayName(student.class_name)}
+                                    onUpdateAttendance={onUpdateAttendance}
+                                />
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </motion.div>
         </div>
     );

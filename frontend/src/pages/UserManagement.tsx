@@ -82,6 +82,7 @@ const UserManagement = () => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, role_name, password }),
                 });
+                if (!res.ok) throw new Error(await res.text());
             }
             setModal(null);
             setCurrentUser({});
