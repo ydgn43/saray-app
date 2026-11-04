@@ -11,7 +11,7 @@
 import { Request, Response } from 'express';
 import { QueryTypes, Transaction } from 'sequelize';
 import { sequelize } from '../data/sequelize';
-import { computeLateness, nextDeadline } from '../utils/exitTime';
+import { computeLateness, durationMinutes, nextDeadline } from '../utils/exitTime';
 import {
     FUTURE_TOLERANCE_MS,
     NO_END,
@@ -19,6 +19,7 @@ import {
     LogRow,
     getYurt,
     isDuplicateError,
+    normalizeReason,
     parseId,
     parseIdList,
     parseInstant,
@@ -636,5 +637,126 @@ export const getFoulsSummary = async (req: Request, res: Response) => {
     } catch (err) {
         console.error('getFoulsSummary error:', err);
         res.status(500).json({ error: 'İhlal özeti alınamadı.' });
+    }
+};
+
+// ---------------------------------------------------------------------
+// Time outside: per student, per reason, and in total
+// ---------------------------------------------------------------------
+
+interface ReasonTotal {
+    reason: string;
+    count: number;
+    minutes: number;
+}
+
+type Student = { studentid: number; first_name: string; last_name: string; class_name: string | null };
+
+/**
+ * Time outside for one group of logs: per student, per reason and in total.
+ *  - Only RETURNED records are counted in the totals.
+ *  - A student who is still out is reported separately (ongoing_minutes), so the totals never
+ *    change just because time passes.
+ *  - `reasonOf` decides how logs are grouped (free reason text, or the izin rule's name).
+ */
+const buildDurationView = (students: Student[], logs: LogRow[], now: Date, reasonOf: (row: LogRow) => string) => {
+    const addTo = (map: Map<string, ReasonTotal>, row: LogRow, minutes: number) => {
+        const label = reasonOf(row).trim().replace(/\s+/g, ' ');
+        const key = normalizeReason(label);
+        const entry = map.get(key) ?? { reason: label, count: 0, minutes: 0 };
+        entry.count += 1;
+        entry.minutes += minutes;
+        map.set(key, entry);
+    };
+    const sortReasons = (map: Map<string, ReasonTotal>) =>
+        Array.from(map.values()).sort((a, b) => b.minutes - a.minutes || a.reason.localeCompare(b.reason, 'tr'));
+
+    const perStudent = new Map(
+        students.map((s) => [s.studentid, {
+            ...s,
+            total_exits: 0,
+            total_minutes: 0,
+            ongoing_minutes: 0,
+            is_currently_out: false,
+            reasons: new Map<string, ReasonTotal>(),
+        }])
+    );
+    const yurtReasons = new Map<string, ReasonTotal>();
+    let yurtMinutes = 0;
+    let yurtOngoing = 0;
+
+    for (const row of logs) {
+        const entry = perStudent.get(row.studentid);
+        if (!entry) continue;
+        entry.total_exits += 1;
+        if (row.status === 'RETURNED' && row.actual_return_time) {
+            const minutes = durationMinutes(row.exit_time, row.actual_return_time);
+            entry.total_minutes += minutes;
+            addTo(entry.reasons, row, minutes);
+            addTo(yurtReasons, row, minutes);
+            yurtMinutes += minutes;
+        } else {
+            const minutes = durationMinutes(row.exit_time, now);
+            entry.is_currently_out = true;
+            entry.ongoing_minutes += minutes;
+            yurtOngoing += minutes;
+        }
+    }
+
+    return {
+        students: Array.from(perStudent.values())
+            .map((e) => ({ ...e, reasons: sortReasons(e.reasons) }))
+            .sort((a, b) => b.total_minutes - a.total_minutes || a.first_name.localeCompare(b.first_name, 'tr')),
+        totals: { total_minutes: yurtMinutes, ongoing_minutes: yurtOngoing, reasons: sortReasons(yurtReasons) },
+    };
+};
+
+/**
+ * GET /exit/duration-summary?from=&to=
+ *
+ * Works for every record, with or without a deadline (e.g. "Diğer", market).
+ * Every student of the yurt is listed in both views (also those with no exits), so the page can show a whole class.
+ * The result has TWO separate views, so long izinler never dwarf the short exits:
+ *   - izin   : logs recorded with an izin rule, grouped by the rule's name (e.g. "Haftalık İzin")
+ *   - normal : all other logs, grouped by the reason text (ignoring case and extra spaces)
+ * If a rule is deleted later, its old logs (rule_id becomes NULL) fall back to "normal".
+ */
+export const getDurationSummary = async (req: Request, res: Response) => {
+    try {
+        const yurt = getYurt(res);
+        const conditions = ['l.yurtid = :yurtid'];
+        const replacements: Record<string, any> = { yurtid: yurt.yurtid };
+
+        if (req.query.from !== undefined) {
+            const from = parseInstant(req.query.from);
+            if (!from) return res.status(400).json({ error: 'from geçerli bir ISO zaman damgası olmalı.' });
+            conditions.push('l.exit_time >= :from');
+            replacements.from = toDbDate(from);
+        }
+        if (req.query.to !== undefined) {
+            const to = parseInstant(req.query.to);
+            if (!to) return res.status(400).json({ error: 'to geçerli bir ISO zaman damgası olmalı.' });
+            conditions.push('l.exit_time < :to');
+            replacements.to = toDbDate(to);
+        }
+
+        const students = await sequelize.query<Student>(
+            `SELECT studentid, first_name, last_name, class_name FROM student WHERE yurtid = :yurtid`,
+            { replacements: { yurtid: yurt.yurtid }, type: QueryTypes.SELECT }
+        );
+        const logs = await sequelize.query<LogRow>(
+            `${LOG_SELECT} WHERE ${conditions.join(' AND ')}`,
+            { replacements, type: QueryTypes.SELECT }
+        );
+
+        const now = new Date();
+        const isIzin = (row: LogRow) => row.rule_id !== null && row.rule_name !== null;
+        res.json({
+            normal: buildDurationView(students, logs.filter((l) => !isIzin(l)), now, (l) => l.reason),
+            izin: buildDurationView(students, logs.filter(isIzin), now, (l) => l.rule_name as string),
+        });
+    } catch (err) {
+        console.error('getDurationSummary error:', err);
+        res.status(500).json({ error: 'Süre özeti alınamadı.' });
     }
 };

@@ -5,6 +5,7 @@
 import config from '../../config';
 import { authFetch } from '../../utils/authFetch';
 import {
+    DurationSummary,
     ExitLog,
     ExitRule,
     ExitSettings,
@@ -78,6 +79,9 @@ export const exitApi = {
 
     foulsSummary: (params: { from?: string; to?: string } = {}) =>
         request<FoulRow[]>('GET', `/exit/fouls-summary${query(params)}`),
+
+    durationSummary: (params: { from?: string; to?: string } = {}) =>
+        request<DurationSummary>('GET', `/exit/duration-summary${query(params)}`),
 
     recordExit: (payload: RecordExitPayload) =>
         request<{ created: number[]; skipped: SkippedStudent[]; expected_return_time: string | null; is_late: boolean; late_minutes: number }>(

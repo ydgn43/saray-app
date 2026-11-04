@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { RefreshCw, Search } from 'lucide-react';
 import { exitApi } from './exitApi';
 import { ExitLog } from './exitTypes';
-import { dayStartIso, formatDateTime } from './exitTime';
+import { dayStartIso, formatDateTime, formatDuration } from './exitTime';
 import StatusBadge from './StatusBadge';
 
 interface Props {
@@ -108,6 +108,7 @@ export default function HistoryTab({ tz, now, refreshKey, studentFilter, onClear
                                 <th>Çıkış</th>
                                 <th>Süre sınırı</th>
                                 <th>Giriş</th>
+                                <th>Süre</th>
                                 <th>Durum</th>
                             </tr>
                         </thead>
@@ -122,6 +123,10 @@ export default function HistoryTab({ tz, now, refreshKey, studentFilter, onClear
                                     <td className="text-nowrap">{formatDateTime(log.exit_time, tz)}</td>
                                     <td className="text-nowrap">{formatDateTime(log.expected_return_time, tz)}</td>
                                     <td className="text-nowrap">{formatDateTime(log.actual_return_time, tz)}</td>
+                                    <td className="text-nowrap">
+                                        {formatDuration(log.duration_minutes)}
+                                        {log.status === 'OUT' && <div className="text-muted small">devam ediyor</div>}
+                                    </td>
                                     <td><StatusBadge log={log} now={now} /></td>
                                 </tr>
                             ))}

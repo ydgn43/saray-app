@@ -10,6 +10,7 @@
 import express from 'express';
 import {
     deleteExitLog,
+    getDurationSummary,
     getExitLogs,
     getFoulsSummary,
     getStudentExitHistory,
@@ -43,6 +44,7 @@ exitRouter.use(loadYurtContext);
 // Logs
 exitRouter.get('/logs', requireRoles(EXIT_ROLES), getExitLogs);
 exitRouter.get('/fouls-summary', requireRoles(EXIT_ROLES), getFoulsSummary);
+exitRouter.get('/duration-summary', requireRoles(EXIT_ROLES), getDurationSummary);
 exitRouter.get('/student/:studentid', requireRoles(EXIT_ROLES), getStudentExitHistory);
 exitRouter.post('/record-exit', requireRoles(EXIT_ROLES), recordExit);
 exitRouter.post('/record-return', requireRoles(EXIT_ROLES), recordReturn);

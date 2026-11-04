@@ -5,7 +5,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../data/sequelize';
-import { computeLateness } from '../utils/exitTime';
+import { computeLateness, durationMinutes } from '../utils/exitTime';
 
 // ---------------------------------------------------------------------
 // Yurt context
@@ -82,6 +82,10 @@ export function toDbDate(date: Date | null): string | null {
     return date ? date.toISOString().slice(0, 19).replace('T', ' ') : null;
 }
 
+/** Key used to group reasons: "Market", " market " and "MARKET" are the same reason. */
+export const normalizeReason = (reason: string): string =>
+    reason.trim().replace(/\s+/g, ' ').toLocaleLowerCase('tr-TR');
+
 /** Positive integer, or null. */
 export const parseId = (value: unknown): number | null => {
     const n = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
@@ -143,7 +147,8 @@ export const LOG_SELECT = `
     LEFT JOIN exit_rules r ON r.id = l.rule_id`;
 
 /**
- * Adds the computed lateness. Lateness is NOT stored in the database.
+ * Adds the computed lateness and duration. Neither is stored in the database.
+ *  - duration_minutes: time outside in whole minutes. For an open log it is the time so far (until now).
  *  - returned log: is_late / late_minutes (final result, this is a "foul")
  *  - open log    : is_overdue / overdue_minutes (late so far, still out)
  */
@@ -153,6 +158,7 @@ export const toLogDto = (row: LogRow, now: Date = new Date()) => {
     const returned = row.status === 'RETURNED';
     return {
         ...row,
+        duration_minutes: durationMinutes(row.exit_time, until),
         is_late: returned && isLate,
         late_minutes: returned ? lateMinutes : 0,
         is_overdue: !returned && isLate,

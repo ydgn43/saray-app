@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { nextDeadline, computeLateness, isValidTimeZone } from './exitTime';
+import { nextDeadline, computeLateness, isValidTimeZone, durationMinutes } from './exitTime';
 
 const iso = (d: Date) => d.toISOString();
 let n = 0;
@@ -74,6 +74,14 @@ t('Lateness: on time, exactly on time, 1 second late, 90 min late', () => {
     assert.deepEqual(computeLateness(exp, new Date('2026-11-08T17:30:00Z')), { isLate: false, lateMinutes: 0 });
     assert.deepEqual(computeLateness(exp, new Date('2026-11-08T17:30:01Z')), { isLate: true, lateMinutes: 1 });
     assert.deepEqual(computeLateness(exp, new Date('2026-11-08T19:00:00Z')), { isLate: true, lateMinutes: 90 });
+});
+
+t('Duration: rounded down, never negative, works without deadline', () => {
+    const exit = new Date('2026-11-02T10:00:00Z');
+    assert.equal(durationMinutes(exit, new Date('2026-11-02T10:00:59Z')), 0);
+    assert.equal(durationMinutes(exit, new Date('2026-11-02T10:01:00Z')), 1);
+    assert.equal(durationMinutes(exit, new Date('2026-11-02T12:15:30Z')), 135);
+    assert.equal(durationMinutes(exit, new Date('2026-11-02T09:00:00Z')), 0);
 });
 
 console.log(`\n${n} test groups passed`);

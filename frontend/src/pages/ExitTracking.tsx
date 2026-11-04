@@ -6,6 +6,7 @@
 //   Dışarıda     who is out now, live countdown to the deadline, one-click return
 //   Geçmiş       all records, filters, edit / delete
 //   Foya özeti   late returns per student
+//   Süre özeti   minutes outside per student, per reason and in total
 //   Kurallar     izin rules + yurt time zone (Admin / SuperAdmin only)
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -23,9 +24,10 @@ import ExitDialog from '../components/exit/ExitDialog';
 import EditLogDialog from '../components/exit/EditLogDialog';
 import HistoryTab from '../components/exit/HistoryTab';
 import FoulsTab from '../components/exit/FoulsTab';
+import DurationTab from '../components/exit/DurationTab';
 import RulesTab from '../components/exit/RulesTab';
 
-type Tab = 'out' | 'history' | 'fouls' | 'rules';
+type Tab = 'out' | 'history' | 'fouls' | 'duration' | 'rules';
 
 const DEFAULT_TZ = 'Europe/Berlin';
 
@@ -130,6 +132,7 @@ export default function ExitTracking() {
         { id: 'out', label: `Dışarıda (${outLogs.length})` },
         { id: 'history', label: 'Geçmiş' },
         { id: 'fouls', label: 'Foya özeti' },
+        { id: 'duration', label: 'Süre özeti' },
         ...(canManage ? [{ id: 'rules' as Tab, label: 'Kurallar' }] : []),
     ];
 
@@ -143,20 +146,23 @@ export default function ExitTracking() {
                 </button>
             </div>
 
-            <div className="row g-3 mb-3">
-                <div className="col-6 col-md-3">
-                    <div className="card border-0 shadow-sm h-100"><div className="card-body py-2">
-                        <div className="text-muted small"><Users size={14} className="me-1" />Dışarıda</div>
-                        <div className="fs-4 fw-bold">{outLogs.length}</div>
-                    </div></div>
+            {/* the two cards are hidden on "Süre özeti" to keep that tab calm */}
+            {tab !== 'duration' && (
+                <div className="row g-3 mb-3">
+                    <div className="col-6 col-md-3">
+                        <div className="card border-0 shadow-sm h-100"><div className="card-body py-2">
+                            <div className="text-muted small"><Users size={14} className="me-1" />Dışarıda</div>
+                            <div className="fs-4 fw-bold">{outLogs.length}</div>
+                        </div></div>
+                    </div>
+                    <div className="col-6 col-md-3">
+                        <div className="card border-0 shadow-sm h-100"><div className="card-body py-2">
+                            <div className="text-muted small"><AlertTriangle size={14} className="me-1" />Süresi geçen</div>
+                            <div className={`fs-4 fw-bold ${overdueCount > 0 ? 'text-danger' : ''}`}>{overdueCount}</div>
+                        </div></div>
+                    </div>
                 </div>
-                <div className="col-6 col-md-3">
-                    <div className="card border-0 shadow-sm h-100"><div className="card-body py-2">
-                        <div className="text-muted small"><AlertTriangle size={14} className="me-1" />Süresi geçen</div>
-                        <div className={`fs-4 fw-bold ${overdueCount > 0 ? 'text-danger' : ''}`}>{overdueCount}</div>
-                    </div></div>
-                </div>
-            </div>
+            )}
 
             <ul className="nav nav-tabs mb-3">
                 {tabs.map((t) => (
@@ -188,6 +194,13 @@ export default function ExitTracking() {
                     )}
                     {tab === 'fouls' && (
                         <FoulsTab
+                            tz={timezone}
+                            refreshKey={refreshKey}
+                            onShowStudent={(id, name) => { setStudentFilter({ id, name }); setTab('history'); }}
+                        />
+                    )}
+                    {tab === 'duration' && (
+                        <DurationTab
                             tz={timezone}
                             refreshKey={refreshKey}
                             onShowStudent={(id, name) => { setStudentFilter({ id, name }); setTab('history'); }}

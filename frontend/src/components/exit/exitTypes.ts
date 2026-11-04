@@ -20,6 +20,7 @@ export interface ExitLog {
     created_by: number | null;
     created_at: string;
     // computed by the backend (never stored)
+    duration_minutes: number; // time outside (open log: so far); with or without a deadline
     is_late: boolean; // returned late = a foul
     late_minutes: number;
     is_overdue: boolean; // still out and past the deadline
@@ -46,6 +47,35 @@ export interface FoulRow {
     last_exit_at: string | null;
     is_currently_out: boolean;
     is_currently_overdue: boolean;
+}
+
+export interface ReasonTotal {
+    reason: string;
+    count: number; // how many exits with this reason
+    minutes: number; // total minutes outside for this reason
+}
+
+export interface DurationRow {
+    studentid: number;
+    first_name: string;
+    last_name: string;
+    class_name: string | null;
+    total_exits: number;
+    total_minutes: number; // returned records only
+    ongoing_minutes: number; // still out: time so far, NOT in total_minutes
+    is_currently_out: boolean;
+    reasons: ReasonTotal[];
+}
+
+export interface DurationView {
+    students: DurationRow[];
+    totals: { total_minutes: number; ongoing_minutes: number; reasons: ReasonTotal[] };
+}
+
+/** normal = ordinary exits grouped by reason text; izin = exits recorded with an izin rule, grouped by rule name. */
+export interface DurationSummary {
+    normal: DurationView;
+    izin: DurationView;
 }
 
 export interface ExitSettings {

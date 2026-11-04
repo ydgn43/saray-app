@@ -96,3 +96,21 @@ export const formatMinutes = (minutes: number): string => {
     if (mins && days === 0) out.push(`${mins} dk`);
     return out.join(' ');
 };
+
+/** Whole minutes between two instants (rounded down, never negative). Used for the live "outside for" counter. */
+export const minutesBetween = (fromIso: string, until: Date): number =>
+    Math.max(0, Math.floor((until.getTime() - new Date(fromIso).getTime()) / 60000));
+
+/** 45 -> "45 dk", 135 -> "2 sa 15 dk", 3000 -> "2 g 2 sa" (parts that are zero are left out). */
+export const formatDuration = (minutes: number): string => {
+    const total = Math.max(0, Math.floor(minutes));
+    if (total < 60) return `${total} dk`;
+    const days = Math.floor(total / 1440);
+    const hours = Math.floor((total % 1440) / 60);
+    const mins = total % 60;
+    const parts: string[] = [];
+    if (days) parts.push(`${days} g`);
+    if (hours) parts.push(`${hours} sa`);
+    if (mins) parts.push(`${mins} dk`);
+    return parts.join(' ');
+};

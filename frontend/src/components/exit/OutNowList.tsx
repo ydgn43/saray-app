@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import { Edit2, LogIn, Search } from 'lucide-react';
 import { ExitLog } from './exitTypes';
-import { formatDateTime } from './exitTime';
+import { formatDateTime, formatDuration, minutesBetween } from './exitTime';
 import StatusBadge from './StatusBadge';
 
 interface Props {
@@ -86,6 +86,7 @@ export default function OutNowList({ logs, tz, now, busy, onReturn, onEdit }: Pr
                                 <th>Talebe</th>
                                 <th>Neden</th>
                                 <th>Çıkış</th>
+                                <th>Dışarıda</th>
                                 <th>Süre sınırı</th>
                                 <th>Durum</th>
                                 <th style={{ width: 130 }} />
@@ -112,6 +113,7 @@ export default function OutNowList({ logs, tz, now, busy, onReturn, onEdit }: Pr
                                         {log.notes && <div className="text-muted small">{log.notes}</div>}
                                     </td>
                                     <td className="text-nowrap">{formatDateTime(log.exit_time, tz)}</td>
+                                    <td className="text-nowrap">{formatDuration(minutesBetween(log.exit_time, now))}</td>
                                     <td className="text-nowrap">{formatDateTime(log.expected_return_time, tz)}</td>
                                     <td><StatusBadge log={log} now={now} /></td>
                                     <td className="text-end text-nowrap">
@@ -153,6 +155,7 @@ export default function OutNowList({ logs, tz, now, busy, onReturn, onEdit }: Pr
                                 </div>
                                 <div className="small mt-2">
                                     <div><span className="text-muted">Çıkış:</span> {formatDateTime(log.exit_time, tz)}</div>
+                                    <div><span className="text-muted">Dışarıda:</span> {formatDuration(minutesBetween(log.exit_time, now))}</div>
                                     <div><span className="text-muted">Süre sınırı:</span> {formatDateTime(log.expected_return_time, tz)}</div>
                                     {log.notes && <div className="text-muted">{log.notes}</div>}
                                 </div>

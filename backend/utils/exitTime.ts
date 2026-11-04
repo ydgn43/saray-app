@@ -119,3 +119,13 @@ export const computeLateness = (expected: Date | null | undefined, until: Date):
     if (diffMs <= 0) return { isLate: false, lateMinutes: 0 };
     return { isLate: true, lateMinutes: Math.ceil(diffMs / 60000) };
 };
+
+/**
+ * Time spent outside, in WHOLE minutes (rounded down: 59 seconds = 0 minutes).
+ * Works for every record, with or without a deadline.
+ * `until` is the actual return time, or "now" for a student who is still out.
+ */
+export const durationMinutes = (exitTime: Date, until: Date): number => {
+    const diffMs = until.getTime() - exitTime.getTime();
+    return diffMs <= 0 ? 0 : Math.floor(diffMs / 60000);
+};
