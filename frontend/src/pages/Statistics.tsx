@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
+import { useClassLabels } from '../hooks/useClassLabels';
 import config from '../config';
 import {
     Chart as ChartJS,
@@ -69,17 +70,6 @@ const PROGRAM_TURKISH_MAP: Record<string, string> = {
     "hatim": "Hatim"
 };
 
-const CLASS_NAME_TURKISH_MAP: Record<string, string> = {
-    "kuranikerim": "Kur'an-ı Kerim",
-    "hazirlik": "Hazırlık",
-    "ibtidai": "İbtidai",
-    "ihzari": "İhzari",
-    "mezun_tekamul_alti": "Mezun Tekamul Altı",
-    "tekamul_alti": "Tekamul Altı"
-};
-function getTurkishClassName(className: string) {
-    return CLASS_NAME_TURKISH_MAP[className] || className;
-}
 
 // Helper to normalize program names
 function normalizeProgramName(name: string) {
@@ -87,6 +77,7 @@ function normalizeProgramName(name: string) {
 }
 
 const Statistics = () => {
+    const { classes, label: getTurkishClassName } = useClassLabels();
     const [selectedColor, setSelectedColor] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
@@ -884,9 +875,9 @@ const Statistics = () => {
                                     onChange={e => setSelectedClass(e.target.value)}
                                 >
                                     <option value="">Tümü</option>
-                                    {Object.entries(CLASS_NAME_TURKISH_MAP).map(([key, label]) => (
-                                        <option key={key} value={key}>
-                                            {label}
+                                    {classes.map((c) => (
+                                        <option key={c.class_name} value={c.class_name}>
+                                            {getTurkishClassName(c.class_name)}
                                         </option>
                                     ))}
                                 </select>

@@ -8,6 +8,7 @@ import { unparse } from 'papaparse';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
+import { useClassLabels } from '../hooks/useClassLabels';
 import config from '../config';
 
 
@@ -21,18 +22,6 @@ type Student = {
     reference_code?: string | null;
 };
 
-const CLASS_NAME_MAP: Record<string, string> = {
-    "kuranikerim": "Kur'an-ı Kerim",
-    "hazirlik": "Hazırlık",
-    "ibtidai": "İbtidai",
-    "ihzari": "İhzari",
-    "mezun_tekamul_alti": "Mezun Tekamul Altı",
-    "tekamul_alti": "Tekamul Altı"
-};
-
-function getTurkishClassName(className: string) {
-    return CLASS_NAME_MAP[className] || className;
-}
 
 const Talebeler = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -55,6 +44,7 @@ const Talebeler = () => {
     const [last_name, setLastName] = useState('');
     const [birth_date, setBirthDate] = useState('');
     const [season_year, setSeason] = useState('');
+    const { classes: classList, label: getTurkishClassName } = useClassLabels();
     const [currentSeason, setCurrentSeason] = useState(''); // the yurt's "Güncel sezon" (Settings)
     const [class_name, setClassName] = useState('');
 
@@ -330,18 +320,11 @@ const Talebeler = () => {
 
             <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                    {[
-                        "kuranikerim",
-                        "hazirlik",
-                        "ibtidai",
-                        "ihzari",
-                        "mezun tekamul alti",
-                        "tekamul alti"
-                    ].map((className) => {
-                        const count = filteredStudents.filter((s) => s.class_name === className).length;
+                    {classList.map((c) => {
+                        const count = filteredStudents.filter((s) => s.class_name === c.class_name).length;
                         return (
                             <span
-                                key={className}
+                                key={c.class_name}
                                 className="badge bg-primary"
                                 style={{
                                     padding: '6px 12px',
@@ -350,10 +333,24 @@ const Talebeler = () => {
                                     fontWeight: '600'
                                 }}
                             >
-                                {getTurkishClassName(className)}: {count}
+                                {getTurkishClassName(c.class_name)}: {count}
                             </span>
                         );
                     })}
+                    {(() => {
+                        // talebeler whose level no longer exists in Settings
+                        if (classList.length === 0) return null;
+                        const known = new Set(classList.map((c) => c.class_name));
+                        const unknown = filteredStudents.filter((s) => !known.has(s.class_name)).length;
+                        return unknown > 0 ? (
+                            <span
+                                className="badge bg-secondary"
+                                style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '600' }}
+                            >
+                                Tanımsız: {unknown}
+                            </span>
+                        ) : null;
+                    })()}
                 </div>
                 <span
                     className="badge bg-success"

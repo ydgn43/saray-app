@@ -5,6 +5,7 @@ import { authFetch } from '../utils/authFetch';
 import config from '../config';
 import DashboardStats from '../components/DashboardStats';
 import { useAuth } from '../auth/AuthContext';
+import { useClassLabels } from '../hooks/useClassLabels';
 
 interface StatisticEntry {
   studentid: number;
@@ -37,18 +38,6 @@ const PROGRAM_TURKISH_MAP: Record<string, string> = {
   "hatim": "Hatim"
 };
 
-const CLASS_NAME_TURKISH_MAP: Record<string, string> = {
-  "kuranikerim": "Kur'an-ı Kerim",
-  "hazirlik": "Hazırlık",
-  "ibtidai": "İbtidai",
-  "ihzari": "İhzari",
-  "mezun_tekamul_alti": "Mezun Tekamul Altı",
-  "tekamul_alti": "Tekamul Altı"
-};
-
-function getTurkishClassName(className: string) {
-  return CLASS_NAME_TURKISH_MAP[className] || className;
-}
 
 function normalizeProgramName(name: string) {
   return name.trim().toLowerCase().replace(/ /g, '_');
@@ -56,6 +45,7 @@ function normalizeProgramName(name: string) {
 
 const Home = () => {
   const { user } = useAuth();
+  const { label: getTurkishClassName } = useClassLabels();
   const [studentCount, setStudentCount] = useState<number | null>(null);
   const [attendanceCount, setAttendanceCount] = useState<number | null>(null);
   const [classCount, setClassCount] = useState<number | null>(null);
