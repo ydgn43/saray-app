@@ -1,7 +1,8 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 
 interface PageHeaderProps {
-    icon?: string;
+    icon?: React.ReactNode;
     title: string;
     subtitle?: string;
     color?: string;
@@ -24,7 +25,7 @@ const PageHeader = ({
                 fontWeight: 'bold',
                 fontSize: 'clamp(1.5rem, 5vw, 2rem)'
             }}>
-                {icon && `${icon} `}{title}
+                {icon && <span className="me-2 d-inline-flex align-middle">{icon}</span>}{title}
             </h1>
             {subtitle && (
                 <p className="text-muted d-none d-md-block" style={{ fontSize: '0.9rem' }}>

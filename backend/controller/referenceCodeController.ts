@@ -14,7 +14,7 @@ export const createReferenceCode = async (req: Request, res: Response) => {
         const { roleId, expiresAt, maxUses, description } = req.body;
         const yurtid = req.selectedYurtId; // Get from middleware instead of header
 
-        console.log('📝 Creating reference code:');
+        console.log('Creating reference code:');
         console.log('   - selectedYurtId:', yurtid);
         console.log('   - roleId from body:', roleId);
 
@@ -68,7 +68,7 @@ export const createReferenceCode = async (req: Request, res: Response) => {
             yurtid: yurtid,
         });
 
-        console.log('✅ Reference code created successfully:');
+        console.log('Reference code created successfully:');
         console.log('   - Code:', referenceCode.get('code'));
         console.log('   - Role:', referenceCode.get('roleId'));
         console.log('   - Yurt ID:', referenceCode.get('yurtid'));

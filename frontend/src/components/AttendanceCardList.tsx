@@ -19,6 +19,7 @@ interface Props {
     onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
     availableClasses?: Class[];
     recentlyUpdatedStudents?: Set<number>;
+    sebepOptions?: string[];
 }
 
 const listVariants = {
@@ -41,6 +42,7 @@ const AttendanceCardList: React.FC<Props> = ({
     onSortChange,
     availableClasses = [],
     recentlyUpdatedStudents = new Set(),
+    sebepOptions,
 }) => {
     // Keep order from parent (Attendance.tsx handles sorting mode).
     const sortedStudents = students;
@@ -120,6 +122,7 @@ const AttendanceCardList: React.FC<Props> = ({
                                     program={program}
                                     classDisplayName={getClassDisplayName(student.class_name)}
                                     onUpdateAttendance={onUpdateAttendance}
+                                    sebepOptions={sebepOptions}
                                 />
                             </motion.div>
                         );

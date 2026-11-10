@@ -8,21 +8,21 @@ import { QueryTypes } from 'sequelize';
 export const login = async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
-    console.log('🔐 Login attempt:', { username, timestamp: new Date().toISOString() });
+    console.log('Login attempt:', { username, timestamp: new Date().toISOString() });
 
     try {
         const User = sequelize.models.UserSequelize;
         // 1. Find user by username
         const user: any = await User.findOne({ where: { username } });
 
-        console.log('🔍 User lookup result:', user ? 'FOUND' : 'NOT FOUND');
+        console.log('User lookup result:', user ? 'FOUND' : 'NOT FOUND');
 
         if (!user) {
-            console.log('❌ Login failed: User not found');
+            console.log('Login failed: User not found');
             return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
 
-        console.log('🔍 User found in database:', {
+        console.log('User found in database:', {
             accountid: user.accountid,
             username: user.username,
             role_name: user.role_name,
@@ -33,10 +33,10 @@ export const login = async (req: Request, res: Response) => {
         // 2. Compare password with hashed password
         const valid = await bcrypt.compare(password, user.password);
 
-        console.log('🔑 Password validation:', valid ? 'VALID' : 'INVALID');
+        console.log('Password validation:', valid ? 'VALID' : 'INVALID');
 
         if (!valid) {
-            console.log('❌ Login failed: Invalid password');
+            console.log('Login failed: Invalid password');
             return res.status(401).json({ message: 'Geçersiz kullanıcı adı veya şifre.' });
         }
         // 3. Create JWT
@@ -99,7 +99,7 @@ export const login = async (req: Request, res: Response) => {
             selectedYurt: primaryYurt
         };
 
-        console.log('✅ Login response:', responseData);
+        console.log('Login response:', responseData);
 
         // 4. Send token and user info
         res.json(responseData);
@@ -112,7 +112,7 @@ export const login = async (req: Request, res: Response) => {
 export const signup = async (req: Request, res: Response) => {
     const { username, password, referenceCode } = req.body;
 
-    console.log('🔵 Signup request received:', { username, referenceCode });
+    console.log('Signup request received:', { username, referenceCode });
 
     try {
         const User = sequelize.models.UserSequelize;
@@ -137,7 +137,7 @@ export const signup = async (req: Request, res: Response) => {
             where: { reference_code: referenceCode.toUpperCase() }
         });
 
-        console.log('🔍 Looking for student with reference code:', referenceCode.toUpperCase());
+        console.log('Looking for student with reference code:', referenceCode.toUpperCase());
         console.log('Student found:', student ? {
             studentid: student.studentid,
             name: `${student.first_name} ${student.last_name}`,
@@ -151,7 +151,7 @@ export const signup = async (req: Request, res: Response) => {
 
         if (student) {
             // This is a student-specific code
-            console.log('✅ Student reference code detected:', { studentId: student.studentid, code: referenceCode, yurtid: student.yurtid });
+            console.log('Student reference code detected:', { studentId: student.studentid, code: referenceCode, yurtid: student.yurtid });
             linkedStudentId = student.studentid;
             assignedYurtId = student.yurtid;
         } else {
@@ -204,15 +204,15 @@ export const signup = async (req: Request, res: Response) => {
             studentid: linkedStudentId
         });
 
-        console.log('✅ User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId, yurtid: assignedYurtId });
+        console.log('User created:', { accountid: newUser.accountid, role: roleToAssign, linkedStudent: linkedStudentId, yurtid: assignedYurtId });
 
         // 7. Special handling for admin users
         if (roleToAssign === 'admin') {
-            console.log('🏢 Admin user detected');
+            console.log('Admin user detected');
 
             // Only create a new yurt if no yurt is assigned yet (e.g., for super-admin created codes without yurt)
             if (!assignedYurtId) {
-                console.log('🏢 No yurt assigned, creating new yurt for admin:', newUser.username);
+                console.log('No yurt assigned, creating new yurt for admin:', newUser.username);
 
                 const Yurt = sequelize.models.YurtSequelize;
                 const newYurt: any = await Yurt.create({
@@ -223,9 +223,9 @@ export const signup = async (req: Request, res: Response) => {
                 });
 
                 assignedYurtId = newYurt.yurtid;
-                console.log('✅ Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
+                console.log('Yurt created for admin:', { yurtid: newYurt.yurtid, yurt_name: newYurt.yurt_name });
             } else {
-                console.log('✅ Admin will be assigned to existing yurt:', assignedYurtId);
+                console.log('Admin will be assigned to existing yurt:', assignedYurtId);
             }
         }
 
@@ -238,7 +238,7 @@ export const signup = async (req: Request, res: Response) => {
                 is_primary: true,
                 assigned_at: new Date()
             });
-            console.log('✅ User assigned to yurt:', assignedYurtId);
+            console.log('User assigned to yurt:', assignedYurtId);
         } else {
             // Fallback: assign to default yurt (ID 1) if no yurt specified
             await UserYurt.create({
@@ -247,7 +247,7 @@ export const signup = async (req: Request, res: Response) => {
                 is_primary: true,
                 assigned_at: new Date()
             });
-            console.log('⚠️ No yurt specified, assigned to default yurt (ID 1)');
+            console.log('No yurt specified, assigned to default yurt (ID 1)');
         }
 
         // 9. Mark reference code as used (only for non-student codes)
@@ -298,7 +298,7 @@ export const signup = async (req: Request, res: Response) => {
         );
 
         // 11. Send response
-        console.log('✅ Signup successful! Response data:', {
+        console.log('Signup successful! Response data:', {
             username: newUser.username,
             role: newUser.role_name,
             yurtName: primaryYurt?.yurtName,
@@ -330,7 +330,7 @@ export const signup = async (req: Request, res: Response) => {
 export const requestPasswordReset = async (req: Request, res: Response) => {
     const { username } = req.body;
 
-    console.log('🔐 Password reset request:', { username, timestamp: new Date().toISOString() });
+    console.log('Password reset request:', { username, timestamp: new Date().toISOString() });
 
     try {
         const User = sequelize.models.UserSequelize;
@@ -364,7 +364,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
             { where: { accountid: user.accountid } }
         );
 
-        console.log('✅ Password reset request submitted for admin approval:', {
+        console.log('Password reset request submitted for admin approval:', {
             username: user.username,
             accountid: user.accountid
         });
@@ -383,7 +383,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
     const { username, resetToken, newPassword } = req.body;
 
-    console.log('🔐 Password reset attempt:', { username, timestamp: new Date().toISOString() });
+    console.log('Password reset attempt:', { username, timestamp: new Date().toISOString() });
 
     try {
         if (!username || !resetToken || !newPassword) {
@@ -438,7 +438,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             { where: { accountid: user.accountid } }
         );
 
-        console.log('✅ Password successfully reset for user:', {
+        console.log('Password successfully reset for user:', {
             username: user.username,
             accountid: user.accountid
         });
@@ -459,7 +459,7 @@ export const generatePasswordResetToken = async (req: Request, res: Response) =>
     const { username } = req.body;
     const adminUser = req.user; // From JWT middleware (using proper typing)
 
-    console.log('🔐 Admin generating password reset token:', {
+    console.log('Admin generating password reset token:', {
         username,
         adminUser: adminUser,
         adminUsername: adminUser?.username,
@@ -471,23 +471,23 @@ export const generatePasswordResetToken = async (req: Request, res: Response) =>
     try {
         // Verify admin role
         if (!adminUser) {
-            console.log('❌ No admin user found in request');
+            console.log('No admin user found in request');
             return res.status(403).json({ message: 'Bu işlem için yetkiniz yok - Kullanıcı bilgisi bulunamadı' });
         }
 
-        console.log('✅ User authenticated, role:', adminUser.role);
+        console.log('User authenticated, role:', adminUser.role);
 
         // Check if user is admin or super-admin (allow both)
         const allowedRoles = ['admin', 'super-admin'];
         if (!allowedRoles.includes(adminUser.role)) {
-            console.log('❌ Invalid role:', adminUser.role, 'Expected one of:', allowedRoles);
+            console.log('Invalid role:', adminUser.role, 'Expected one of:', allowedRoles);
             return res.status(403).json({
                 message: `Bu işlem için yetkiniz yok - Rol: ${adminUser.role}`,
                 requiredRoles: allowedRoles
             });
         }
 
-        console.log('✅ Role check passed');
+        console.log('Role check passed');
 
         const User = sequelize.models.UserSequelize;
 
@@ -508,7 +508,7 @@ export const generatePasswordResetToken = async (req: Request, res: Response) =>
             });
 
             const adminYurtId = req.selectedYurtId;
-            console.log('🔍 Yurt boundary check - Admin yurt:', adminYurtId, 'User yurts:', userYurts);
+            console.log('Yurt boundary check - Admin yurt:', adminYurtId, 'User yurts:', userYurts);
 
             // Check if user has access to the admin's yurt
             const userHasAccessToYurt = userYurts.some((uy: any) => uy.yurtid === adminYurtId);
@@ -535,7 +535,7 @@ export const generatePasswordResetToken = async (req: Request, res: Response) =>
             { where: { accountid: user.accountid } }
         );
 
-        console.log('✅ Admin generated password reset token:', {
+        console.log('Admin generated password reset token:', {
             username: user.username,
             accountid: user.accountid,
             generatedBy: adminUser.username,

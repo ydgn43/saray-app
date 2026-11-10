@@ -1,5 +1,5 @@
 // backend/routes/seasonRoute.ts
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { seasonController } from '../controller/seasonController';
 import { authenticateJWT, requireRoles } from '../middleware/authMiddleware';
 import { validateYurtAccess } from '../middleware/validateYurtAccess';
@@ -11,5 +11,6 @@ seasonRouter.use(validateYurtAccess); // Add yurt access validation
 
 seasonRouter.get('/', seasonController.getAll); // Allow all authenticated users
 seasonRouter.post('/create', requireRoles(['admin']), seasonController.create);
+seasonRouter.put('/update/:season_year', requireRoles(['admin']), seasonController.update);
+seasonRouter.put('/current/:season_year', requireRoles(['admin']), seasonController.setCurrent);
 seasonRouter.delete('/delete/:season_year', requireRoles(['admin']), seasonController.delete);
-

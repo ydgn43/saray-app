@@ -19,7 +19,7 @@ export const createAdminReferenceCode = async (req: Request, res: Response) => {
         const { expiresAt, maxUses, description } = req.body;
         const user = (req as any).user;
 
-        console.log('🔐 Super-admin creating admin reference code:');
+        console.log('Super-admin creating admin reference code:');
         console.log('   - Created by:', user.username, '(', user.role, ')');
         console.log('   - Max uses:', maxUses);
         console.log('   - Expires:', expiresAt);
@@ -54,14 +54,14 @@ export const createAdminReferenceCode = async (req: Request, res: Response) => {
             yurtid: null, // No yurt for admin codes - yurt created on signup
         });
 
-        console.log('✅ Admin reference code created successfully:');
+        console.log('Admin reference code created successfully:');
         console.log('   - Code:', referenceCode.get('code'));
         console.log('   - Role: admin');
         console.log('   - Note: Yurt will be created automatically on signup');
 
         res.status(201).json(referenceCode);
     } catch (error: any) {
-        console.error('❌ Error creating admin reference code:', error);
+        console.error('Error creating admin reference code:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -93,10 +93,10 @@ export const getAdminReferenceCodes = async (req: Request, res: Response) => {
             order: [['createdAt', 'DESC']],
         });
 
-        console.log('📋 Fetched', referenceCodes.length, 'admin reference codes');
+        console.log('Fetched', referenceCodes.length, 'admin reference codes');
         res.json(referenceCodes);
     } catch (error: any) {
-        console.error('❌ Error fetching admin reference codes:', error);
+        console.error('Error fetching admin reference codes:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -123,10 +123,10 @@ export const deleteAdminReferenceCode = async (req: Request, res: Response) => {
         // Permanently delete the reference code
         await referenceCode.destroy();
 
-        console.log('🗑️  Admin reference code deleted:', referenceCode.get('code'));
+        console.log(' Admin reference code deleted:', referenceCode.get('code'));
         res.json({ message: 'Admin reference code deleted successfully' });
     } catch (error: any) {
-        console.error('❌ Error deleting admin reference code:', error);
+        console.error('Error deleting admin reference code:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -178,10 +178,10 @@ export const getAllYurtsWithAdmins = async (req: Request, res: Response) => {
             };
         });
 
-        console.log('🏢 Fetched', yurtsWithAdmins.length, 'yurts with admin info');
+        console.log('Fetched', yurtsWithAdmins.length, 'yurts with admin info');
         res.json(yurtsWithAdmins);
     } catch (error: any) {
-        console.error('❌ Error fetching yurts with admins:', error);
+        console.error('Error fetching yurts with admins:', error);
         console.error('Error stack:', error.stack);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -237,10 +237,10 @@ export const getSystemStatistics = async (req: Request, res: Response) => {
             }
         };
 
-        console.log('📊 System statistics:', statistics);
+        console.log('System statistics:', statistics);
         res.json(statistics);
     } catch (error: any) {
-        console.error('❌ Error fetching system statistics:', error);
+        console.error('Error fetching system statistics:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -254,7 +254,7 @@ export const createAdminUser = async (req: Request, res: Response) => {
         const { username, password, yurtid } = req.body;
         const superAdmin = (req as any).user;
 
-        console.log('👤 Super-admin creating admin user:');
+        console.log('Super-admin creating admin user:');
         console.log('   - Username:', username);
         console.log('   - Yurt ID:', yurtid);
         console.log('   - Created by:', superAdmin.username);
@@ -300,7 +300,7 @@ export const createAdminUser = async (req: Request, res: Response) => {
             assigned_at: new Date()
         });
 
-        console.log('✅ Admin user created:', {
+        console.log('Admin user created:', {
             accountid: newUser.accountid,
             username: newUser.username,
             yurtid: yurtid
@@ -316,7 +316,7 @@ export const createAdminUser = async (req: Request, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error('❌ Error creating admin user:', error);
+        console.error('Error creating admin user:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -330,7 +330,7 @@ export const assignAdminToYurt = async (req: Request, res: Response) => {
         const { accountid, yurtid, isPrimary } = req.body;
         const superAdmin = (req as any).user;
 
-        console.log('👤 Super-admin assigning admin to yurt:');
+        console.log('Super-admin assigning admin to yurt:');
         console.log('   - Admin accountid:', accountid);
         console.log('   - Yurt ID:', yurtid);
         console.log('   - Set as primary:', isPrimary);
@@ -388,7 +388,7 @@ export const assignAdminToYurt = async (req: Request, res: Response) => {
             assigned_at: new Date()
         });
 
-        console.log('✅ Admin assigned to yurt:', {
+        console.log('Admin assigned to yurt:', {
             accountid,
             yurtid,
             isPrimary: isPrimary || false
@@ -403,7 +403,7 @@ export const assignAdminToYurt = async (req: Request, res: Response) => {
             }
         });
     } catch (error: any) {
-        console.error('❌ Error assigning admin to yurt:', error);
+        console.error('Error assigning admin to yurt:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -422,10 +422,10 @@ export const getAllAdmins = async (req: Request, res: Response) => {
             order: [['username', 'ASC']]
         });
 
-        console.log('📋 Fetched', admins.length, 'admin users');
+        console.log('Fetched', admins.length, 'admin users');
         res.json(admins);
     } catch (error: any) {
-        console.error('❌ Error fetching admins:', error);
+        console.error('Error fetching admins:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -438,7 +438,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const { role } = req.query;
 
-        console.log('👥 Fetching all users, filter role:', role || 'all');
+        console.log('Fetching all users, filter role:', role || 'all');
 
         // Build query
         const whereClause: any = {};
@@ -482,10 +482,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
             };
         });
 
-        console.log('👥 Fetched', usersWithYurts.length, 'users');
+        console.log('Fetched', usersWithYurts.length, 'users');
         res.json(usersWithYurts);
     } catch (error: any) {
-        console.error('❌ Error fetching users:', error);
+        console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -500,7 +500,7 @@ export const updateUser = async (req: Request, res: Response) => {
         const { username, role_name, password } = req.body;
         const superAdmin = (req as any).user;
 
-        console.log('✏️ Super-admin updating user:', accountid);
+        console.log('Super-admin updating user:', accountid);
         console.log('   - New username:', username);
         console.log('   - New role:', role_name);
         console.log('   - Password change:', password ? 'Yes' : 'No');
@@ -539,10 +539,10 @@ export const updateUser = async (req: Request, res: Response) => {
 
         await User.update(updateData, { where: { accountid } });
 
-        console.log('✅ User updated:', accountid);
+        console.log('User updated:', accountid);
         res.json({ message: 'User updated successfully' });
     } catch (error: any) {
-        console.error('❌ Error updating user:', error);
+        console.error('Error updating user:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -556,7 +556,7 @@ export const deleteUser = async (req: Request, res: Response) => {
         const { accountid } = req.params;
         const superAdmin = (req as any).user;
 
-        console.log('🗑️ Super-admin deleting user:', accountid);
+        console.log('Super-admin deleting user:', accountid);
 
         // Prevent super-admin from deleting themselves
         if (Number(accountid) === superAdmin.accountid) {
@@ -578,10 +578,10 @@ export const deleteUser = async (req: Request, res: Response) => {
         // Delete user
         await User.destroy({ where: { accountid } });
 
-        console.log('✅ User deleted:', accountid);
+        console.log('User deleted:', accountid);
         res.json({ message: 'User deleted successfully' });
     } catch (error: any) {
-        console.error('❌ Error deleting user:', error);
+        console.error('Error deleting user:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

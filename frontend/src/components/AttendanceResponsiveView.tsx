@@ -1,9 +1,11 @@
+import { Wifi } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import AttendanceCardList from './AttendanceCardList';
 import AttendanceTable from './AttendanceTable';
 import AttendanceRowList from './AttendanceRowList';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Attendance, Student } from '../types';
+import { useAttendanceReasons } from '../hooks/useAttendanceReasons';
 
 interface Class {
   class_name: string;
@@ -47,6 +49,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
   isWebSocketConnected = false,
 }) => {
   const isMobile = useIsMobile();
+  const sebepOptions = useAttendanceReasons(); // the yurt's sebep list (Settings > Yoklama sebepleri)
   const [useRowView, setUseRowView] = useState(false);
   const showTable = attendanceData.length > 0;
 
@@ -66,8 +69,8 @@ const AttendanceResponsiveView: React.FC<Props> = ({
       {/* WebSocket connection status indicator */}
       {isWebSocketConnected && (
         <div className="d-flex justify-content-end mb-2">
-          <span className="badge bg-success" style={{ fontSize: '0.7rem', padding: '4px 8px' }}>
-            🔌 Canlı Bağlantı
+          <span className="badge bg-success d-inline-flex align-items-center gap-1" style={{ fontSize: '0.7rem', padding: '4px 8px' }}>
+            <Wifi size={12} />Canlı Bağlantı
           </span>
         </div>
       )}
@@ -104,6 +107,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               onSortChange={onSortChange}
               availableClasses={availableClasses}
               recentlyUpdatedStudents={recentlyUpdatedStudents}
+              sebepOptions={sebepOptions}
             />
           ) : (
             <AttendanceCardList
@@ -116,6 +120,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
               onSortChange={onSortChange}
               availableClasses={availableClasses}
               recentlyUpdatedStudents={recentlyUpdatedStudents}
+              sebepOptions={sebepOptions}
             />
           )
         ) : (
@@ -129,6 +134,7 @@ const AttendanceResponsiveView: React.FC<Props> = ({
             onSortChange={onSortChange}
             availableClasses={availableClasses}
             recentlyUpdatedStudents={recentlyUpdatedStudents}
+            sebepOptions={sebepOptions}
           />
         )
       ) : (

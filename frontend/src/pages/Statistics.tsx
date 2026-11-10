@@ -1,3 +1,4 @@
+import { BarChart3, Info } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -972,7 +973,7 @@ const Statistics = () => {
                             <div className="mb-3 p-3 border rounded" style={{ backgroundColor: '#f8f9fa' }}>
                                 <div className="d-flex align-items-center mb-2">
                                     <label className="form-label fw-bold mb-0 me-3" style={{ fontSize: '0.9rem' }}>
-                                        📊 Genel Hesaplamaya Dahil Programlar:
+                                        <BarChart3 size={16} className="me-1 align-text-bottom" />Genel Hesaplamaya Dahil Programlar:
                                     </label>
                                     <button
                                         className="btn btn-sm btn-outline-primary me-2"
@@ -1021,7 +1022,7 @@ const Statistics = () => {
                                     ))}
                                 </div>
                                 <small className="text-muted mt-2 d-block" style={{ fontSize: '0.75rem' }}>
-                                    ℹ️ Seçilen programlar tabloda gösterilir ve "Genel" sütunu bu programların ortalaması olarak hesaplanır. ({programsForGenel.size} program seçili)
+                                    <Info size={14} className="me-1 align-text-bottom" />Seçilen programlar tabloda gösterilir ve "Genel" sütunu bu programların ortalaması olarak hesaplanır. ({programsForGenel.size} program seçili)
                                 </small>
                             </div>
                         )}

@@ -135,16 +135,16 @@ export class AttendanceController {
 
     public async deleteAttendance(req: Request, res: Response) {
         try {
-            console.log('🗑️ DELETE /attendance/delete hit with query:', req.query);
+            console.log('DELETE /attendance/delete hit with query:', req.query);
             const { studentid, date, program_name } = req.query;
             const yurtid = req.selectedYurtId!;
 
             if (!studentid || !date || !program_name) {
-                console.log('❌ Missing required fields');
+                console.log('Missing required fields');
                 return res.status(400).json({ message: 'Missing required fields: studentid, date, program_name' });
             }
 
-            console.log(`🔍 Attempting to delete: studentid=${studentid}, date=${date}, program=${program_name}, yurtid=${yurtid}`);
+            console.log(`Attempting to delete: studentid=${studentid}, date=${date}, program=${program_name}, yurtid=${yurtid}`);
 
             // First, check if the record exists
             const attendanceData = new Attendance(
@@ -155,7 +155,7 @@ export class AttendanceController {
                 yurtid
             );
             const existing = await this.attendanceService.getAttendance(attendanceData, yurtid);
-            console.log(`📋 Existing record:`, existing ? JSON.stringify(existing) : 'NOT FOUND');
+            console.log(`Existing record:`, existing ? JSON.stringify(existing) : 'NOT FOUND');
 
             const deleted = await this.attendanceService.deleteAttendance(
                 Number(studentid),
@@ -164,7 +164,7 @@ export class AttendanceController {
                 yurtid
             );
 
-            console.log(`✅ Delete result: ${deleted ? 'SUCCESS' : 'NOT FOUND'}`);
+            console.log(`Delete result: ${deleted ? 'SUCCESS' : 'NOT FOUND'}`);
 
             if (deleted) {
                 res.status(200).json({ message: 'Attendance successfully deleted' });
@@ -172,23 +172,23 @@ export class AttendanceController {
                 res.status(404).json({ message: 'Attendance record not found' });
             }
         } catch (error) {
-            console.log('❌ Delete Attendance error:', error);
+            console.log('Delete Attendance error:', error);
             res.status(500).json({ message: 'Failed to delete attendance' });
         }
     }
 
     public async deleteAllAttendanceByProgram(req: Request, res: Response) {
         try {
-            console.log('🗑️ DELETE ALL /attendance/delete-program hit with query:', req.query);
+            console.log('DELETE ALL /attendance/delete-program hit with query:', req.query);
             const { date, program_name } = req.query;
             const yurtid = req.selectedYurtId!;
 
             if (!date || !program_name) {
-                console.log('❌ Missing required fields');
+                console.log('Missing required fields');
                 return res.status(400).json({ message: 'Missing required fields: date, program_name' });
             }
 
-            console.log(`🔍 Attempting to delete all records: date=${date}, program=${program_name}, yurtid=${yurtid}`);
+            console.log(`Attempting to delete all records: date=${date}, program=${program_name}, yurtid=${yurtid}`);
 
             const deletedCount = await this.attendanceService.deleteAllAttendanceByProgram(
                 date as string,
@@ -196,14 +196,14 @@ export class AttendanceController {
                 yurtid
             );
 
-            console.log(`✅ Deleted ${deletedCount} records`);
+            console.log(`Deleted ${deletedCount} records`);
 
             res.status(200).json({
                 message: `${deletedCount} yoklama kaydı silindi`,
                 deletedCount
             });
         } catch (error) {
-            console.log('❌ Delete All Attendance error:', error);
+            console.log('Delete All Attendance error:', error);
             res.status(500).json({ message: 'Failed to delete attendance records' });
         }
     }

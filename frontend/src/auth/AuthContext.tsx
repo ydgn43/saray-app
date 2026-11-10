@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }
 
                 // Reload yurts from API for all users to get latest data
-                console.log('🔄 AuthContext: Fetching yurts for user...');
+                console.log('AuthContext: Fetching yurts for user...');
                 console.log('   User role:', parsedUser.role);
                 console.log('   Stored yurts from localStorage:', storedAvailableYurts);
 
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     if (response.ok) {
                         const data = await response.json();
                         const yurts: YurtInfo[] = data.data || [];
-                        console.log('✅ AuthContext: Reloaded available yurts:', yurts.length);
+                        console.log('AuthContext: Reloaded available yurts:', yurts.length);
                         console.log('   Yurts data:', yurts);
 
                         setAvailableYurts(yurts);
@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         console.error('   API request failed with status:', response.status);
                     }
                 } catch (error) {
-                    console.error('❌ AuthContext: Failed to reload yurts:', error);
+                    console.error('AuthContext: Failed to reload yurts:', error);
                 }
             }
 
@@ -194,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const setYurtsData = (yurts: YurtInfo[], selectedYurt: YurtInfo | null) => {
-        console.log('📦 AuthContext.setYurtsData called:', yurts.length, 'yurts');
+        console.log('AuthContext.setYurtsData called:', yurts.length, 'yurts');
         setAvailableYurts(yurts);
         setSelectedYurt(selectedYurt);
         if (selectedYurt) {
@@ -248,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const checkToken = () => {
             const storedToken = localStorage.getItem('token');
             if (storedToken && isTokenExpired(storedToken)) {
-                console.warn('🔒 Token expired - auto logging out');
+                console.warn('Token expired - auto logging out');
                 logout();
             }
         };

@@ -19,7 +19,7 @@ attendanceRouter.use(validateYurtAccess); // Add yurt access validation
 
 // Test route to verify DELETE is working at all
 attendanceRouter.delete('/test', (req: Request, res: Response) => {
-    console.log('🧪 TEST DELETE route hit');
+    console.log('TEST DELETE route hit');
     res.json({ message: 'DELETE test successful' });
 });
 
@@ -28,8 +28,8 @@ attendanceRouter.get('/all', (req: Request, res: Response) => {
 });
 
 attendanceRouter.delete('/delete', requireRoles(['admin', 'hoca', 'yoklamaci']), async (req: Request, res: Response) => {
-    console.log('🔥 DELETE /delete route HIT with query:', req.query);
-    console.log('🔥 User:', req.user);
+    console.log('DELETE /delete route HIT with query:', req.query);
+    console.log('User:', req.user);
 
     try {
         // Get student info before deleting
@@ -82,8 +82,8 @@ attendanceRouter.delete('/delete', requireRoles(['admin', 'hoca', 'yoklamaci']),
 
 // Delete all attendance records for a program on a specific date
 attendanceRouter.delete('/delete-program', requireRoles(['admin']), async (req: Request, res: Response) => {
-    console.log('🔥 DELETE /delete-program route HIT with query:', req.query);
-    console.log('🔥 User:', req.user);
+    console.log('DELETE /delete-program route HIT with query:', req.query);
+    console.log('User:', req.user);
 
     try {
         const { date, program_name } = req.query;

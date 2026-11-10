@@ -1,3 +1,4 @@
+import { ShieldCheck as ShieldIcon, Pencil, MapPin, Star } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -196,7 +197,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(errorData.message || 'Failed to create reference code');
             }
 
-            toast.success('✅ Admin reference code created successfully');
+            toast.success('Admin reference code created successfully');
             setShowCreateModal(false);
             setExpiresAt('');
             setMaxUses(1);
@@ -254,7 +255,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(errorData.message || 'Failed to create admin user');
             }
 
-            toast.success('✅ Admin user created successfully');
+            toast.success('Admin user created successfully');
             setShowCreateAdminModal(false);
             setNewAdminUsername('');
             setNewAdminPassword('');
@@ -298,7 +299,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(errorData.message || 'Failed to assign admin');
             }
 
-            toast.success('✅ Admin assigned to yurt successfully');
+            toast.success('Admin assigned to yurt successfully');
             setShowAssignAdminModal(false);
             setSelectedAdminId('');
             setAssignYurtId('');
@@ -345,7 +346,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(error.message);
             }
 
-            toast.success('✅ User updated successfully');
+            toast.success('User updated successfully');
             setShowEditUserModal(false);
             setEditingUser(null);
             setEditUsername('');
@@ -380,7 +381,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(error.message);
             }
 
-            toast.success('✅ User deleted successfully');
+            toast.success('User deleted successfully');
             fetchUsers();
             fetchSystemStats();
 
@@ -433,7 +434,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(error.message);
             }
 
-            toast.success('✅ Yurt updated successfully');
+            toast.success('Yurt updated successfully');
             setShowEditYurtModal(false);
             setEditingYurt(null);
             setEditYurtName('');
@@ -467,7 +468,7 @@ const SuperAdminDashboard = () => {
                 throw new Error(error.message);
             }
 
-            toast.success('✅ Yurt deleted successfully');
+            toast.success('Yurt deleted successfully');
             fetchYurts();
             fetchSystemStats();
 
@@ -498,7 +499,7 @@ const SuperAdminDashboard = () => {
             <ToastContainer />
             <div className="container" style={{ padding: '0 12px', maxWidth: 1400 }}>
                 <PageHeader
-                    icon="🛡️"
+                    icon={<ShieldIcon size={28} />}
                     title="Super Admin Dashboard"
                     subtitle="System overview and admin reference code management"
                     color="#7c3aed"
@@ -684,7 +685,7 @@ const SuperAdminDashboard = () => {
                                                                 style={{ borderRadius: '6px', padding: '2px 8px' }}
                                                                 title="Edit Yurt"
                                                             >
-                                                                ✏️
+                                                                <Pencil size={14} />
                                                             </button>
                                                             <button
                                                                 className="btn btn-sm btn-outline-danger"
@@ -697,7 +698,7 @@ const SuperAdminDashboard = () => {
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    {yurt.location && <p className="text-muted small mb-2">📍 {yurt.location}</p>}
+                                                    {yurt.location && <p className="text-muted small mb-2 d-flex align-items-center gap-1"><MapPin size={14} />{yurt.location}</p>}
                                                     {yurt.description && <p className="text-muted small mb-3">{yurt.description}</p>}
                                                     <div className="d-flex align-items-center gap-2 mb-2">
                                                         <PersonBadge size={16} className="text-primary" />
@@ -783,7 +784,7 @@ const SuperAdminDashboard = () => {
                                                             {user.yurts.map((yurt, idx) => (
                                                                 <small key={idx} className="badge bg-light text-dark">
                                                                     {yurt.yurt_name}
-                                                                    {yurt.is_primary && ' ⭐'}
+                                                                    {yurt.is_primary && <Star size={12} className="ms-1" />}
                                                                 </small>
                                                             ))}
                                                         </div>

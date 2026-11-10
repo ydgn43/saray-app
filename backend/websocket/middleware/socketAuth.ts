@@ -25,7 +25,7 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: Error) => void
         // Attach user info to socket
         (socket as any).user = decoded;
 
-        console.log(`🔐 Socket authenticated: ${decoded.username} (${decoded.role})`);
+        console.log(`Socket authenticated: ${decoded.username} (${decoded.role})`);
         next();
     } catch (error) {
         const isExpired = error instanceof jwt.TokenExpiredError || (error as any)?.name === 'TokenExpiredError';

@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { authFetch } from '../utils/authFetch';
@@ -92,7 +93,7 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({
                     flexShrink: 0,
                   }}
                 >
-                  ✓
+                  <Check size={14} />
                 </motion.div>
               )}
             </AnimatePresence>

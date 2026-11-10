@@ -21,7 +21,7 @@ export const programController = {
                         where: { yurtid },
                         order: [['program_name', 'ASC']]
                     });
-                    console.warn('⚠️ Warning: display_order column not found, please run migration script');
+                    console.warn('Warning: display_order column not found, please run migration script');
                     res.json(programs);
                     return;
                 } catch (fallbackError) {

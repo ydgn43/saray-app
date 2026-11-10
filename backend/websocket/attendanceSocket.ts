@@ -22,7 +22,7 @@ export function setupAttendanceSocket(io: SocketIOServer, socket: Socket) {
     socket.on('attendance:join-session', ({ date, program_name }: { date: string; program_name: string }) => {
         const roomName = `attendance:${date}:${program_name}`;
         socket.join(roomName);
-        console.log(`👥 ${user.username} joined attendance session: ${roomName}`);
+        console.log(`${user.username} joined attendance session: ${roomName}`);
 
         // Notify others in the room with updated user count
         io.in(roomName).allSockets().then(sockets => {
@@ -46,7 +46,7 @@ export function setupAttendanceSocket(io: SocketIOServer, socket: Socket) {
     socket.on('attendance:leave-session', ({ date, program_name }: { date: string; program_name: string }) => {
         const roomName = `attendance:${date}:${program_name}`;
         socket.leave(roomName);
-        console.log(`👋 ${user.username} left attendance session: ${roomName}`);
+        console.log(`${user.username} left attendance session: ${roomName}`);
 
         // Notify others in the room
         io.in(roomName).allSockets().then(sockets => {
@@ -70,7 +70,7 @@ export function setupAttendanceSocket(io: SocketIOServer, socket: Socket) {
             timestamp: new Date().toISOString()
         });
 
-        console.log(`📡 Attendance update broadcast by ${user.username}: Student ${payload.studentid} → Type ${payload.attendancetypeid}`);
+        console.log(`Attendance update broadcast by ${user.username}: Student ${payload.studentid} → Type ${payload.attendancetypeid}`);
     });
 
     // Broadcast attendance creation
@@ -89,7 +89,7 @@ export function setupAttendanceSocket(io: SocketIOServer, socket: Socket) {
             timestamp: new Date().toISOString()
         });
 
-        console.log(`📡 Attendance created broadcast by ${user.username}: Student ${payload.studentid}`);
+        console.log(`Attendance created broadcast by ${user.username}: Student ${payload.studentid}`);
     });
 
     // Broadcast bulk save
@@ -103,6 +103,6 @@ export function setupAttendanceSocket(io: SocketIOServer, socket: Socket) {
             timestamp: new Date().toISOString()
         });
 
-        console.log(`📡 Bulk save broadcast by ${user.username}: ${payload.count} records`);
+        console.log(`Bulk save broadcast by ${user.username}: ${payload.count} records`);
     });
 }

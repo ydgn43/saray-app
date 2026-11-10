@@ -1,3 +1,4 @@
+import { Save, Trash2, Wifi, WifiOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import AttendanceResponsiveView from '../components/AttendanceResponsiveView';
 import { ToastContainer, toast } from 'react-toastify';
@@ -103,13 +104,13 @@ const Attendance = () => {
       toast.info(`${data.updatedBy} bir yoklama güncelledi`, { autoClose: 2000 });
     },
     onUserJoined: (data) => {
-      toast.info(`👤 ${data.username} oturuma katıldı (${data.userCount} kullanıcı)`, { autoClose: 2000 });
+      toast.info(`${data.username} oturuma katıldı (${data.userCount} kullanıcı)`, { autoClose: 2000 });
     },
     onUserLeft: (data) => {
-      toast.info(`👤 ${data.username} oturumdan ayrıldı (${data.userCount} kullanıcı)`, { autoClose: 2000 });
+      toast.info(`${data.username} oturumdan ayrıldı (${data.userCount} kullanıcı)`, { autoClose: 2000 });
     },
     onBulkSave: (data) => {
-      toast.success(`📋 ${data.savedBy} toplu kayıt yaptı (${data.count} kayıt)`, { autoClose: 3000 });
+      toast.success(`${data.savedBy} toplu kayıt yaptı (${data.count} kayıt)`, { autoClose: 3000 });
       // Refresh attendance data to show the bulk changes
       if (date && program) {
         loadAttendanceData(true);
@@ -484,7 +485,7 @@ const Attendance = () => {
         };
         const attendancetypeid = typeMap[attendance_type_name.toLowerCase()] || 1;
 
-        console.log('🔥 Broadcasting update:', {
+        console.log('Broadcasting update:', {
           method,
           studentid,
           attendancetypeid,
@@ -511,7 +512,7 @@ const Attendance = () => {
           );
         }
       } else {
-        console.warn('⚠️ Not broadcasting - program is empty');
+        console.warn('Not broadcasting - program is empty');
       }
 
     } catch (err) {
@@ -588,7 +589,7 @@ const Attendance = () => {
 
   const handleShareAbsentees = () => {
     // Grouping by type and class
-    const yoklarByClass: Record<string, string[]> = {};
+    const yoklarByClass: Record<string, { name: string; sebep?: string }[]> = {};
     const gecByClass: Record<string, { name: string; sebep?: string }[]> = {};
     const izinlilerByClass: Record<string, { name: string; sebep?: string }[]> = {};
 
@@ -603,7 +604,7 @@ const Attendance = () => {
 
       if (attendanceType === 'yok') {
         if (!yoklarByClass[normClass]) yoklarByClass[normClass] = [];
-        yoklarByClass[normClass].push(label);
+        yoklarByClass[normClass].push({ name: label, sebep: record.sebep });
       } else if (attendanceType === 'gec') {
         if (!gecByClass[normClass]) gecByClass[normClass] = [];
         gecByClass[normClass].push({ name: label, sebep: record.sebep });
@@ -628,8 +629,10 @@ const Attendance = () => {
       if (yoklarByClass[classKey]?.length) {
         yokAny = true;
         msg += `\n${cls.display_name || cls.class_name}:\n`;
-        yoklarByClass[classKey].forEach(name => {
-          msg += `• ${name}\n`;
+        yoklarByClass[classKey].forEach(({ name, sebep }) => {
+          msg += `• ${name}`;
+          if (sebep) msg += ` (${sebep})`;
+          msg += '\n';
         });
       }
     });
@@ -914,7 +917,7 @@ const Attendance = () => {
               </>
             ) : (
               <>
-                💾 Tümünü Kaydet
+                <Save size={16} className="me-1 align-text-bottom" />Tümünü Kaydet
               </>
             )}
           </motion.button>
@@ -964,7 +967,7 @@ const Attendance = () => {
                 </>
               ) : (
                 <>
-                  🗑️ Tüm Kayıtları Sil
+                  <Trash2 size={16} className="me-1 align-text-bottom" />Tüm Kayıtları Sil
                 </>
               )}
             </motion.button>
@@ -1024,7 +1027,7 @@ const Attendance = () => {
               }}
               title={isConnected ? 'WebSocket bağlı - Canlı güncellemeler aktif' : 'WebSocket bağlantısı kesildi'}
             >
-              <span style={{ fontSize: '0.9rem' }}>{isConnected ? '🔌' : '⚠️'}</span>
+              <span className="d-inline-flex">{isConnected ? <Wifi size={14} /> : <WifiOff size={14} />}</span>
               <span>{isConnected ? 'Canlı' : 'Çevrimdışı'}</span>
             </div>
 

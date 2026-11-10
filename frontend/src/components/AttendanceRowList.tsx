@@ -1,6 +1,8 @@
+import { Check } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Student, Attendance } from '../types';
 import { classGroupedColors } from '../constants';
+import { allowsSebep, DEFAULT_SEBEP_OPTIONS } from './attendanceSebep';
 
 interface Class {
   class_name: string;
@@ -20,6 +22,7 @@ interface Props {
   onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
   availableClasses?: Class[];
   recentlyUpdatedStudents?: Set<number>;
+  sebepOptions?: string[];
 }
 
 const attendanceLabels: Record<AttendanceType, string> = {
@@ -29,7 +32,6 @@ const attendanceLabels: Record<AttendanceType, string> = {
   izinli: 'İ',
 };
 
-const sebepOptions = ['Banyo', 'Hasta', 'Rahatsiz', 'Okul'];
 
 const AttendanceRowList: React.FC<Props> = ({
   students,
@@ -41,6 +43,7 @@ const AttendanceRowList: React.FC<Props> = ({
   onSortChange,
   availableClasses = [],
   recentlyUpdatedStudents = new Set(),
+  sebepOptions = DEFAULT_SEBEP_OPTIONS,
 }) => {
   const [sebepDrafts, setSebepDrafts] = useState<Record<number, string>>({});
   const [recentlyUpdated, setRecentlyUpdated] = useState<Record<number, boolean>>({});
@@ -58,7 +61,7 @@ const AttendanceRowList: React.FC<Props> = ({
 
   const handleTypeChange = (studentId: number, type: AttendanceType) => {
     const sebep = sebepDrafts[studentId] ?? '';
-    onUpdateAttendance(studentId, type, ['gec', 'izinli'].includes(type) ? sebep : '');
+    onUpdateAttendance(studentId, type, allowsSebep(type) ? sebep : '');
     setRecentlyUpdated((prev) => ({ ...prev, [studentId]: true }));
     setTimeout(() => {
       setRecentlyUpdated((prev) => ({ ...prev, [studentId]: false }));
@@ -189,7 +192,7 @@ const AttendanceRowList: React.FC<Props> = ({
               </div>
             </div>
 
-            {(current === 'gec' || current === 'izinli') && (
+            {allowsSebep(current) && (
               <div className="mt-2">
                 <select
                   className="form-select form-select-sm mb-1"
@@ -246,7 +249,7 @@ const AttendanceRowList: React.FC<Props> = ({
               </div>
             )}
 
-            {recently && <div className="text-success small mt-1">✓ Kaydedildi</div>}
+            {recently && <div className="text-success small mt-1 d-flex align-items-center gap-1"><Check size={12} />Kaydedildi</div>}
           </div>
         );
       })}

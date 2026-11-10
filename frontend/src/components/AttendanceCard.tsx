@@ -1,7 +1,9 @@
+import { Check } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Student, Attendance } from '../types';
 import { classGroupedColors } from '../constants';
 import { motion } from 'framer-motion';
+import { allowsSebep, DEFAULT_SEBEP_OPTIONS } from './attendanceSebep';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 
@@ -12,6 +14,7 @@ interface Props {
     program: string;
     classDisplayName?: string;
     onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
+    sebepOptions?: string[];
 }
 
 const typeLabels: Record<AttendanceType, string> = {
@@ -21,7 +24,6 @@ const typeLabels: Record<AttendanceType, string> = {
     izinli: 'İZİNLİ',
 };
 const typeOptions: AttendanceType[] = ['var', 'gec', 'yok', 'izinli'];
-const sebepOptions = ['Banyo', 'Hasta', 'Rahatsiz', 'Okul'];
 
 const activeClass = (type: AttendanceType) => {
     switch (type) {
@@ -69,7 +71,7 @@ function hexToRgba(hex: string, alpha: number): string {
     return `rgba(${r},${g},${b},${alpha})`;
 }
 
-const AttendanceCard: React.FC<Props> = ({ student, record, date, program, classDisplayName, onUpdateAttendance }) => {
+const AttendanceCard: React.FC<Props> = ({ student, record, date, program, classDisplayName, onUpdateAttendance, sebepOptions = DEFAULT_SEBEP_OPTIONS }) => {
     const [attendanceType, setAttendanceType] = useState<AttendanceType>(
         (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
     );
@@ -97,8 +99,8 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, class
         let newSebep = sebep;
         let otherFlag = isOtherSebep;
         let custom = customSebep;
-        if (!(type === 'gec' || type === 'izinli')) {
-            // Reset sebep and custom if not gec/izinli
+        if (!allowsSebep(type)) {
+            // Reset sebep and custom when no sebep is allowed (VAR)
             newSebep = '';
             custom = '';
             otherFlag = false;
@@ -171,8 +173,8 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, class
         }
     }, [record?.sebep]);
 
-    // Always show Sebep select and input, but only enable if "gec"/"izinli"
-    const sebepEnabled = attendanceType === 'gec' || attendanceType === 'izinli';
+    // Always show Sebep select and input, but only enable if "gec"/"izinli"/"yok"
+    const sebepEnabled = allowsSebep(attendanceType);
     const showCustomInput = sebepEnabled && isOtherSebep;
 
     return (
@@ -228,10 +230,9 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, class
                         }}
                     >
                         <option value="">Seçin</option>
-                        <option value="Banyo">Banyo</option>
-                        <option value="Hasta">Hasta</option>
-                        <option value="Rahatsiz">Rahatsız</option>
-                        <option value="Okul">Okul</option>
+                        {sebepOptions.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
                         <option value="diger">Diğer</option>
                     </select>
                     <input
@@ -254,7 +255,7 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, class
                             transition: 'opacity 0.25s'
                         }}
                     >
-                        ✓
+                        <Check size={14} />
                     </span>
                 </div>
             </div>

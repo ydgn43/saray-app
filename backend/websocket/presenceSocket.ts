@@ -45,7 +45,7 @@ export function setupPresenceSocket(io: SocketIOServer, socket: Socket) {
             userCount: userList.length
         });
 
-        console.log(`👤 ${user.username} joined room ${roomName}. Total users: ${userList.length}`);
+        console.log(`${user.username} joined room ${roomName}. Total users: ${userList.length}`);
     });
 
     // User leaves a presence room
@@ -76,7 +76,7 @@ export function setupPresenceSocket(io: SocketIOServer, socket: Socket) {
                 userCount: userList.length
             });
 
-            console.log(`👤 ${user.username} left room ${roomName}. Remaining users: ${userList.length}`);
+            console.log(`${user.username} left room ${roomName}. Remaining users: ${userList.length}`);
         }
     });
 
@@ -106,7 +106,7 @@ export function setupPresenceSocket(io: SocketIOServer, socket: Socket) {
                     });
                 }
 
-                console.log(`👤 ${user.username} disconnected from room ${roomName}. Remaining users: ${userList.length}`);
+                console.log(`${user.username} disconnected from room ${roomName}. Remaining users: ${userList.length}`);
             }
         });
     });

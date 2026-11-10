@@ -1,3 +1,4 @@
+import { Star, TrendingUp, ThumbsUp, Lightbulb, BarChart3, Settings as SettingsIcon, Users, BookOpen, ClipboardList, CheckCircle2, Trophy, Medal, LucideIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authFetch } from '../utils/authFetch';
@@ -69,11 +70,11 @@ const Home = () => {
   const isTalebe = user?.role === 'talebe';
   const userStudentId = user?.studentid;
 
-  console.log('🏠 Home component loaded:', { isTalebe, userStudentId, user });
+  console.log('Home component loaded:', { isTalebe, userStudentId, user });
 
   // Fetch data for talebe users
   useEffect(() => {
-    console.log('🔄 useEffect triggered:', { isTalebe, userStudentId });
+    console.log('useEffect triggered:', { isTalebe, userStudentId });
     if (isTalebe && userStudentId) {
       fetchTalebeStatistics();
     }
@@ -91,7 +92,7 @@ const Home = () => {
       const startDate = start.toISOString().slice(0, 10);
       const endDate = end.toISOString().slice(0, 10);
 
-      console.log('🔍 Fetching statistics for:', { userStudentId, startDate, endDate });
+      console.log('Fetching statistics for:', { userStudentId, startDate, endDate });
 
       // Fetch statistics
       const statsRes = await authFetch(
@@ -99,9 +100,9 @@ const Home = () => {
       );
       if (statsRes.ok) {
         const data = await statsRes.json();
-        console.log('📊 Statistics data received:', data);
+        console.log('Statistics data received:', data);
         const myStats = data.find((s: StatisticEntry) => s.studentid === userStudentId);
-        console.log('👤 My statistics:', myStats);
+        console.log('My statistics:', myStats);
         setMyStatistics(myStats || null);
       }
 
@@ -111,13 +112,13 @@ const Home = () => {
       );
       if (recordsRes.ok) {
         const data = await recordsRes.json();
-        console.log('📝 Attendance records:', data.length, 'total records');
+        console.log('Attendance records:', data.length, 'total records');
         const myRecords = data.filter((r: any) => r.studentid === userStudentId);
-        console.log('👤 My attendance records:', myRecords.length, 'records');
+        console.log('My attendance records:', myRecords.length, 'records');
         setAttendanceRecords(data);
       }
     } catch (error) {
-      console.error('❌ Error fetching talebe statistics:', error);
+      console.error('Error fetching talebe statistics:', error);
     } finally {
       setLoading(false);
     }
@@ -267,7 +268,7 @@ const Home = () => {
         {/* Welcome Header */}
         <div className="mb-5 text-center">
           <h1 className="display-4 fw-bold mb-2" style={{ color: '#0d6efd' }}>
-            Merhaba, {user?.username}! 👋
+            Merhaba, {user?.username}!
           </h1>
           <p className="text-muted fs-5">
             {currentMonth} ayı performansın
@@ -307,22 +308,22 @@ const Home = () => {
                           const { genel } = getProgramSums(myStatistics);
                           let badgeClass = 'bg-success';
                           let text = 'Çok İyi!';
-                          let emoji = '🌟';
+                          let Icon: LucideIcon = Star;
                           if (genel < 60) {
                             badgeClass = 'bg-danger';
                             text = 'Geliştirilmeli';
-                            emoji = '📈';
+                            Icon = TrendingUp;
                           } else if (genel < 80) {
                             badgeClass = 'bg-warning';
                             text = 'İyi';
-                            emoji = '👍';
+                            Icon = ThumbsUp;
                           }
                           return (
                             <div>
                               <div className="display-1 fw-bold mb-2">{genel}%</div>
                               <div className="fs-4 fw-bold mb-2">Genel Performans</div>
-                              <span className={`badge ${badgeClass} fs-5 px-4 py-2`}>
-                                {emoji} {text}
+                              <span className={`badge ${badgeClass} fs-5 px-4 py-2 d-inline-flex align-items-center gap-2`}>
+                                <Icon size={20} />{text}
                               </span>
                             </div>
                           );
@@ -435,18 +436,18 @@ const Home = () => {
                   background: 'linear-gradient(135deg, #1e40af22 0%, #3b82f622 100%)'
                 }}>
                   <div className="d-flex align-items-center">
-                    <div className="fs-1 me-3">💡</div>
+                    <div className="me-3"><Lightbulb size={36} /></div>
                     <div>
                       <h5 className="alert-heading mb-2">İpucu</h5>
                       <p className="mb-0">
                         {(() => {
                           const { genel } = getProgramSums(myStatistics);
                           if (genel >= 80) {
-                            return "Mükemmel bir performans sergiliyorsun! Bu şekilde devam et. 🌟";
+                            return "Mükemmel bir performans sergiliyorsun! Bu şekilde devam et.";
                           } else if (genel >= 60) {
-                            return "İyi gidiyorsun! Biraz daha çaba ile çok daha iyi olabilirsin. 💪";
+                            return "İyi gidiyorsun! Biraz daha çaba ile çok daha iyi olabilirsin.";
                           } else {
-                            return "Performansını artırmak için düzenli katılım göstermeye çalış. Başarabilirsin! 🚀";
+                            return "Performansını artırmak için düzenli katılım göstermeye çalış. Başarabilirsin!";
                           }
                         })()}
                       </p>
@@ -467,13 +468,13 @@ const Home = () => {
                         className="btn btn-primary btn-lg"
                         onClick={() => navigate('/student-portal')}
                       >
-                        📊 Detaylı İstatistikler
+                        <BarChart3 size={18} className="me-2 align-text-bottom" />Detaylı İstatistikler
                       </button>
                       <button
                         className="btn btn-outline-primary btn-lg"
                         onClick={() => navigate('/profile')}
                       >
-                        ⚙️ Profil Ayarları
+                        <SettingsIcon size={18} className="me-2 align-text-bottom" />Profil Ayarları
                       </button>
                     </div>
                   </div>
@@ -485,7 +486,7 @@ const Home = () => {
           <div className="text-center py-5">
             <div className="card shadow-sm">
               <div className="card-body p-5">
-                <div className="fs-1 mb-3">📊</div>
+                <div className="mb-3 text-muted"><BarChart3 size={48} /></div>
                 <h3 className="mb-3">Henüz Veri Yok</h3>
                 <p className="text-muted mb-0">
                   Bu ay için henüz yoklama kaydın bulunmuyor. İlk yoklaman alındığında istatistiklerin burada görünecek.
@@ -504,7 +505,7 @@ const Home = () => {
       {/* Welcome Header */}
       <div className="mb-4">
         <h1 className="display-5 fw-bold mb-2" style={{ color: '#0d6efd' }}>
-          Hoş Geldiniz, {user?.username}! 👋
+          Hoş Geldiniz, {user?.username}!
         </h1>
         <p className="text-muted fs-5">
           Bugünün Tarihi: {new Date().toLocaleDateString('tr-TR', {
@@ -535,7 +536,7 @@ const Home = () => {
                     {studentCount !== null ? studentCount : '...'}
                   </h2>
                 </div>
-                <div style={{ fontSize: '3rem', opacity: 0.3 }}>👥</div>
+                <div style={{ opacity: 0.3 }}><Users size={48} /></div>
               </div>
             </div>
           </div>
@@ -558,7 +559,7 @@ const Home = () => {
                     {classCount !== null ? classCount : '...'}
                   </h2>
                 </div>
-                <div style={{ fontSize: '3rem', opacity: 0.3 }}>📚</div>
+                <div style={{ opacity: 0.3 }}><BookOpen size={48} /></div>
               </div>
             </div>
           </div>
@@ -581,7 +582,7 @@ const Home = () => {
                     {programCount !== null ? programCount : '...'}
                   </h2>
                 </div>
-                <div style={{ fontSize: '3rem', opacity: 0.3 }}>📋</div>
+                <div style={{ opacity: 0.3 }}><ClipboardList size={48} /></div>
               </div>
             </div>
           </div>
@@ -604,7 +605,7 @@ const Home = () => {
                     {attendanceRate !== null ? `${attendanceRate}%` : '...'}
                   </h2>
                 </div>
-                <div style={{ fontSize: '3rem', opacity: 0.3 }}>✅</div>
+                <div style={{ opacity: 0.3 }}><CheckCircle2 size={48} /></div>
               </div>
             </div>
           </div>
@@ -616,7 +617,7 @@ const Home = () => {
         <div className="card-header bg-white border-0 py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h5 className="mb-0 fw-bold">🏆 Aylık En İyi Performans (Top 5)</h5>
+              <h5 className="mb-0 fw-bold d-flex align-items-center gap-2"><Trophy size={20} />Aylık En İyi Performans (Top 5)</h5>
               <small className="text-muted">
                 {new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
               </small>
@@ -642,7 +643,7 @@ const Home = () => {
         <div className="card-body">
           {monthlyTop.length === 0 ? (
             <div className="text-center py-5">
-              <div className="fs-1 mb-3">📊</div>
+              <div className="mb-3 text-muted"><BarChart3 size={48} /></div>
               <p className="text-muted">Bu ay için henüz veri yok</p>
             </div>
           ) : (
@@ -661,11 +662,11 @@ const Home = () => {
                   {monthlyTop.map((s, i) => {
                     const percentage = s.percentages.var ?? 0;
                     let badgeClass = 'success';
-                    let medal = '';
+                    let medalColor: string | null = null;
 
-                    if (i === 0) medal = '🥇';
-                    else if (i === 1) medal = '🥈';
-                    else if (i === 2) medal = '🥉';
+                    if (i === 0) medalColor = '#d4af37';
+                    else if (i === 1) medalColor = '#9ca3af';
+                    else if (i === 2) medalColor = '#b45309';
 
                     if (percentage < 60) badgeClass = 'danger';
                     else if (percentage < 80) badgeClass = 'warning';
@@ -674,7 +675,7 @@ const Home = () => {
                       <tr key={s.studentid}>
                         <td>
                           <div className="d-flex align-items-center">
-                            <span className="fs-5 me-2">{medal}</span>
+                            <span className="me-2 d-inline-flex" style={{ width: 22 }}>{medalColor && <Medal size={20} color={medalColor} />}</span>
                             <span className="fw-bold">{i + 1}</span>
                           </div>
                         </td>

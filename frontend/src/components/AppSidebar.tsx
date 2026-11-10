@@ -1,4 +1,5 @@
 // src/components/AppSidebar.tsx
+import { MapPin } from 'lucide-react';
 import React from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -249,7 +250,7 @@ const AppSidebar: React.FC<Props> = ({ collapsed, toggled, onToggle, mobileMode 
                                     marginTop: '2px',
                                     fontWeight: 500
                                 }}>
-                                    📍 {yurtName}
+                                    <MapPin size={14} className="me-1 align-text-bottom" />{yurtName}
                                 </div>
                             )}
                         </div>

@@ -56,7 +56,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
     const joinSession = useCallback((date: string, program_name: string) => {
         if (isConnected) {
             emit('attendance:join-session', { date, program_name });
-            console.log(`🔌 Joined attendance session: ${date} - Program ${program_name}`);
+            console.log(`Joined attendance session: ${date} - Program ${program_name}`);
         }
     }, [isConnected, emit]);
 
@@ -64,7 +64,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
     const leaveSession = useCallback((date: string, program_name: string) => {
         if (isConnected) {
             emit('attendance:leave-session', { date, program_name });
-            console.log(`🔌 Left attendance session: ${date} - Program ${program_name}`);
+            console.log(`Left attendance session: ${date} - Program ${program_name}`);
         }
     }, [isConnected, emit]);
 
@@ -84,9 +84,9 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
                 program_name,
                 sebep,
             });
-            console.log(`📡 Broadcast attendance update:`, { studentid, attendancetypeid, date, program_name, sebep });
+            console.log(`Broadcast attendance update:`, { studentid, attendancetypeid, date, program_name, sebep });
         } else {
-            console.warn('⚠️ Cannot broadcast update - not connected');
+            console.warn('Cannot broadcast update - not connected');
         }
     }, [isConnected, emit]);
 
@@ -99,9 +99,9 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
     }) => {
         if (isConnected) {
             emit('attendance:create', attendance);
-            console.log(`📡 Broadcast attendance create:`, attendance);
+            console.log(`Broadcast attendance create:`, attendance);
         } else {
-            console.warn('⚠️ Cannot broadcast create - not connected');
+            console.warn('Cannot broadcast create - not connected');
         }
     }, [isConnected, emit]);
 
@@ -109,7 +109,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
     const broadcastBulkSave = useCallback((date: string, program_name: string, count: number) => {
         if (isConnected) {
             emit('attendance:bulk-save', { date, program_name, count });
-            console.log(`📡 Broadcast bulk save: ${count} records for ${date} - Program ${program_name}`);
+            console.log(`Broadcast bulk save: ${count} records for ${date} - Program ${program_name}`);
         }
     }, [isConnected, emit]);
 
@@ -118,7 +118,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
         if (!socket || !onAttendanceUpdate) return;
 
         const handleUpdate = (data: AttendanceUpdatePayload) => {
-            console.log('📥 Received attendance update:', data);
+            console.log('Received attendance update:', data);
             onAttendanceUpdate(data);
         };
 
@@ -134,7 +134,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
         if (!socket || !onAttendanceCreate) return;
 
         const handleCreate = (data: AttendanceCreatePayload) => {
-            console.log('📥 Received attendance create:', data);
+            console.log('Received attendance create:', data);
             onAttendanceCreate(data);
         };
 
@@ -150,7 +150,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
         if (!socket || !onBulkSave) return;
 
         const handleBulkSave = (data: AttendanceBulkSavePayload) => {
-            console.log('📥 Received bulk save notification:', data);
+            console.log('Received bulk save notification:', data);
             onBulkSave(data);
         };
 
@@ -166,7 +166,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
         if (!socket || !onUserJoined) return;
 
         const handleUserJoined = (data: { username: string; userCount: number }) => {
-            console.log('👤 User joined session:', data);
+            console.log('User joined session:', data);
             onUserJoined(data);
         };
 
@@ -182,7 +182,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
         if (!socket || !onUserLeft) return;
 
         const handleUserLeft = (data: { username: string; userCount: number }) => {
-            console.log('👤 User left session:', data);
+            console.log('User left session:', data);
             onUserLeft(data);
         };
 
@@ -195,7 +195,7 @@ export const useAttendanceSync = (options: UseAttendanceSyncOptions = {}) => {
 
     // Auto join/leave session when date or program changes
     useEffect(() => {
-        console.log('🔍 Auto join/leave check:', {
+        console.log('Auto join/leave check:', {
             currentDate,
             currentProgram,
             isConnected,

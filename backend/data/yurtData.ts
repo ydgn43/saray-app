@@ -56,7 +56,7 @@ class YurtData {
         // Hard delete - actually remove from database with cascading deletes
         const sequelize = Yurt.sequelize!;
 
-        console.log(`🗑️ Deleting yurt ${yurtid} and all related data...`);
+        console.log(`Deleting yurt ${yurtid} and all related data...`);
 
         // Delete all related data in the correct order to avoid foreign key issues
 
@@ -64,37 +64,37 @@ class YurtData {
         await sequelize.query(`DELETE FROM attendance WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Deleted attendance records');
+        console.log('Deleted attendance records');
 
         // 2. Delete activity logs
         await sequelize.query(`DELETE FROM activitylog WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Deleted activity logs');
+        console.log('Deleted activity logs');
 
         // 3. Delete students
         await sequelize.query(`DELETE FROM student WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Deleted students');
+        console.log('Deleted students');
 
         // 4. Delete UserYurt associations
         await sequelize.query(`DELETE FROM useryurt WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Deleted user-yurt associations');
+        console.log('Deleted user-yurt associations');
 
         // 5. Delete reference codes associated with this yurt
         await sequelize.query(`DELETE FROM referencecodes WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Deleted reference codes');
+        console.log('Deleted reference codes');
 
         // 6. Update users to remove yurtid reference (set to default)
         await sequelize.query(`UPDATE user SET yurtid = 1 WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Updated user yurtid references');
+        console.log('Updated user yurtid references');
 
         // 7. Delete classes, seasons, programs, attendance types for this yurt
         await sequelize.query(`DELETE FROM class WHERE yurtid = :yurtid`, {
@@ -109,11 +109,11 @@ class YurtData {
         await sequelize.query(`DELETE FROM attendancetype WHERE yurtid = :yurtid`, {
             replacements: { yurtid }
         });
-        console.log('✅ Deleted yurt configuration data');
+        console.log('Deleted yurt configuration data');
 
         // 8. Finally, delete the yurt itself
         await yurt.destroy();
-        console.log('✅ Yurt deleted successfully');
+        console.log('Yurt deleted successfully');
 
         return yurt;
     }

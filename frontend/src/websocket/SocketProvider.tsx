@@ -65,7 +65,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     useEffect(() => {
         // Get JWT token from state
         if (!token) {
-            console.warn('⚠️ No JWT token found, WebSocket will not connect');
+            console.warn('No JWT token found, WebSocket will not connect');
             // Disconnect existing socket if token is removed
             if (socket) {
                 socket.disconnect();
@@ -76,7 +76,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
 
         if (isTokenExpired(token)) {
-            console.warn('🔒 WebSocket token expired, logging out');
+            console.warn('WebSocket token expired, logging out');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             setToken(null);
@@ -91,14 +91,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
         // Disconnect existing socket before creating new one
         if (socket) {
-            console.log('🔌 Disconnecting old WebSocket connection');
+            console.log('Disconnecting old WebSocket connection');
             socket.disconnect();
         }
 
         // Connect to WebSocket server
         const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
-        console.log('🔄 Connecting to WebSocket with token...');
+        console.log('Connecting to WebSocket with token...');
         const socketInstance = io(backendUrl, {
             auth: {
                 token: token
@@ -110,17 +110,17 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         });
 
         socketInstance.on('connect', () => {
-            console.log('✅ WebSocket connected:', socketInstance.id);
+            console.log('WebSocket connected:', socketInstance.id);
             setIsConnected(true);
         });
 
         socketInstance.on('disconnect', (reason) => {
-            console.log('❌ WebSocket disconnected:', reason);
+            console.log('WebSocket disconnected:', reason);
             setIsConnected(false);
         });
 
         socketInstance.on('connect_error', (error) => {
-            console.error('❌ WebSocket connection error:', error.message);
+            console.error('WebSocket connection error:', error.message);
             setIsConnected(false);
 
             if (error.message.toLowerCase().includes('expired')) {
@@ -132,14 +132,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         });
 
         socketInstance.on('error', (error) => {
-            console.error('❌ WebSocket error:', error);
+            console.error('WebSocket error:', error);
         });
 
         setSocket(socketInstance);
 
         // Cleanup on unmount or token change
         return () => {
-            console.log('🔌 Disconnecting WebSocket');
+            console.log('Disconnecting WebSocket');
             socketInstance.disconnect();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,7 +149,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         if (socket && isConnected) {
             socket.emit(event, data);
         } else {
-            console.warn('⚠️ Cannot emit, socket not connected');
+            console.warn('Cannot emit, socket not connected');
         }
     }, [socket, isConnected]);
 

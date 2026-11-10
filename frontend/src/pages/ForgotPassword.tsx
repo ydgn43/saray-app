@@ -98,7 +98,7 @@ export default function ForgotPassword() {
                             <span style={{ fontSize: '15px', fontWeight: '600', color: '#6b7280' }}>Efendim App</span>
                         </div>
                         <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', margin: '0 0 6px 0' }}>
-                            {success ? 'Talebiniz Alındı ✅' : 'Şifremi Unuttum'}
+                            {success ? 'Talebiniz Alındı' : 'Şifremi Unuttum'}
                         </h1>
                         <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
                             {success

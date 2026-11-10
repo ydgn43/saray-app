@@ -18,6 +18,7 @@ import yurtRouter from './routes/yurtRoute';
 import yurtManagementRouter from './routes/yurtManagementRoute';
 import superAdminRouter from './routes/superAdminRoute';
 import exitRouter from './routes/exitRoute';
+import attendanceReasonRouter from './routes/attendanceReasonRoute';
 import { initializeWebSocket } from './websocket/socketServer';
 
 const app = express();
@@ -37,7 +38,7 @@ app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true); // allow REST tools like Postman
         if (allowedOrigins.includes(origin)) return callback(null, true);
-        console.error("❌ CORS blocked for", origin);
+        console.error("CORS blocked for", origin);
         return callback(new Error("CORS not allowed for " + origin), false);
     },
     credentials: true,
@@ -45,7 +46,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Yurt-Id']
 }));
 
-// ⛔️ REMOVED THE app.options('*') BLOCK HERE! 
+// REMOVED THE app.options('*') BLOCK HERE! 
 // The 'cors' middleware above handles preflight requests correctly.
 
 app.use(express.json());
@@ -64,6 +65,7 @@ app.use('/yurts', yurtRouter);
 app.use('/yurt-management', yurtManagementRouter);
 app.use('/super-admin', superAdminRouter);
 app.use('/exit', exitRouter);
+app.use('/attendance-reasons', attendanceReasonRouter);
 
 // Health check endpoint
 app.get('/health', async (req, res) => {
@@ -86,12 +88,12 @@ app.get('/health', async (req, res) => {
     }
 });
 
-console.log('✅ All routes registered successfully!');
-console.log('📍 Auth routes: POST /auth/login, POST /auth/signup');
+console.log('All routes registered successfully!');
+console.log('Auth routes: POST /auth/login, POST /auth/signup');
 
 // Catch-all for debugging 404s
 app.use((req, res, next) => {
-    console.log(`⚠️  404 - Route not found: ${req.method} ${req.url}`);
+    console.log(` 404 - Route not found: ${req.method} ${req.url}`);
     res.status(404).json({ message: 'Route not found', path: req.url, method: req.method });
 });
 
@@ -99,9 +101,9 @@ app.use((req, res, next) => {
 initializeWebSocket(httpServer);
 
 httpServer.listen(port, host, () => {
-    console.log(`🚀 Backend server listening on http://${host}:${port}`);
-    console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
-    console.log(`🔌 WebSocket server initialized`);
+    console.log(`Backend server listening on http://${host}:${port}`);
+    console.log(`CORS enabled for: ${allowedOrigins.join(', ')}`);
+    console.log(`WebSocket server initialized`);
 });
 
 async function testSequelizeConnection() {

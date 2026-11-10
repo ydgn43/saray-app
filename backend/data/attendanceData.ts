@@ -167,7 +167,7 @@ export default class AttendanceData {
 
     public async deleteAttendance(studentId: number, date: string, programName: string, yurtid: number): Promise<boolean> {
         try {
-            console.log(`📊 Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}, yurtid=${yurtid}`);
+            console.log(`Data layer DELETE: studentid=${studentId}, date=${date}, program_name=${programName}, yurtid=${yurtid}`);
 
             // First, let's check what records exist for this student and date
             const existing = await AttendanceSequelize.findAll({
@@ -177,7 +177,7 @@ export default class AttendanceData {
                     yurtid: yurtid
                 }
             });
-            console.log(`📊 Found ${existing.length} records for student ${studentId} on ${date}:`,
+            console.log(`Found ${existing.length} records for student ${studentId} on ${date}:`,
                 existing.map(r => ({ program: r.program_name, type: r.attendance_type_name })));
 
             const deleted = await AttendanceSequelize.destroy({
@@ -188,17 +188,17 @@ export default class AttendanceData {
                     yurtid: yurtid
                 },
             });
-            console.log(`📊 Rows deleted: ${deleted}`);
+            console.log(`Rows deleted: ${deleted}`);
             return deleted > 0;
         } catch (error) {
-            console.error('❌ Delete failed:', error);
+            console.error('Delete failed:', error);
             throw new Error('Could not delete attendance');
         }
     }
 
     public async deleteAllAttendanceByProgram(date: string, programName: string, yurtid: number): Promise<number> {
         try {
-            console.log(`🗑️ Data layer DELETE ALL: date=${date}, program_name=${programName}, yurtid=${yurtid}`);
+            console.log(`Data layer DELETE ALL: date=${date}, program_name=${programName}, yurtid=${yurtid}`);
 
             const deleted = await AttendanceSequelize.destroy({
                 where: {
@@ -207,10 +207,10 @@ export default class AttendanceData {
                     yurtid: yurtid
                 },
             });
-            console.log(`🗑️ Total rows deleted: ${deleted}`);
+            console.log(`Total rows deleted: ${deleted}`);
             return deleted;
         } catch (error) {
-            console.error('❌ Delete all failed:', error);
+            console.error('Delete all failed:', error);
             throw new Error('Could not delete attendance records for program');
         }
     }

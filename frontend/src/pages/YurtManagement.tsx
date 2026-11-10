@@ -1,5 +1,6 @@
+import { MapPin, FileText, CalendarDays, Pencil, Star, Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { authFetch } from '../utils/authFetch';
 import config from '../config';
@@ -80,7 +81,7 @@ const YurtManagement = () => {
                 throw new Error(error.message || 'Güncelleme başarısız');
             }
 
-            toast.success('✅ Yurt başarıyla güncellendi');
+            toast.success('Yurt başarıyla güncellendi');
             cancelEdit();
             loadYurts();
 
@@ -109,7 +110,7 @@ const YurtManagement = () => {
                 throw new Error(error.message || 'Silme başarısız');
             }
 
-            toast.success('✅ Yurt başarıyla silindi');
+            toast.success('Yurt başarıyla silindi');
             loadYurts();
 
             // Refresh page to update yurt list and selector
@@ -140,7 +141,7 @@ const YurtManagement = () => {
                 throw new Error(error.message || 'İşlem başarısız');
             }
 
-            toast.success('✅ Varsayılan yurt güncellendi');
+            toast.success('Varsayılan yurt güncellendi');
             loadYurts();
 
             // Refresh page to update yurt selector and all yurt-related data
@@ -164,10 +165,6 @@ const YurtManagement = () => {
 
     return (
         <div>
-            <ToastContainer />
-            <h4 className="mb-3">Yurt Yönetimi</h4>
-            <p className="text-muted mb-4">Yurtlarınızı görüntüleyin ve düzenleyin.</p>
-
             {yurts.length === 0 ? (
                 <div className="alert alert-info">
                     Size atanmış yurt bulunamadı.
@@ -244,16 +241,16 @@ const YurtManagement = () => {
                                             </div>
                                             {yurt.location && (
                                                 <p className="text-muted mb-2">
-                                                    <strong>📍 Konum:</strong> {yurt.location}
+                                                    <strong><MapPin size={14} className="me-1 align-text-bottom" />Konum:</strong> {yurt.location}
                                                 </p>
                                             )}
                                             {yurt.description && (
                                                 <p className="text-muted mb-3">
-                                                    <strong>📝 Açıklama:</strong> {yurt.description}
+                                                    <strong><FileText size={14} className="me-1 align-text-bottom" />Açıklama:</strong> {yurt.description}
                                                 </p>
                                             )}
                                             <p className="text-muted small mb-3">
-                                                <strong>📅 Atanma Tarihi:</strong>{' '}
+                                                <strong><CalendarDays size={14} className="me-1 align-text-bottom" />Atanma Tarihi:</strong>{' '}
                                                 {new Date(yurt.assignedAt).toLocaleDateString('tr-TR')}
                                             </p>
                                             <div className="d-flex gap-2 flex-wrap">
@@ -261,7 +258,7 @@ const YurtManagement = () => {
                                                     className="btn btn-outline-primary btn-sm"
                                                     onClick={() => startEdit(yurt)}
                                                 >
-                                                    ✏️ Düzenle
+                                                    <Pencil size={14} className="me-1 align-text-bottom" />Düzenle
                                                 </button>
                                                 {!yurt.isPrimary && (
                                                     <button
@@ -270,7 +267,7 @@ const YurtManagement = () => {
                                                         disabled={saving}
                                                         title="Bu yurdu varsayılan yap"
                                                     >
-                                                        ⭐ Varsayılan Yap
+                                                        <Star size={14} className="me-1 align-text-bottom" />Varsayılan Yap
                                                     </button>
                                                 )}
                                                 <button
@@ -285,7 +282,7 @@ const YurtManagement = () => {
                                                                 : 'Yurdu sil'
                                                     }
                                                 >
-                                                    🗑️ Sil
+                                                    <Trash2 size={14} className="me-1 align-text-bottom" />Sil
                                                 </button>
                                             </div>
                                         </>

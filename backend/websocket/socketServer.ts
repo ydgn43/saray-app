@@ -21,7 +21,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
     // Connection handler
     io.on('connection', (socket) => {
         const user = (socket as any).user;
-        console.log(`✅ User connected: ${user.username} (${user.userid}) via Socket ${socket.id}`);
+        console.log(`User connected: ${user.username} (${user.userid}) via Socket ${socket.id}`);
 
         // Join user to their personal room
         socket.join(`user:${user.userid}`);
@@ -34,7 +34,7 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
         // Handle disconnection
         socket.on('disconnect', () => {
-            console.log(`❌ User disconnected: ${user.username} (Socket ${socket.id})`);
+            console.log(`User disconnected: ${user.username} (Socket ${socket.id})`);
         });
 
         // Handle errors
@@ -43,6 +43,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
         });
     });
 
-    console.log('🔌 WebSocket server initialized');
+    console.log('WebSocket server initialized');
     return io;
 }

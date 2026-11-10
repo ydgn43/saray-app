@@ -26,7 +26,7 @@ export function usePresence({ roomName }: UsePresenceProps) {
     const joinRoom = useCallback((room: string) => {
         if (isConnected && room) {
             emit('presence:join-room', { roomName: room });
-            console.log(`👥 Joined presence room: ${room}`);
+            console.log(`Joined presence room: ${room}`);
         }
     }, [isConnected, emit]);
 
@@ -34,7 +34,7 @@ export function usePresence({ roomName }: UsePresenceProps) {
     const leaveRoom = useCallback((room: string) => {
         if (isConnected && room) {
             emit('presence:leave-room', { roomName: room });
-            console.log(`👥 Left presence room: ${room}`);
+            console.log(`Left presence room: ${room}`);
         }
     }, [isConnected, emit]);
 
@@ -43,7 +43,7 @@ export function usePresence({ roomName }: UsePresenceProps) {
         if (!socket) return;
 
         const handleUserList = (data: PresenceUserListPayload) => {
-            console.log('👥 Presence user list updated:', data);
+            console.log('Presence user list updated:', data);
             setActiveUsers(data.users);
             setUserCount(data.userCount);
         };

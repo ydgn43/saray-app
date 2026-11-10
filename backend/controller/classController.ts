@@ -21,7 +21,7 @@ export const classController = {
                         where: { yurtid },
                         order: [['class_name', 'ASC']]
                     });
-                    console.warn('⚠️ Warning: display_order column not found, please run migration script');
+                    console.warn('Warning: display_order column not found, please run migration script');
                     res.json(classes);
                     return;
                 } catch (fallbackError) {

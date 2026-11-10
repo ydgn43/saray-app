@@ -21,7 +21,7 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
 
     // If token is expired or invalid, auto logout
     if (response.status === 401) {
-        console.warn('🔒 Token expired or invalid - logging out');
+        console.warn('Token expired or invalid - logging out');
         if (logoutCallback) {
             logoutCallback();
         } else {

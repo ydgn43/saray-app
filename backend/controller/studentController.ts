@@ -45,7 +45,7 @@ export class StudentController {
 
     public async createStudent(req: Request, res: Response) {
         try {
-            console.log('🔍 Create student request:', {
+            console.log('Create student request:', {
                 body: req.body,
                 selectedYurtId: req.selectedYurtId,
                 user: req.user
@@ -54,7 +54,7 @@ export class StudentController {
             const yurtid = req.selectedYurtId!;
 
             if (!yurtid) {
-                console.error('❌ No yurtid found in request');
+                console.error('No yurtid found in request');
                 return res.status(400).json({ message: 'Yurt ID bulunamadı' });
             }
 
@@ -62,7 +62,7 @@ export class StudentController {
 
             // birth_date is optional, so only check for the required fields
             if (!first_name || !last_name || !season_year || !class_name) {
-                console.error('❌ Missing required fields:', { first_name, last_name, season_year, class_name });
+                console.error('Missing required fields:', { first_name, last_name, season_year, class_name });
                 return res.status(400).json({ message: 'İsim, soyisim, sezon ve sınıf zorunludur' });
             }
 
@@ -78,11 +78,11 @@ export class StudentController {
 
             const createdResponse: string = await this.studentService.createStudent(student);
 
-            console.log('📤 Sending response to frontend:', createdResponse);
+            console.log('Sending response to frontend:', createdResponse);
 
             res.status(202).json({ message: createdResponse });
         } catch (error) {
-            console.error('❌ Error creating student:', error);
+            console.error('Error creating student:', error);
             if (error instanceof Error) {
                 res.status(400).json({ message: error.message });
             } else {

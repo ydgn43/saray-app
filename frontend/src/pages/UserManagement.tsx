@@ -1,3 +1,4 @@
+import { KeyRound, Copy, Info } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { authFetch } from '../utils/authFetch';
 import config from '../config';
@@ -161,8 +162,7 @@ const UserManagement = () => {
 
     return (
         <div>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h4>Kullanıcılar</h4>
+            <div className="d-flex justify-content-end align-items-center mb-3">
                 <button className="btn btn-primary" onClick={startAdd}>Yeni Kullanıcı</button>
             </div>
             {loading ? <div>Yükleniyor...</div> : (
@@ -261,7 +261,7 @@ const UserManagement = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header bg-primary text-white">
-                                <h5 className="modal-title">🔑 Şifre Sıfırlama Kodu</h5>
+                                <h5 className="modal-title d-flex align-items-center gap-2"><KeyRound size={18} />Şifre Sıfırlama Kodu</h5>
                                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowResetCodeModal(false)}></button>
                             </div>
                             <div className="modal-body text-center">
@@ -288,11 +288,11 @@ const UserManagement = () => {
                                     className="btn btn-primary mb-3"
                                     onClick={handleCopyResetCode}
                                 >
-                                    📋 Kodu Kopyala
+                                    <Copy size={16} className="me-1 align-text-bottom" />Kodu Kopyala
                                 </button>
                                 <div className="alert alert-info">
                                     <small>
-                                        ℹ️ Bu kodu kullanıcıyla paylaşın. Kod 24 saat geçerlidir.
+                                        <Info size={14} className="me-1 align-text-bottom" />Bu kodu kullanıcıyla paylaşın. Kod 24 saat geçerlidir.
                                         <br />
                                         Kullanıcı bu kodu şifre sıfırlama sayfasında kullanabilir.
                                     </small>

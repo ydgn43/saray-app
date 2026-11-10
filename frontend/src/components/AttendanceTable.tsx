@@ -1,6 +1,8 @@
+import { Check } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { classGroupedColors } from '../constants';
+import { allowsSebep, DEFAULT_SEBEP_OPTIONS } from './attendanceSebep';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
 const typeLabels: Record<AttendanceType, string> = {
@@ -55,6 +57,7 @@ type Props = {
   onSortChange: (mode: 'group' | 'alphabet' | 'attendance') => void;
   availableClasses?: Class[];
   recentlyUpdatedStudents?: Set<number>;
+  sebepOptions?: string[];
 };
 
 // Helpers for color animation
@@ -89,7 +92,6 @@ const rowVariants = {
   exit: { opacity: 0, y: 18, scale: 0.97, transition: { duration: 0.15 } }
 };
 
-const sebepOptions = ['Banyo', 'Hasta', 'Rahatsiz', 'Okul'];
 
 const AttendanceTable: React.FC<Props> = ({
   students,
@@ -101,6 +103,7 @@ const AttendanceTable: React.FC<Props> = ({
   onSortChange,
   availableClasses = [],
   recentlyUpdatedStudents = new Set(),
+  sebepOptions = DEFAULT_SEBEP_OPTIONS,
 }) => {
   const [savedIndicators, setSavedIndicators] = useState<{ [studentId: number]: boolean }>({});
   const [sebepDrafts, setSebepDrafts] = useState<{ [studentId: number]: string }>({});
@@ -118,7 +121,7 @@ const AttendanceTable: React.FC<Props> = ({
 
   const handleButtonChange = (studentId: number, selectedType: AttendanceType) => {
     const sebep = sebepDrafts[studentId] ?? '';
-    onUpdateAttendance(studentId, selectedType, ['gec', 'izinli'].includes(selectedType) ? sebep : '');
+    onUpdateAttendance(studentId, selectedType, allowsSebep(selectedType) ? sebep : '');
     setSavedIndicators(prev => ({ ...prev, [studentId]: true }));
     setRecentlyUpdated(prev => ({ ...prev, [studentId]: true }));
     setTimeout(() => {
@@ -277,11 +280,11 @@ const AttendanceTable: React.FC<Props> = ({
                             <select
                               className="form-select form-select-sm"
                               value={
-                                (current === 'gec' || current === 'izinli')
+                                allowsSebep(current)
                                   ? (sebepOptions.includes(sebepVal) ? sebepVal : (sebepVal === '__diger__' ? 'diger' : sebepVal ? 'diger' : ''))
                                   : ''
                               }
-                              disabled={!(current === 'gec' || current === 'izinli')}
+                              disabled={!allowsSebep(current)}
                               onChange={e => {
                                 const val = e.target.value;
                                 if (val === 'diger') {
@@ -292,17 +295,16 @@ const AttendanceTable: React.FC<Props> = ({
                                 }
                               }}
                               style={{
-                                backgroundColor: !(current === 'gec' || current === 'izinli') ? '#f5f5f5' : undefined,
-                                cursor: !(current === 'gec' || current === 'izinli') ? 'not-allowed' : undefined,
-                                opacity: !(current === 'gec' || current === 'izinli') ? 0.7 : 1,
+                                backgroundColor: !allowsSebep(current) ? '#f5f5f5' : undefined,
+                                cursor: !allowsSebep(current) ? 'not-allowed' : undefined,
+                                opacity: !allowsSebep(current) ? 0.7 : 1,
                                 maxWidth: 100
                               }}
                             >
                               <option value="">Seçin</option>
-                              <option value="Banyo">Banyo</option>
-                              <option value="Hasta">Hasta</option>
-                              <option value="Rahatsiz">Rahatsız</option>
-                              <option value="Okul">Okul</option>
+                              {sebepOptions.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
                               <option value="diger">Diğer</option>
                             </select>
                             <input
@@ -310,13 +312,13 @@ const AttendanceTable: React.FC<Props> = ({
                               style={{ minWidth: 80, maxWidth: 120 }}
                               placeholder="Sebep girin"
                               value={
-                                (current === 'gec' || current === 'izinli')
+                                allowsSebep(current)
                                   ? (sebepVal === '__diger__' ? '' : (!sebepOptions.includes(sebepVal) && sebepVal !== '' ? sebepVal : ''))
                                   : ''
                               }
                               onChange={e => handleSebepChange(student.studentid, e.target.value, current)}
                               disabled={
-                                !(current === 'gec' || current === 'izinli') ||
+                                !allowsSebep(current) ||
                                 (sebepOptions.includes(sebepVal) || sebepVal === '' || sebepVal !== '__diger__' && sebepVal.length === 0)
                               }
                             />
@@ -333,7 +335,7 @@ const AttendanceTable: React.FC<Props> = ({
                                 marginLeft: 4,
                               }}
                             >
-                              ✓
+                              <Check size={14} />
                             </motion.span>
                           </div>
                         </td>
@@ -392,11 +394,11 @@ const AttendanceTable: React.FC<Props> = ({
                         <select
                           className="form-select form-select-sm"
                           value={
-                            (current === 'gec' || current === 'izinli')
+                            allowsSebep(current)
                               ? (sebepOptions.includes(sebepVal) ? sebepVal : (sebepVal === '__diger__' ? 'diger' : sebepVal ? 'diger' : ''))
                               : ''
                           }
-                          disabled={!(current === 'gec' || current === 'izinli')}
+                          disabled={!allowsSebep(current)}
                           onChange={e => {
                             const val = e.target.value;
                             if (val === 'diger') {
@@ -406,17 +408,16 @@ const AttendanceTable: React.FC<Props> = ({
                             }
                           }}
                           style={{
-                            backgroundColor: !(current === 'gec' || current === 'izinli') ? '#f5f5f5' : undefined,
-                            cursor: !(current === 'gec' || current === 'izinli') ? 'not-allowed' : undefined,
-                            opacity: !(current === 'gec' || current === 'izinli') ? 0.7 : 1,
+                            backgroundColor: !allowsSebep(current) ? '#f5f5f5' : undefined,
+                            cursor: !allowsSebep(current) ? 'not-allowed' : undefined,
+                            opacity: !allowsSebep(current) ? 0.7 : 1,
                             maxWidth: 100
                           }}
                         >
                           <option value="">Seçin</option>
-                          <option value="Banyo">Banyo</option>
-                          <option value="Hasta">Hasta</option>
-                          <option value="Rahatsiz">Rahatsız</option>
-                          <option value="Okul">Okul</option>
+                          {sebepOptions.map((opt) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
                           <option value="diger">Diğer</option>
                         </select>
                         <input
@@ -424,13 +425,13 @@ const AttendanceTable: React.FC<Props> = ({
                           style={{ minWidth: 80, maxWidth: 120 }}
                           placeholder="Sebep girin"
                           value={
-                            (current === 'gec' || current === 'izinli')
+                            allowsSebep(current)
                               ? (sebepVal === '__diger__' ? '' : (!sebepOptions.includes(sebepVal) && sebepVal !== '' ? sebepVal : ''))
                               : ''
                           }
                           onChange={e => handleSebepChange(student.studentid, e.target.value, current)}
                           disabled={
-                            !(current === 'gec' || current === 'izinli') ||
+                            !allowsSebep(current) ||
                             (sebepOptions.includes(sebepVal) || sebepVal === '' || sebepVal !== '__diger__' && sebepVal.length === 0)
                           }
                         />
@@ -447,7 +448,7 @@ const AttendanceTable: React.FC<Props> = ({
                             marginLeft: 4,
                           }}
                         >
-                          ✓
+                          <Check size={14} />
                         </motion.span>
                       </div>
                     </td>

@@ -55,13 +55,14 @@ const Talebeler = () => {
     const [last_name, setLastName] = useState('');
     const [birth_date, setBirthDate] = useState('');
     const [season_year, setSeason] = useState('');
+    const [currentSeason, setCurrentSeason] = useState(''); // the yurt's "Güncel sezon" (Settings)
     const [class_name, setClassName] = useState('');
 
     const debouncedSearch = useCallback(
         debounce((value: string) => {
             setSearchTerm(value);
         }, 300),
-        [] // ✅ stable reference
+        [] // stable reference
     );
 
 
@@ -89,6 +90,9 @@ const Talebeler = () => {
             if (Array.isArray(data)) {
                 const seasons = data.map((s: any) => s.season_year);
                 setAvailableSeasons(seasons);
+                const current = data.find((s: any) => s.is_current)?.season_year ?? '';
+                setCurrentSeason(current);
+                setSeason(prev => prev || current); // new talebe starts in the current season
             }
         } catch (err) {
             console.error('Sezonlar alınamadı:', err);
@@ -185,18 +189,18 @@ const Talebeler = () => {
             }
 
             const data = await res.json();
-            console.log('📥 Student created response:', data);
-            console.log('📝 Message:', data.message);
+            console.log('Student created response:', data);
+            console.log('Message:', data.message);
 
             // Extract reference code from the message if present
             const message = data.message || '';
-            console.log('🔍 Looking for code in:', message);
+            console.log('Looking for code in:', message);
             const codeMatch = message.match(/STU-[A-Z0-9]{6}/);
-            console.log('✅ Code match:', codeMatch);
+            console.log('Code match:', codeMatch);
 
             if (codeMatch) {
                 const referenceCode = codeMatch[0];
-                console.log('🎯 Reference code extracted:', referenceCode);
+                console.log('Reference code extracted:', referenceCode);
                 toast.success(`Talebe eklendi! Referans Kodu: ${referenceCode}`, {
                     autoClose: 10000, // Show for 10 seconds
                     className: 'toast-with-code'
@@ -204,19 +208,19 @@ const Talebeler = () => {
 
                 // Also show an alert with the code
                 setTimeout(() => {
-                    alert(`✅ Talebe başarıyla eklendi!\n\n` +
-                        `📋 Referans Kodu: ${referenceCode}\n\n` +
+                    alert(`Talebe başarıyla eklendi!\n\n` +
+                        `Referans Kodu: ${referenceCode}\n\n` +
                         `Bu kodu talebeye verin. Kayıt olurken bu kodu kullanacaklar.`);
                 }, 500);
             } else {
-                console.log('⚠️ No reference code found in message');
+                console.log('No reference code found in message');
                 toast.success('Talebe başarıyla eklendi');
             }
 
             setFirstName('');
             setLastName('');
             setBirthDate('');
-            setSeason('');
+            setSeason(currentSeason);
             setClassName('');
 
             loadStudents();
@@ -237,7 +241,7 @@ const Talebeler = () => {
             return;
         }
 
-        setShowAddModal(false); // ✅ Close the modal BEFORE showing confirm
+        setShowAddModal(false); // Close the modal BEFORE showing confirm
 
         confirmAlert({
             title: 'Ekleme Onayı',
@@ -250,7 +254,7 @@ const Talebeler = () => {
                 {
                     label: 'Hayır',
                     onClick: () => {
-                        setShowAddModal(true); // ✅ Reopen the modal if cancelled
+                        setShowAddModal(true); // Reopen the modal if cancelled
                     },
                 },
             ],
