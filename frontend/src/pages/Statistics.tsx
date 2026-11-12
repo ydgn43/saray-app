@@ -868,7 +868,7 @@ const Statistics = () => {
                                 </select>
                             </div>
                             <div className="col-md-2">
-                                <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Grup</label>
+                                <label className="form-label fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Grup</label>
                                 <select
                                     className="form-select form-select-sm"
                                     value={selectedClass}

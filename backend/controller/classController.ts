@@ -79,18 +79,27 @@ export const classController = {
                 });
                 if (exists) return res.status(409).json({ message: 'Yeni Grup adı zaten mevcut.' });
 
-                // Since class_name is the primary key, we need to create new and delete old
+                // Raw queries on purpose: the model declares class_name as primary key, so
+                // instance.destroy()/update() would touch this group name in ALL yurts.
+                // Create the new row and delete the old one in one transaction, always with yurtid.
                 const currentDisplayOrder = cls.display_order;
-                await Class.create({
-                    class_name: newClassName,
-                    display_name: display_name ?? cls.display_name,
-                    display_order: currentDisplayOrder,
-                    yurtid
+                await sequelize.transaction(async (transaction) => {
+                    await Class.create({
+                        class_name: newClassName,
+                        display_name: display_name ?? cls.display_name,
+                        display_order: currentDisplayOrder,
+                        yurtid
+                    }, { transaction });
+                    await sequelize.query('DELETE FROM class WHERE yurtid = :yurtid AND class_name = :oldClassName', {
+                        replacements: { yurtid, oldClassName }, transaction,
+                    });
                 });
-                await cls.destroy();
             } else {
-                // Just update display_name
-                await cls.update({ display_name });
+                // Just update display_name (only this yurt's row)
+                await sequelize.query(
+                    'UPDATE class SET display_name = :display_name WHERE yurtid = :yurtid AND class_name = :oldClassName',
+                    { replacements: { display_name: display_name ?? cls.display_name ?? null, yurtid, oldClassName } }
+                );
             }
 
             res.json({ message: 'Grup güncellendi.' });
