@@ -1,5 +1,6 @@
 import React from 'react';
 import { Student, Attendance } from '../types';
+import { normalizeClassName } from '../utils/classNames';
 import AttendanceCard from './AttendanceCard';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,12 +47,6 @@ const AttendanceCardList: React.FC<Props> = ({
 }) => {
     // Keep order from parent (Attendance.tsx handles sorting mode).
     const sortedStudents = students;
-
-    const normalizeClassName = (name: string) => {
-        let out = name.trim().toLowerCase().replace(/ /g, '_');
-        if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
-        return out;
-    };
 
     const getClassDisplayName = (className: string) => {
         const matched = availableClasses.find(
@@ -121,6 +116,7 @@ const AttendanceCardList: React.FC<Props> = ({
                                     date={date}
                                     program={program}
                                     classDisplayName={getClassDisplayName(student.class_name)}
+                                    availableClasses={availableClasses}
                                     onUpdateAttendance={onUpdateAttendance}
                                     sebepOptions={sebepOptions}
                                 />

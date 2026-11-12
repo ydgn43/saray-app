@@ -23,19 +23,31 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
-    { key: 'users', group: 'Hesaplar', label: 'Kullanıcılar', icon: Users,
-      description: 'Yurtu kullanan hesaplar ve rolleri.', render: () => <UserManagement /> },
-    { key: 'yurts', group: 'Hesaplar', label: 'Yurtlar', icon: Building2,
-      description: 'Yurtlarınızı görüntüleyin ve düzenleyin.', render: () => <YurtManagement /> },
-    { key: 'seasons', group: 'Eğitim düzeni', label: 'Sezonlar', icon: CalendarDays,
-      description: 'Eğitim yılları. "Güncel" sezon, yeni talebelerin başlangıç sezonudur.', render: () => <SeasonsManagement /> },
-    { key: 'programs', group: 'Eğitim düzeni', label: 'Programlar', icon: BookOpen,
-      description: 'Günün programları (örn. Sabah Namazı). Sıralama Yoklama sayfasında aynen görünür.', render: () => <OrderedNamesManagement kind="program" /> },
-    { key: 'levels', group: 'Eğitim düzeni', label: 'Dahili Seviyeler', icon: Layers,
-      description: 'Talebelerin sınıf / seviye listesi. Sıralama tablolarda ve listelerde görünür.', render: () => <OrderedNamesManagement kind="class" /> },
-    { key: 'reasons', group: 'Yoklama', label: 'Yoklama Sebepleri', icon: MessageSquareText,
-      description: 'Yoklama sayfasında GEÇ, İZİNLİ ve YOK için seçilebilen sebepler. "Diğer" (serbest yazı) her zaman ayrıca bulunur. Bir sebebi silmek veya adını değiştirmek eski yoklama kayıtlarını değiştirmez.',
-      render: () => <AttendanceReasonsManagement /> },
+    {
+        key: 'users', group: 'Hesaplar', label: 'Kullanıcılar', icon: Users,
+        description: 'Yurtu kullanan hesaplar ve rolleri.', render: () => <UserManagement />
+    },
+    {
+        key: 'yurts', group: 'Hesaplar', label: 'Yurtlar', icon: Building2,
+        description: 'Yurtlarınızı görüntüleyin ve düzenleyin.', render: () => <YurtManagement />
+    },
+    {
+        key: 'seasons', group: 'Eğitim düzeni', label: 'Sezonlar', icon: CalendarDays,
+        description: 'Eğitim yılları. "Güncel" sezon, yeni talebelerin başlangıç sezonudur.', render: () => <SeasonsManagement />
+    },
+    {
+        key: 'programs', group: 'Eğitim düzeni', label: 'Programlar', icon: BookOpen,
+        description: 'Günün programları (örn. Sabah Namazı). Sıralama Yoklama sayfasında aynen görünür.', render: () => <OrderedNamesManagement kind="program" />
+    },
+    {
+        key: 'levels', group: 'Eğitim düzeni', label: 'Gruplar', icon: Layers,
+        description: 'Talebelerin sınıf / seviye listesi. Sıralama tablolarda ve listelerde görünür.', render: () => <OrderedNamesManagement kind="class" />
+    },
+    {
+        key: 'reasons', group: 'Yoklama', label: 'Yoklama Sebepleri', icon: MessageSquareText,
+        description: 'Yoklama sayfasında GEÇ, İZİNLİ ve YOK için seçilebilen sebepler. "Diğer" (serbest yazı) her zaman ayrıca bulunur. Bir sebebi silmek veya adını değiştirmek eski yoklama kayıtlarını değiştirmez.',
+        render: () => <AttendanceReasonsManagement />
+    },
 ];
 
 const GROUPS = Array.from(new Set(SECTIONS.map((s) => s.group)));

@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Student, Attendance } from '../types';
-import { classGroupedColors } from '../constants';
+import { normalizeClassName, classColor } from '../utils/classNames';
 import { allowsSebep, DEFAULT_SEBEP_OPTIONS } from './attendanceSebep';
 
 interface Class {
@@ -73,16 +73,7 @@ const AttendanceRowList: React.FC<Props> = ({
     onUpdateAttendance(studentId, current, val);
   };
 
-  const getClassColor = (className: string) => {
-    const key = className.trim().toLowerCase().replace(/ /g, '_');
-    return classGroupedColors[key] || '#dee2e6';
-  };
-
-  const normalizeClassName = (name: string) => {
-    let out = name.trim().toLowerCase().replace(/ /g, '_');
-    if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
-    return out;
-  };
+  const getClassColor = (className: string) => classColor(className, availableClasses, '#dee2e6');
 
   const getClassDisplayName = (className: string) => {
     const matched = availableClasses.find(
@@ -146,113 +137,113 @@ const AttendanceRowList: React.FC<Props> = ({
       </div>
 
       <div className="d-flex flex-column gap-3">
-      {sortedStudents.map((student) => {
-        const current = getAttendanceType(student.studentid);
-        const sebep = sebepDrafts[student.studentid] ?? '';
-        const recently = recentlyUpdated[student.studentid];
-        const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
+        {sortedStudents.map((student) => {
+          const current = getAttendanceType(student.studentid);
+          const sebep = sebepDrafts[student.studentid] ?? '';
+          const recently = recentlyUpdated[student.studentid];
+          const isRecentlyUpdated = recentlyUpdatedStudents.has(student.studentid);
 
-        return (
-          <div
-            key={student.studentid}
-            className="border-left"
-            style={{
-              borderLeft: `6px solid ${getClassColor(student.class_name)}`,
-              boxShadow: isRecentlyUpdated ? "0 0 15px rgba(13, 110, 253, 0.5)" : undefined,
-              transition: "box-shadow 0.3s",
-              padding: "8px",
-              borderRadius: "8px",
-              backgroundColor: isRecentlyUpdated ? "rgba(13, 110, 253, 0.05)" : undefined
-            }}
-          >
-            <div className="d-flex align-items-center justify-content-between gap-2">
-              <div className="fw-bold flex-grow-1 text-truncate d-flex align-items-center gap-2 ms-2">
-                <div className="d-flex flex-column">
-                  <span>{student.first_name} {student.last_name}</span>
-                  <small className="text-muted" style={{ fontWeight: 500 }}>
-                    {getClassDisplayName(student.class_name)}
-                  </small>
+          return (
+            <div
+              key={student.studentid}
+              className="border-left"
+              style={{
+                borderLeft: `6px solid ${getClassColor(student.class_name)}`,
+                boxShadow: isRecentlyUpdated ? "0 0 15px rgba(13, 110, 253, 0.5)" : undefined,
+                transition: "box-shadow 0.3s",
+                padding: "8px",
+                borderRadius: "8px",
+                backgroundColor: isRecentlyUpdated ? "rgba(13, 110, 253, 0.05)" : undefined
+              }}
+            >
+              <div className="d-flex align-items-center justify-content-between gap-2">
+                <div className="fw-bold flex-grow-1 text-truncate d-flex align-items-center gap-2 ms-2">
+                  <div className="d-flex flex-column">
+                    <span>{student.first_name} {student.last_name}</span>
+                    <small className="text-muted" style={{ fontWeight: 500 }}>
+                      {getClassDisplayName(student.class_name)}
+                    </small>
+                  </div>
+                </div>
+                <div className="d-flex gap-1 flex-shrink-0">
+                  {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
+                    <button
+                      key={type}
+                      className={`btn btn-sm ${current === type
+                        ? `btn-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} text-white fw-bold`
+                        : `btn-outline-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} fw-bold`
+                        }`}
+                      onClick={() => handleTypeChange(student.studentid, type)}
+                      style={{ width: 26, height: 26, padding: 0 }}
+                      title={type}
+                    >
+                      {attendanceLabels[type]}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="d-flex gap-1 flex-shrink-0">
-                {(['var', 'gec', 'yok', 'izinli'] as AttendanceType[]).map((type) => (
-                  <button
-                    key={type}
-                    className={`btn btn-sm ${current === type
-                      ? `btn-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} text-white fw-bold`
-                      : `btn-outline-${type === 'var' ? 'success' : type === 'gec' ? 'warning' : type === 'yok' ? 'danger' : 'info'} fw-bold`
-                      }`}
-                    onClick={() => handleTypeChange(student.studentid, type)}
-                    style={{ width: 26, height: 26, padding: 0 }}
-                    title={type}
+
+              {allowsSebep(current) && (
+                <div className="mt-2">
+                  <select
+                    className="form-select form-select-sm mb-1"
+                    value={
+                      sebepOptions.includes(sebep)
+                        ? sebep
+                        : sebep === '__custom__'
+                          ? '__custom__'
+                          : sebep !== ''
+                            ? sebep
+                            : ''
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '__custom__') {
+                        setSebepDrafts((prev) => ({
+                          ...prev,
+                          [student.studentid]: '__custom__',
+                        }));
+                      } else {
+                        handleSebepChange(student.studentid, val, current);
+                      }
+                    }}
                   >
-                    {attendanceLabels[type]}
-                  </button>
-                ))}
-              </div>
+                    <option value="">Sebep Seçin</option>
+                    {sebepOptions.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                    <option value="__custom__">Diğer</option>
+                  </select>
+
+                  {sebep === '__custom__' && (
+                    <input
+                      className="form-control form-control-sm"
+                      placeholder="Sebep girin"
+                      value=""
+                      onChange={(e) =>
+                        handleSebepChange(student.studentid, e.target.value, current)
+                      }
+                    />
+                  )}
+                  {!sebepOptions.includes(sebep) && sebep !== '' && sebep !== '__custom__' && (
+                    <input
+                      className="form-control form-control-sm"
+                      placeholder="Sebep girin"
+                      value={sebep}
+                      onChange={(e) =>
+                        handleSebepChange(student.studentid, e.target.value, current)
+                      }
+                    />
+                  )}
+                </div>
+              )}
+
+              {recently && <div className="text-success small mt-1 d-flex align-items-center gap-1"><Check size={12} />Kaydedildi</div>}
             </div>
-
-            {allowsSebep(current) && (
-              <div className="mt-2">
-                <select
-                  className="form-select form-select-sm mb-1"
-                  value={
-                    sebepOptions.includes(sebep)
-                      ? sebep
-                      : sebep === '__custom__'
-                        ? '__custom__'
-                        : sebep !== ''
-                          ? sebep
-                          : ''
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '__custom__') {
-                      setSebepDrafts((prev) => ({
-                        ...prev,
-                        [student.studentid]: '__custom__',
-                      }));
-                    } else {
-                      handleSebepChange(student.studentid, val, current);
-                    }
-                  }}
-                >
-                  <option value="">Sebep Seçin</option>
-                  {sebepOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                  <option value="__custom__">Diğer</option>
-                </select>
-
-                {sebep === '__custom__' && (
-                  <input
-                    className="form-control form-control-sm"
-                    placeholder="Sebep girin"
-                    value=""
-                    onChange={(e) =>
-                      handleSebepChange(student.studentid, e.target.value, current)
-                    }
-                  />
-                )}
-                {!sebepOptions.includes(sebep) && sebep !== '' && sebep !== '__custom__' && (
-                  <input
-                    className="form-control form-control-sm"
-                    placeholder="Sebep girin"
-                    value={sebep}
-                    onChange={(e) =>
-                      handleSebepChange(student.studentid, e.target.value, current)
-                    }
-                  />
-                )}
-              </div>
-            )}
-
-            {recently && <div className="text-success small mt-1 d-flex align-items-center gap-1"><Check size={12} />Kaydedildi</div>}
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
     </div>
   );

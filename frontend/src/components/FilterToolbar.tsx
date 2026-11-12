@@ -2,16 +2,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Funnel } from 'react-bootstrap-icons';
-import { classGroupedColors } from '../constants';
 
 
 interface Props {
     onFilterChange: (className: string) => void;
     selectedFilters: string[];
     classOptions: { value: string; label: string }[];
+    colorOf: (value: string) => string;
 }
 
-const FilterToolbar: React.FC<Props> = ({ onFilterChange, selectedFilters, classOptions }) => {
+const FilterToolbar: React.FC<Props> = ({ onFilterChange, selectedFilters, classOptions, colorOf }) => {
     const [open, setOpen] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +45,7 @@ const FilterToolbar: React.FC<Props> = ({ onFilterChange, selectedFilters, class
                                         onClick={() => onFilterChange(value)}
                                         className={`badge rounded-pill border border-dark px-3 py-2 text-dark fw-semibold`}
                                         style={{
-                                            backgroundColor: classGroupedColors[value.toLowerCase()] || '#eee',
+                                            backgroundColor: colorOf(value),
                                             opacity: selectedFilters.includes(value) ? 1 : 0.5,
                                         }}
                                     >

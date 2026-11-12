@@ -371,7 +371,7 @@ const StudentPortal = () => {
                             <div className="row mb-4">
                                 <div className="col-md-6">
                                     <p className="mb-2"><strong>İsim:</strong> {selectedStudent.name}</p>
-                                    <p className="mb-2"><strong>Dahili Seviye:</strong> {getTurkishClassName(selectedStudent.class_name)}</p>
+                                    <p className="mb-2"><strong>Grup:</strong> {getTurkishClassName(selectedStudent.class_name)}</p>
                                 </div>
                                 <div className="col-md-6 text-md-end">
                                     {(() => {

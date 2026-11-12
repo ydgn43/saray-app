@@ -94,7 +94,7 @@ const Talebeler = () => {
         try {
             const res = await authFetch(`${config.API_BASE_URL}/class`);
             if (!res.ok) {
-                console.error('Dahili seviyeler yüklenemedi:', res.status);
+                console.error('Gruplar yüklenemedi:', res.status);
                 return;
             }
             const data = await res.json();
@@ -102,7 +102,7 @@ const Talebeler = () => {
                 setAvailableClasses(data);
             }
         } catch (err) {
-            console.error('Dahili seviyeler alınamadı:', err);
+            console.error('Gruplar alınamadı:', err);
             setAvailableClasses([]); // Keep empty array on error
         }
     };
@@ -478,7 +478,7 @@ const Talebeler = () => {
                             <button
                                 type="button"
                                 className="btn-close btn-close-white btn-sm ms-2"
-                                aria-label="Dahili Seviye filtresini kaldır"
+                                aria-label="Grup filtresini kaldır"
                                 onClick={() => setSelectedClass('')}
                             ></button>
                         </span>
@@ -549,9 +549,9 @@ const Talebeler = () => {
                                         </div>
                                         <div className="row">
                                             <div className="col-md-6 mb-3">
-                                                <label>Dahili Seviye Adı</label>
+                                                <label>Grup Adı</label>
                                                 <select className="form-select" value={class_name} onChange={(e) => setClassName(e.target.value)}>
-                                                    <option value="">Dahili Seviye Seç</option>
+                                                    <option value="">Grup Seç</option>
                                                     {availableClasses.map(cls => (
                                                         <option key={cls.class_name} value={cls.class_name}>
                                                             {cls.display_name || cls.class_name}
@@ -652,9 +652,9 @@ const Talebeler = () => {
                                             </select>
                                         </div>
                                         <div className="mb-3">
-                                            <label>Dahili Seviye</label>
+                                            <label>Grup</label>
                                             <select className="form-select" value={editingStudent.class_name} onChange={(e) => setEditingStudent({ ...editingStudent, class_name: e.target.value })}>
-                                                <option value="">Dahili Seviye Seç</option>
+                                                <option value="">Grup Seç</option>
                                                 {availableClasses.map(cls => (
                                                     <option key={cls.class_name} value={cls.class_name}>
                                                         {cls.display_name || cls.class_name}
@@ -709,7 +709,7 @@ const Talebeler = () => {
                                     <th>#</th>
                                     <th>İsim</th>
                                     <th>Soyisim</th>
-                                    <th>Dahili Seviye</th>
+                                    <th>Grup</th>
                                     <th>Sezon</th>
                                     <th>Doğum Tarihi</th>
                                     <th>Referans Kodu</th>

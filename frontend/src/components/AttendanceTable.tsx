@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { classGroupedColors } from '../constants';
+import { normalizeClassName, classColor } from '../utils/classNames';
 import { allowsSebep, DEFAULT_SEBEP_OPTIONS } from './attendanceSebep';
 
 type AttendanceType = 'var' | 'gec' | 'yok' | 'izinli';
@@ -80,12 +80,6 @@ function hexToRgba(hex: string, alpha: number): string {
   let b = parseInt(hex.substring(4, 6), 16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
-const normalizeClassName = (str: string) => {
-  let out = str.trim().toLowerCase().replace(/ /g, '_');
-  if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
-  return out;
-};
-
 const rowVariants = {
   hidden: { opacity: 0, y: 18, scale: 0.99 },
   visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 100, damping: 16 } },
@@ -224,7 +218,7 @@ const AttendanceTable: React.FC<Props> = ({
           {sortMode === 'group' ? classNames.map((groupName) => {
             const groupStudents = grouped[groupName];
             if (!groupStudents) return null;
-            const color = classGroupedColors[groupName] || '#f8f9fa';
+            const color = classColor(groupName, availableClasses, '#f8f9fa');
             const borderColor = darkenColor(color, 35);
             // Find the original class name for display
             const originalClassName = students.find(s => normalizeClassName(s.class_name) === groupName)?.class_name || groupName;
@@ -351,7 +345,7 @@ const AttendanceTable: React.FC<Props> = ({
               {students.map((student, index) => {
                 const record = attendanceData.find((a) => a.studentid === student.studentid);
                 const current = (record?.attendance_type_name?.toLowerCase() || 'yok') as AttendanceType;
-                const baseColor = classGroupedColors[normalizeClassName(student.class_name)] || '#f8f9fa';
+                const baseColor = classColor(student.class_name, availableClasses, '#f8f9fa');
                 const rowHighlight = recentlyUpdated[student.studentid]
                   ? hexToRgba(darkenColor(baseColor, 35), 0.20)
                   : baseColor;

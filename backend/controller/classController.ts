@@ -1,6 +1,7 @@
 // backend/controllers/classController.ts
 import { Request, Response } from 'express';
 import Class from '../data/models/Class';
+import { sequelize } from '../data/sequelize';
 
 export const classController = {
     async getAll(req: Request, res: Response) {
@@ -28,7 +29,7 @@ export const classController = {
                     console.error('Fallback query failed:', fallbackError);
                 }
             }
-            res.status(500).json({ message: 'Dahili Seviyelar alınamadı.' });
+            res.status(500).json({ message: 'Gruplar alınamadı.' });
         }
     },
 
@@ -36,13 +37,13 @@ export const classController = {
         if (req.user!.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok.' });
         const { class_name, display_name } = req.body;
         const yurtid = req.selectedYurtId!;
-        if (!class_name) return res.status(400).json({ message: 'Dahili Seviye adı eksik.' });
+        if (!class_name) return res.status(400).json({ message: 'Grup adı eksik.' });
 
         try {
             const exists = await Class.findOne({
                 where: { class_name, yurtid }
             });
-            if (exists) return res.status(409).json({ message: 'Dahili Seviye zaten mevcut.' });
+            if (exists) return res.status(409).json({ message: 'Grup zaten mevcut.' });
 
             // Auto-assign display_order to be the highest + 1
             const maxOrderResult = await Class.findOne({
@@ -53,9 +54,9 @@ export const classController = {
             const nextOrder = (maxOrderResult?.display_order ?? 0) + 1;
 
             await Class.create({ class_name, display_name, display_order: nextOrder, yurtid });
-            res.status(201).json({ message: 'Dahili Seviye oluşturuldu.' });
+            res.status(201).json({ message: 'Grup oluşturuldu.' });
         } catch {
-            res.status(500).json({ message: 'Dahili Seviye oluşturulamadı.' });
+            res.status(500).json({ message: 'Grup oluşturulamadı.' });
         }
     },
 
@@ -69,14 +70,14 @@ export const classController = {
             const cls = await Class.findOne({
                 where: { class_name: oldClassName, yurtid }
             });
-            if (!cls) return res.status(404).json({ message: 'Dahili Seviye bulunamadı.' });
+            if (!cls) return res.status(404).json({ message: 'Grup bulunamadı.' });
 
             // If class_name is changing, check if new name already exists
             if (newClassName && newClassName !== oldClassName) {
                 const exists = await Class.findOne({
                     where: { class_name: newClassName, yurtid }
                 });
-                if (exists) return res.status(409).json({ message: 'Yeni Dahili Seviye adı zaten mevcut.' });
+                if (exists) return res.status(409).json({ message: 'Yeni Grup adı zaten mevcut.' });
 
                 // Since class_name is the primary key, we need to create new and delete old
                 const currentDisplayOrder = cls.display_order;
@@ -92,9 +93,9 @@ export const classController = {
                 await cls.update({ display_name });
             }
 
-            res.json({ message: 'Dahili Seviye güncellendi.' });
+            res.json({ message: 'Grup güncellendi.' });
         } catch {
-            res.status(500).json({ message: 'Dahili Seviye güncellenemedi.' });
+            res.status(500).json({ message: 'Grup güncellenemedi.' });
         }
     },
 
@@ -116,9 +117,9 @@ export const classController = {
                 );
             }
 
-            res.json({ message: 'Dahili Seviye sıralaması güncellendi.' });
+            res.json({ message: 'Grup sıralaması güncellendi.' });
         } catch {
-            res.status(500).json({ message: 'Dahili Seviye sıralaması güncellenemedi.' });
+            res.status(500).json({ message: 'Grup sıralaması güncellenemedi.' });
         }
     },
 
@@ -130,12 +131,16 @@ export const classController = {
             const cls = await Class.findOne({
                 where: { class_name: req.params.class_name, yurtid }
             });
-            if (!cls) return res.status(404).json({ message: 'Dahili Seviye bulunamadı.' });
+            if (!cls) return res.status(404).json({ message: 'Grup bulunamadı.' });
 
-            await cls.destroy();
-            res.json({ message: 'Dahili Seviye silindi.' });
+            // Raw query on purpose: the model declares class_name as primary key, so cls.destroy()
+            // would delete this group name in ALL yurts. Always scope by yurtid.
+            await sequelize.query('DELETE FROM class WHERE yurtid = :yurtid AND class_name = :class_name', {
+                replacements: { yurtid, class_name: req.params.class_name },
+            });
+            res.json({ message: 'Grup silindi.' });
         } catch {
-            res.status(500).json({ message: 'Dahili Seviye silinemedi.' });
+            res.status(500).json({ message: 'Grup silinemedi.' });
         }
     },
 };

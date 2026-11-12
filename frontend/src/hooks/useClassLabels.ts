@@ -1,5 +1,5 @@
 // src/hooks/useClassLabels.ts
-// The levels ("Dahili Seviye") of the selected yurt, as set up in Settings > Dahili Seviyeler,
+// The levels ("Grup") of the selected yurt, as set up in Settings > Gruplar,
 // plus one function that turns a stored class_name into the name shown on screen.
 // Pages use this instead of keeping their own list, so a level added, renamed or deleted in Settings
 // is reflected everywhere.
@@ -8,22 +8,13 @@ import { useCallback, useEffect, useState } from 'react';
 import config from '../config';
 import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../auth/AuthContext';
+import { prettifyClassName } from '../utils/classNames';
 
 export interface ClassInfo {
     class_name: string;
     display_name?: string | null;
     display_order?: number | null;
 }
-
-// Labels of the original levels, used only when a level has no display name in the database.
-const LEGACY_LABELS: Record<string, string> = {
-    kuranikerim: "Kur'an-ı Kerim",
-    hazirlik: 'Hazırlık',
-    ibtidai: 'İbtidai',
-    ihzari: 'İhzari',
-    mezun_tekamul_alti: 'Mezun Tekamul Altı',
-    tekamul_alti: 'Tekamul Altı',
-};
 
 export function useClassLabels() {
     const { user, selectedYurt } = useAuth();
@@ -48,7 +39,7 @@ export function useClassLabels() {
     /** Name to show for a stored class_name. */
     const label = useCallback(
         (className: string): string =>
-            classes.find((c) => c.class_name === className)?.display_name || LEGACY_LABELS[className] || className,
+            classes.find((c) => c.class_name === className)?.display_name || prettifyClassName(className),
         [classes]
     );
 

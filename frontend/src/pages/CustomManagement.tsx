@@ -224,7 +224,7 @@ const CustomManagement = () => {
             });
 
             if (!res.ok) throw new Error();
-            toast.success('Dahili Seviye sıralaması güncellendi');
+            toast.success('Grup sıralaması güncellendi');
             setClasses(newClasses);
         } catch {
             toast.error('Sıralama güncellenemedi');
@@ -359,18 +359,18 @@ const CustomManagement = () => {
             transition={{ duration: 0.3 }}
         >
             <div className="card-header bg-primary text-white">
-                <h5 className="mb-0">Dahili Seviyeler</h5>
+                <h5 className="mb-0">Gruplar</h5>
             </div>
             <div className="card-body">
                 <div className="alert alert-info small mb-3">
                     <i className="bi bi-info-circle me-2"></i>
-                    Yukarı/aşağı okları kullanarak dahili seviyelerin sıralamasını değiştirebilirsiniz. Bu sıralama tablolarda ve listelerde görünür.
+                    Yukarı/aşağı okları kullanarak Gruplarin sıralamasını değiştirebilirsiniz. Bu sıralama tablolarda ve listelerde görünür.
                 </div>
                 <div className="input-group mb-3">
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Yeni dahili seviye giriniz (örn: Kur'an-ı Kerim)"
+                        placeholder="Yeni grup giriniz (örn: Grup-1)"
                         value={newClass}
                         onChange={(e) => setNewClass(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && addEntry('class', newClass)}
@@ -385,7 +385,7 @@ const CustomManagement = () => {
                     </div>
                 )}
                 {classes.length === 0 ? (
-                    <p className="text-muted text-center">Henüz dahili seviye eklenmedi.</p>
+                    <p className="text-muted text-center">Henüz Grup eklenmedi.</p>
                 ) : (
                     <ul className="list-group">
                         {classes.map((item, i) => {
@@ -562,7 +562,7 @@ const CustomManagement = () => {
         <div className="container py-4">
             <ToastContainer />
             <h2 className="mb-4">Özel Yönetim</h2>
-            <p className="text-muted mb-4">Sezon, Program ve Dahili Seviye bilgilerini ekleyin, düzenleyin veya silin.</p>
+            <p className="text-muted mb-4">Sezon, Program ve Grup bilgilerini ekleyin, düzenleyin veya silin.</p>
             {renderTable("Sezon", seasons, 'season', () => addEntry('season', newSeason), newSeason, setNewSeason)}
             {renderProgramTable()}
             {renderClassTable()}

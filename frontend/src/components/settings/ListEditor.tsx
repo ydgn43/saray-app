@@ -1,4 +1,4 @@
-// Shared list for the Settings sections (Sezonlar, Programlar, Dahili Seviyeler):
+// Shared list for the Settings sections (Sezonlar, Programlar, Gruplar):
 // rows with optional badge / meta text, up-down ordering, inline rename and a two-step delete.
 // It only shows and reports; each section decides what the actions do.
 

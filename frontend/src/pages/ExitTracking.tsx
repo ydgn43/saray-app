@@ -1,11 +1,11 @@
 // src/pages/ExitTracking.tsx
 //
-// Student out / in tracking ("Dışarı Çıkış - Giriş ve Foya Takibi").
+// Student out / in tracking ("Dışarı Çıkış - Giriş ve Geç Takibi").
 // This page only holds the shared state and the tabs; the real work is in src/components/exit/*.
 //
 //   Dışarıda     who is out now, live countdown to the deadline, one-click return
 //   Geçmiş       all records, filters, edit / delete
-//   Foya özeti   late returns per student
+//   Geç özeti   late returns per student
 //   Süre özeti   minutes outside per student, per reason and in total
 //   Kurallar     izin rules + yurt time zone (Admin / SuperAdmin only)
 
@@ -103,7 +103,7 @@ export default function ExitTracking() {
             res.returned.forEach((r) => {
                 const log = outLogs.find((l) => l.id === r.id);
                 const name = log ? `${log.first_name} ${log.last_name}` : `#${r.id}`;
-                if (r.is_late) toast.warn(`${name}: ${formatMinutes(r.late_minutes)} geç döndü (foya).`);
+                if (r.is_late) toast.warn(`${name}: ${formatMinutes(r.late_minutes)} geç döndü (Geç).`);
                 else toast.success(`${name}: giriş kaydedildi.`);
             });
             res.skipped.forEach((s) => toast.warn(`Kayıt #${s.id}: ${SKIP_REASON_TEXT[s.reason]}`));
@@ -131,7 +131,7 @@ export default function ExitTracking() {
     const tabs: { id: Tab; label: string }[] = [
         { id: 'out', label: `Dışarıda (${outLogs.length})` },
         { id: 'history', label: 'Geçmiş' },
-        { id: 'fouls', label: 'Foya özeti' },
+        { id: 'fouls', label: 'Geç özeti' },
         { id: 'duration', label: 'Süre özeti' },
         ...(canManage ? [{ id: 'rules' as Tab, label: 'Kurallar' }] : []),
     ];
@@ -140,7 +140,7 @@ export default function ExitTracking() {
         <div className="container-fluid px-0">
             <ToastContainer position="top-right" autoClose={4000} />
             <div className="d-flex flex-wrap align-items-start gap-2">
-                <PageHeader title="Çıkış / Giriş Takibi" subtitle="Dışarı çıkan talebeler, süre sınırları ve foya takibi" />
+                <PageHeader title="Çıkış / Giriş Takibi" subtitle="Dışarı çıkan talebeler, süre sınırları ve Geç takibi" />
                 <button className="btn btn-primary ms-auto" onClick={() => setShowExit(true)} disabled={loading}>
                     <LogOut size={16} className="me-1" />Çıkış kaydı
                 </button>

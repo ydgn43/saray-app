@@ -387,7 +387,7 @@ const Statistics = () => {
         const csvRows: string[] = [];
 
         // Headers
-        const headers = ['#', 'İsim', 'Dahili Seviye'];
+        const headers = ['#', 'İsim', 'Grup'];
         if (selectedProgram === 'genel') {
             allPrograms.forEach(p => headers.push(PROGRAM_TURKISH_MAP[p] || p));
         } else {
@@ -444,7 +444,7 @@ const Statistics = () => {
         const columns: any[] = [
             { header: '#', key: 'num', width: 5 },
             { header: 'İsim', key: 'name', width: 25 },
-            { header: 'Dahili Seviye', key: 'class', width: 20 },
+            { header: 'Grup', key: 'class', width: 20 },
         ];
 
         // Add program columns
@@ -628,7 +628,7 @@ const Statistics = () => {
         }
 
         // Prepare table headers - convert Turkish characters for PDF compatibility
-        const headers: string[] = ['#', 'Isim', 'Dahili Seviye'];
+        const headers: string[] = ['#', 'Isim', 'Grup'];
         if (selectedProgram === 'genel') {
             allPrograms.forEach(p => {
                 const turkishName = PROGRAM_TURKISH_MAP[p] || p;
@@ -868,7 +868,7 @@ const Statistics = () => {
                                 </select>
                             </div>
                             <div className="col-md-2">
-                                <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Dahili Seviye</label>
+                                <label className="form-label text-white fw-bold mb-1 d-none d-md-block" style={{ fontSize: '0.85rem' }}>Grup</label>
                                 <select
                                     className="form-select form-select-sm"
                                     value={selectedClass}
@@ -1468,7 +1468,7 @@ const Statistics = () => {
                                                     )
                                                 }
                                             >
-                                                Dahili Seviye {getSortIcon('class_name')}
+                                                Grup {getSortIcon('class_name')}
                                             </th>
                                             {selectedProgram === 'genel'
                                                 ? allPrograms.map((p) => (

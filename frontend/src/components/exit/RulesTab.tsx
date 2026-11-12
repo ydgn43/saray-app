@@ -114,7 +114,7 @@ export default function RulesTab({ rules, timezone, timezones, onChanged }: Prop
                 </button>
             </div>
             <p className="text-muted small">
-                Örnek: "Haftalık İzin — Pazar 18:30". Çıkış yaparken bu kural seçilirse, talebenin çıkıştan sonraki ilk Pazar 18:30'a kadar dönmesi beklenir; sonra dönerse foya sayılır.
+                Örnek: "Haftalık İzin — Pazar 18:30". Çıkış yaparken bu kural seçilirse, talebenin çıkıştan sonraki ilk Pazar 18:30'a kadar dönmesi beklenir; sonra dönerse Geç sayılır.
                 Kuralsız çıkışlarda (ör. market) süre sınırı yoktur.
             </p>
 

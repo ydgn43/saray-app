@@ -197,7 +197,7 @@ const Home = () => {
       .then(data => setStudentCount(data.length))
       .catch(() => setStudentCount(null));
 
-    // Toplam Dahili Seviye
+    // Toplam Grup
     authFetch(`${config.API_BASE_URL}/class`)
       .then(res => res.json())
       .then(data => setClassCount(data.length))
@@ -287,7 +287,7 @@ const Home = () => {
                           <strong>{myStatistics.name}</strong>
                         </h3>
                         <p className="mb-2 fs-5">
-                          <strong>Dahili Seviye:</strong> {getTurkishClassName(myStatistics.class_name)}
+                          <strong>Grup:</strong> {getTurkishClassName(myStatistics.class_name)}
                         </p>
                         <p className="mb-0 opacity-75">
                           Toplam Yoklama: {myStatistics.total}
@@ -544,7 +544,7 @@ const Home = () => {
             <div className="card-body text-white">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h6 className="card-title mb-2 opacity-75">Dahili Seviye</h6>
+                  <h6 className="card-title mb-2 opacity-75">Grup</h6>
                   <h2 className="display-4 fw-bold mb-0">
                     {classCount !== null ? classCount : '...'}
                   </h2>
@@ -643,7 +643,7 @@ const Home = () => {
                   <tr>
                     <th className="border-0" style={{ width: '60px' }}>Sıra</th>
                     <th className="border-0">Talebe</th>
-                    <th className="border-0">Dahili Seviye</th>
+                    <th className="border-0">Grup</th>
                     <th className="border-0 text-center">Katılım</th>
                     <th className="border-0 text-end">Performans</th>
                   </tr>

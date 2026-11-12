@@ -1,4 +1,4 @@
-// Settings > Programlar and Settings > Dahili Seviyeler.
+// Settings > Programlar and Settings > Gruplar.
 // Both are "named lists with an order" (the order is used on the yoklama page and in tables),
 // so one component serves both; `kind` picks the API.
 
@@ -29,11 +29,11 @@ const TEXT: Record<Kind, { placeholder: string; empty: string; added: string; up
         orderKey: 'programs',
     },
     class: {
-        placeholder: 'Yeni dahili seviye (örn. Hazırlık)',
-        empty: 'Henüz dahili seviye yok.',
-        added: 'Dahili seviye eklendi.',
-        updated: 'Dahili seviye güncellendi.',
-        deleted: 'Dahili seviye silindi.',
+        placeholder: 'Yeni grup (örn. Grup-1)',
+        empty: 'Henüz Grup yok.',
+        added: 'Grup eklendi.',
+        updated: 'Grup güncellendi.',
+        deleted: 'Grup silindi.',
         orderKey: 'classes',
     },
 };

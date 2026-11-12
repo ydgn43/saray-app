@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import FilterToolbar from '../components/FilterToolbar';
+import { normalizeClassName, classColor } from '../utils/classNames';
 import Layout from '../components/Layout';
 import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
@@ -34,12 +35,6 @@ interface ClassFilterOption {
 }
 
 type SortMode = 'group' | 'alphabet' | 'attendance';
-
-const normalizeClassName = (str: string) => {
-  let out = str.trim().toLowerCase().replace(/ /g, '_');
-  if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
-  return out;
-};
 
 const fetchJson = async (url: string, options = {}) => {
   const res = await authFetch(url, options);
@@ -1083,6 +1078,7 @@ const Attendance = () => {
           }
           selectedFilters={selectedClasses}
           classOptions={classFilterOptions}
+          colorOf={(value) => classColor(value, availableClasses, '#eee')}
         />
         <BackToTopButton />
       </div>

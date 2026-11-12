@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Student, Attendance } from '../types';
-import { classGroupedColors } from '../constants';
+import { classColor } from '../utils/classNames';
 import { motion } from 'framer-motion';
 import { allowsSebep, DEFAULT_SEBEP_OPTIONS } from './attendanceSebep';
 
@@ -13,6 +13,7 @@ interface Props {
     date: string;
     program: string;
     classDisplayName?: string;
+    availableClasses?: { class_name: string }[];
     onUpdateAttendance: (studentId: number, type: AttendanceType, sebep: string) => void;
     sebepOptions?: string[];
 }
@@ -42,12 +43,6 @@ const fadedClass = (type: AttendanceType) => {
     }
 };
 
-const normalizeClassName = (str: string) => {
-    let out = str.trim().toLowerCase().replace(/ /g, '_');
-    if (out === 'mezun_tekamulalti') out = 'mezun_tekamul_alti';
-    return out;
-};
-
 // Helper: darken hex color
 function darkenColor(hex: string, amount: number = 35): string {
     hex = hex.replace(/^#/, "");
@@ -71,7 +66,7 @@ function hexToRgba(hex: string, alpha: number): string {
     return `rgba(${r},${g},${b},${alpha})`;
 }
 
-const AttendanceCard: React.FC<Props> = ({ student, record, date, program, classDisplayName, onUpdateAttendance, sebepOptions = DEFAULT_SEBEP_OPTIONS }) => {
+const AttendanceCard: React.FC<Props> = ({ student, record, date, program, classDisplayName, availableClasses = [], onUpdateAttendance, sebepOptions = DEFAULT_SEBEP_OPTIONS }) => {
     const [attendanceType, setAttendanceType] = useState<AttendanceType>(
         (record?.attendance_type_name?.toLowerCase() as AttendanceType) || 'yok'
     );
@@ -89,7 +84,7 @@ const AttendanceCard: React.FC<Props> = ({ student, record, date, program, class
     );
     const [recentlyUpdated, setRecentlyUpdated] = useState(false);
 
-    const baseColor = classGroupedColors[normalizeClassName(student.class_name)] || '#f5f5f5';
+    const baseColor = classColor(student.class_name, availableClasses, '#f5f5f5');
     const edgeColor = darkenColor(baseColor, 35);
     const highlightColor = hexToRgba(edgeColor, 0.21); // semi-transparent for highlight
 

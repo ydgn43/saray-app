@@ -1,4 +1,4 @@
-# Exit / Foya feature: open items and nice-to-haves
+# Exit / Geç feature: open items and nice-to-haves
 
 Status: the feature itself is finished (DB migration, backend, frontend, tests).
 This list is what is still worth doing. Order = my suggested priority.

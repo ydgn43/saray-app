@@ -1,5 +1,5 @@
 // src/components/exit/FoulsTab.tsx
-// "Foya özeti" tab: how often each student returned late. A "foya" is a return after the deadline.
+// "Geç özeti" tab: how often each student returned late. A "Geç" is a return after the deadline.
 // A student who is still out past the deadline is flagged, but only counts once he returns.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -67,9 +67,9 @@ export default function FoulsTab({ tz, refreshKey, onShowStudent }: Props) {
                 </div>
                 <div className="form-check mb-1">
                     <input className="form-check-input" type="checkbox" id="only-fouls" checked={onlyFouls} onChange={(e) => setOnlyFouls(e.target.checked)} />
-                    <label className="form-check-label small" htmlFor="only-fouls">Sadece foyası olanlar</label>
+                    <label className="form-check-label small" htmlFor="only-fouls">Sadece Geçsı olanlar</label>
                 </div>
-                <div className="ms-auto text-muted small">Toplam foya: <strong>{totalFouls}</strong></div>
+                <div className="ms-auto text-muted small">Toplam Geç: <strong>{totalFouls}</strong></div>
             </div>
 
             {visible.length === 0 ? (
@@ -81,9 +81,9 @@ export default function FoulsTab({ tz, refreshKey, onShowStudent }: Props) {
                             <tr>
                                 <th>Talebe</th>
                                 <th className="text-center">Çıkış</th>
-                                <th className="text-center">Foya</th>
+                                <th className="text-center">Geç</th>
                                 <th>Toplam gecikme</th>
-                                <th>Son foya</th>
+                                <th>Son Geç</th>
                                 <th>Şu an</th>
                             </tr>
                         </thead>
