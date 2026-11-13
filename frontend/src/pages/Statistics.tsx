@@ -930,7 +930,7 @@ const Statistics = () => {
                                     onChange={e => setSelectedProgram(e.target.value)}
                                 >
                                     <option value="genel">Genel</option>
-                                    {allPrograms.map(p => (
+                                    {allProgramsBase.map(p => (
                                         <option key={p} value={p}>
                                             {programLabel(p)}
                                         </option>
