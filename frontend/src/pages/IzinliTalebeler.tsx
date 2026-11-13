@@ -5,16 +5,30 @@ import { ToastContainer, toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
 import config from '../config';
+import { useAttendanceReasons } from '../hooks/useAttendanceReasons';
+import { prettifyClassName } from '../utils/classNames';
 
-const PROGRAM_OPTIONS = [
-    { value: 'sabah_namazi', label: 'Sabah Namazı' },
-    { value: 'oglen_namazi', label: 'Öğle Namazı' },
-    { value: 'ikindi_namazi', label: 'İkindi Namazı' },
-    { value: 'aksam_namazi', label: 'Akşam Namazı' },
-    { value: 'yatsi_namazi', label: 'Yatsı Namazı' },
-    { value: 'hatim', label: 'Hatim' },
-    { value: 'tum_gun', label: 'Tüm Gün' }
-];
+// "Tüm Gün" means every program of the yurt; the programs themselves come from Settings (/program)
+const ALL_DAY = 'tum_gun';
+const MAX_RANGE_DAYS = 60; // same limit as the server
+const OTHER_SEBEP = '__diger';
+
+interface ProgramInfo {
+    program_name: string;
+    display_name?: string | null;
+}
+
+interface RangePreview {
+    days: number;
+    total: number;
+    created: number;
+    replaced: number;
+    already_izinli: number;
+}
+
+const todayLocal = () => new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD in the user's time zone
+const daysBetween = (start: string, end: string) =>
+    Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000) + 1;
 
 const IzinliTalebeler = () => {
     const { user } = useAuth();
@@ -23,13 +37,36 @@ const IzinliTalebeler = () => {
     const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     const [date, setDate] = useState('');
     const [program, setProgram] = useState('');
-    const [sebep, setSebep] = useState('');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [studentToDelete, setStudentToDelete] = useState<{ studentid: number; name: string; program: string } | null>(null);
     const [shareMenuOpen, setShareMenuOpen] = useState(false);
     const shareBtnRef = useRef<HTMLButtonElement>(null);
+
+    // Programs of the selected yurt (Settings > Programlar, in Settings order)
+    const [programs, setPrograms] = useState<ProgramInfo[]>([]);
+    const programOptions = [
+        ...programs.map(p => ({ value: p.program_name, label: p.display_name || prettifyClassName(p.program_name) })),
+        { value: ALL_DAY, label: 'Tüm Gün' }
+    ];
+    const sebepList = useAttendanceReasons().filter(n => n.trim().toLowerCase() !== 'diğer');
+
+    // "İzinli Ekle" window: its own date range, program and sebep
+    const [addStart, setAddStart] = useState('');
+    const [addEnd, setAddEnd] = useState('');
+    const [addProgram, setAddProgram] = useState('');
+    const [sebepChoice, setSebepChoice] = useState('');
+    const [sebepText, setSebepText] = useState('');
+    const [preview, setPreview] = useState<RangePreview | null>(null);
+    const [previewError, setPreviewError] = useState('');
+
+    useEffect(() => {
+        authFetch(`${config.API_BASE_URL}/program`)
+            .then(res => res.json())
+            .then(data => setPrograms(Array.isArray(data) ? data : []))
+            .catch(() => toast.error('Programlar yüklenemedi.'));
+    }, []);
 
     useEffect(() => {
         authFetch(`${config.API_BASE_URL}/student`)
@@ -44,12 +81,11 @@ const IzinliTalebeler = () => {
         }
         setLoading(true);
         try {
-            if (program === 'tum_gun') {
-                const allPrograms = PROGRAM_OPTIONS.filter(p => p.value !== 'tum_gun').map(p => p.value);
+            if (program === ALL_DAY) {
+                const allPrograms = programs.map(p => p.program_name);
                 const izinliLists = await Promise.all(
                     allPrograms.map(async prog => {
-                        const res = await authFetch(`${config.API_BASE_URL}
-/attendance/izinli?date=${date}&program_name=${prog}`);
+                        const res = await authFetch(`${config.API_BASE_URL}/attendance/izinli?date=${date}&program_name=${prog}`);
                         return res.json();
                     })
                 );
@@ -70,8 +106,7 @@ const IzinliTalebeler = () => {
                 });
                 setIzinliler(Array.isArray(izinliTalebeler) ? izinliTalebeler : []);
             } else {
-                const res = await authFetch(`${config.API_BASE_URL}
-/attendance/izinli?date=${date}&program_name=${program}`);
+                const res = await authFetch(`${config.API_BASE_URL}/attendance/izinli?date=${date}&program_name=${program}`);
                 const data = await res.json();
                 setIzinliler(Array.isArray(data) ? data : []);
             }
@@ -88,55 +123,93 @@ const IzinliTalebeler = () => {
         // eslint-disable-next-line
     }, [date, program]);
 
+    const finalSebep = sebepChoice === OTHER_SEBEP ? sebepText.trim() : sebepChoice;
+    const rangeDays = addStart && addEnd ? daysBetween(addStart, addEnd) : 0;
+    const rangeProblem =
+        !addStart || !addEnd ? ''
+        : rangeDays < 1 ? 'Bitiş tarihi başlangıç tarihinden önce olamaz.'
+        : rangeDays > MAX_RANGE_DAYS ? `Tarih aralığı en fazla ${MAX_RANGE_DAYS} gün olabilir.`
+        : '';
+
+    const openAddModal = () => {
+        const start = date || todayLocal();
+        setAddStart(start);
+        setAddEnd(start);
+        setAddProgram(program);
+        setSebepChoice('');
+        setSebepText('');
+        setPreview(null);
+        setPreviewError('');
+        setShowModal(true);
+    };
+
+    // The body sent to the server for the chosen range
+    const rangeBody = (dryRun: boolean) => ({
+        studentids: selectedStudents,
+        start_date: addStart,
+        end_date: addEnd,
+        programs: addProgram === ALL_DAY ? 'all' : [addProgram],
+        sebep: finalSebep,
+        dry_run: dryRun
+    });
+
+    // Ask the server how many records the range would create and replace (nothing is saved)
+    useEffect(() => {
+        setPreview(null);
+        setPreviewError('');
+        if (!showModal || selectedStudents.length === 0 || !addStart || !addEnd || !addProgram || rangeProblem) return;
+        let cancelled = false;
+        const timer = setTimeout(async () => {
+            try {
+                const res = await authFetch(`${config.API_BASE_URL}/attendance/izinli-range`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(rangeBody(true))
+                });
+                const data = await res.json();
+                if (cancelled) return;
+                if (res.ok) setPreview(data);
+                else setPreviewError(data?.message || 'Önizleme alınamadı.');
+            } catch {
+                if (!cancelled) setPreviewError('Önizleme alınamadı.');
+            }
+        }, 300);
+        return () => { cancelled = true; clearTimeout(timer); };
+        // eslint-disable-next-line
+    }, [showModal, selectedStudents, addStart, addEnd, addProgram, rangeProblem]);
+
     const handleAddIzinli = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (selectedStudents.length === 0 || !date || !program) {
+        if (selectedStudents.length === 0 || !addStart || !addEnd || !addProgram) {
             toast.error('Tüm alanları doldurun.');
             return;
         }
-        const allPrograms = PROGRAM_OPTIONS.filter(p => p.value !== 'tum_gun').map(p => p.value);
-
+        if (rangeProblem) {
+            toast.error(rangeProblem);
+            return;
+        }
         try {
             setLoading(true);
-            if (program === 'tum_gun') {
-                await Promise.all(
-                    selectedStudents.flatMap(studentid =>
-                        allPrograms.map(prog =>
-                            authFetch(`${config.API_BASE_URL}/attendance/create`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    studentid,
-                                    date,
-                                    program_name: prog,
-                                    attendance_type_name: 'izinli',
-                                    sebep
-                                })
-                            })
-                        )
-                    )
-                );
-            } else {
-                await Promise.all(
-                    selectedStudents.map(studentid =>
-                        authFetch(`${config.API_BASE_URL}/attendance/create`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                studentid,
-                                date,
-                                program_name: program,
-                                attendance_type_name: 'izinli',
-                                sebep
-                            })
-                        })
-                    )
-                );
+            const res = await authFetch(`${config.API_BASE_URL}/attendance/izinli-range`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rangeBody(false))
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                toast.error(data?.message || 'Kayıt başarısız.');
+                return;
             }
+            toast.success(`${data.total} izinli kaydı eklendi.`);
             setSelectedStudents([]);
-            setSebep('');
             setShowModal(false);
-            fetchIzinliler();
+            // Show the result: the list switches to the start date and program of what was just added
+            if (date === addStart && program === addProgram) {
+                fetchIzinliler();
+            } else {
+                setDate(addStart);
+                setProgram(addProgram);
+            }
         } catch {
             toast.error('Kayıt başarısız.');
         } finally {
@@ -149,9 +222,9 @@ const IzinliTalebeler = () => {
 
         try {
             setLoading(true);
-            const allPrograms = PROGRAM_OPTIONS.filter(p => p.value !== 'tum_gun').map(p => p.value);
+            const allPrograms = programs.map(p => p.program_name);
 
-            if (program === 'tum_gun') {
+            if (program === ALL_DAY) {
                 // Delete from all programs
                 await Promise.all(
                     allPrograms.map(prog =>
@@ -185,14 +258,14 @@ const IzinliTalebeler = () => {
         setStudentToDelete({
             studentid,
             name: studentName,
-            program: PROGRAM_OPTIONS.find(p => p.value === program)?.label || program
+            program: programOptions.find(p => p.value === program)?.label || program
         });
         setShowDeleteConfirm(true);
     };
 
     // Message formatting logic
     const getShareText = () => {
-        const programLabel = PROGRAM_OPTIONS.find(p => p.value === program)?.label || program;
+        const programLabel = programOptions.find(p => p.value === program)?.label || program;
         const dateStr = new Date(date).toLocaleDateString('tr-TR');
         const list = izinliler.map((r: any, i: number) => {
             const stu = students.find(s => s.studentid === r.studentid);
@@ -288,7 +361,7 @@ const IzinliTalebeler = () => {
                                 onChange={e => setProgram(e.target.value)}
                             >
                                 <option value="">Program Seçin</option>
-                                {PROGRAM_OPTIONS.map(p => (
+                                {programOptions.map(p => (
                                     <option key={p.value} value={p.value}>{p.label}</option>
                                 ))}
                             </select>
@@ -306,7 +379,7 @@ const IzinliTalebeler = () => {
                                         border: 'none',
                                         color: 'white'
                                     }}
-                                    onClick={() => setShowModal(true)}
+                                    onClick={openAddModal}
                                 >
                                     İzinli Ekle
                                 </button>
@@ -421,26 +494,55 @@ const IzinliTalebeler = () => {
                                     ></button>
                                 </div>
                                 <form className="modal-body p-3" onSubmit={handleAddIzinli}>
-                                    <div className="mb-3">
-                                        <label className="form-label fw-bold" style={{ fontSize: '0.85rem' }}>Tarih</label>
-                                        <input
-                                            type="date"
-                                            className="form-control form-control-sm"
-                                            value={date}
-                                            onChange={e => setDate(e.target.value)}
-                                            required
-                                        />
+                                    <div className="row g-2 mb-1">
+                                        <div className="col-6">
+                                            <label className="form-label fw-bold" style={{ fontSize: '0.85rem' }}>Başlangıç</label>
+                                            <input
+                                                type="date"
+                                                className="form-control form-control-sm"
+                                                aria-label="Başlangıç tarihi"
+                                                value={addStart}
+                                                onChange={e => {
+                                                    const v = e.target.value;
+                                                    setAddStart(v);
+                                                    // keep the end date from falling behind the start date
+                                                    if (!addEnd || addEnd < v) setAddEnd(v);
+                                                }}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="col-6">
+                                            <label className="form-label fw-bold" style={{ fontSize: '0.85rem' }}>Bitiş</label>
+                                            <input
+                                                type="date"
+                                                className="form-control form-control-sm"
+                                                aria-label="Bitiş tarihi"
+                                                value={addEnd}
+                                                min={addStart || undefined}
+                                                onChange={e => setAddEnd(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3" style={{ fontSize: '0.8rem' }}>
+                                        {rangeProblem ? (
+                                            <span className="text-danger" data-testid="range-problem">{rangeProblem}</span>
+                                        ) : rangeDays > 0 ? (
+                                            <span className="text-muted">
+                                                {rangeDays === 1 ? 'Tek gün' : `${rangeDays} gün`} (başlangıç ve bitiş dahil, hafta sonları dahil)
+                                            </span>
+                                        ) : null}
                                     </div>
                                     <div className="mb-3">
                                         <label className="form-label fw-bold" style={{ fontSize: '0.85rem' }}>Program</label>
                                         <select
                                             className="form-select form-select-sm"
-                                            value={program}
-                                            onChange={e => setProgram(e.target.value)}
+                                            value={addProgram}
+                                            onChange={e => setAddProgram(e.target.value)}
                                             required
                                         >
                                             <option value="">Program Seçin</option>
-                                            {PROGRAM_OPTIONS.map(p => (
+                                            {programOptions.map(p => (
                                                 <option key={p.value} value={p.value}>{p.label}</option>
                                             ))}
                                         </select>
@@ -486,13 +588,44 @@ const IzinliTalebeler = () => {
                                     </div>
                                     <div className="mb-3">
                                         <label className="form-label fw-bold" style={{ fontSize: '0.85rem' }}>Sebep (opsiyonel)</label>
-                                        <input
-                                            className="form-control form-control-sm"
-                                            value={sebep}
-                                            onChange={e => setSebep(e.target.value)}
-                                            placeholder="İzin sebebini giriniz..."
-                                        />
+                                        <select
+                                            className="form-select form-select-sm"
+                                            aria-label="Sebep"
+                                            value={sebepChoice}
+                                            onChange={e => setSebepChoice(e.target.value)}
+                                        >
+                                            <option value="">Sebep yok</option>
+                                            {sebepList.map(n => (
+                                                <option key={n} value={n}>{n}</option>
+                                            ))}
+                                            <option value={OTHER_SEBEP}>Diğer</option>
+                                        </select>
+                                        {sebepChoice === OTHER_SEBEP && (
+                                            <input
+                                                className="form-control form-control-sm mt-2"
+                                                aria-label="Diğer sebep"
+                                                value={sebepText}
+                                                maxLength={255}
+                                                onChange={e => setSebepText(e.target.value)}
+                                                placeholder="İzin sebebini giriniz..."
+                                            />
+                                        )}
                                     </div>
+                                    {(preview || previewError) && (
+                                        <div
+                                            className={`mb-3 p-2 border ${previewError ? 'text-danger' : preview && preview.replaced > 0 ? 'text-dark' : 'text-muted'}`}
+                                            style={{ fontSize: '0.8rem', borderRadius: '8px', backgroundColor: '#f8f9fa' }}
+                                            data-testid="range-preview"
+                                        >
+                                            {previewError ? previewError : preview && (
+                                                <>
+                                                    {preview.total} kayıt kaydedilecek.
+                                                    {preview.replaced > 0 && <> <strong>{preview.replaced} mevcut yoklama kaydı izinli ile değiştirilecek.</strong></>}
+                                                    {preview.already_izinli > 0 && <> {preview.already_izinli} kayıt zaten izinli.</>}
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
                                     <div className="d-flex justify-content-end gap-2">
                                         <button
                                             type="button"
@@ -510,7 +643,7 @@ const IzinliTalebeler = () => {
                                         <button
                                             className="btn btn-success btn-sm"
                                             type="submit"
-                                            disabled={loading}
+                                            disabled={loading || !!rangeProblem}
                                             style={{
                                                 borderRadius: '8px',
                                                 padding: '8px 16px',

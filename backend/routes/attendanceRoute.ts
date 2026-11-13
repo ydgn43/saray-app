@@ -7,6 +7,8 @@ import { validateYurtAccess } from '../middleware/validateYurtAccess';
 import Attendance from '../data/models/Attendance';
 import { activityLogService } from './activityLogRoute';
 import Student from '../data/models/Student';
+import { QueryTypes } from 'sequelize';
+import { sequelize } from '../data/sequelize';
 
 export const attendanceRouter = express.Router();
 
@@ -312,10 +314,145 @@ attendanceRouter.post('/izinli', requireRoles(['admin', 'hoca']), async (req, re
     }
 });
 
+// Izinli for a date range: every chosen student becomes "izinli" for every day from start_date to end_date
+// (both included), in the chosen programs (or all programs of the yurt). Existing yoklama records of those
+// days are replaced. With dry_run: true nothing is written and only the counts are returned.
+//   body: { studentids: number[], start_date: 'YYYY-MM-DD', end_date: 'YYYY-MM-DD',
+//           programs: string[] | 'all', sebep?: string, dry_run?: boolean }
+const IZINLI_MAX_DAYS = 60;
+attendanceRouter.post('/izinli-range', requireRoles(['admin', 'hoca']), async (req, res) => {
+    const yurtid = req.selectedYurtId!; // always the selected yurt, never from the body
+    try {
+        const { studentids, start_date, end_date, programs, sebep, dry_run } = req.body ?? {};
+        const isDay = (v: unknown): v is string =>
+            typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(`${v}T00:00:00Z`));
+
+        const ids: number[] = Array.isArray(studentids)
+            ? Array.from(new Set(studentids.map(Number).filter((n) => Number.isInteger(n) && n > 0)))
+            : [];
+        if (ids.length === 0) return res.status(400).json({ message: 'En az bir talebe seçin.' });
+        if (!isDay(start_date) || !isDay(end_date)) {
+            return res.status(400).json({ message: 'Geçerli bir tarih aralığı girin.' });
+        }
+        const startMs = Date.parse(`${start_date}T00:00:00Z`);
+        const endMs = Date.parse(`${end_date}T00:00:00Z`);
+        if (endMs < startMs) {
+            return res.status(400).json({ message: 'Bitiş tarihi başlangıç tarihinden önce olamaz.' });
+        }
+        const days = Math.round((endMs - startMs) / 86400000) + 1;
+        if (days > IZINLI_MAX_DAYS) {
+            return res.status(400).json({ message: `Tarih aralığı en fazla ${IZINLI_MAX_DAYS} gün olabilir.` });
+        }
+        const dates: string[] = [];
+        for (let i = 0; i < days; i++) dates.push(new Date(startMs + i * 86400000).toISOString().slice(0, 10));
+
+        // Programs must belong to this yurt
+        const yurtPrograms = (await sequelize.query<{ program_name: string }>(
+            'SELECT program_name FROM program WHERE yurtid = :yurtid',
+            { replacements: { yurtid }, type: QueryTypes.SELECT }
+        )).map((r) => r.program_name);
+        let chosen: string[];
+        if (programs === 'all') {
+            chosen = yurtPrograms;
+        } else if (Array.isArray(programs) && programs.length > 0) {
+            chosen = Array.from(new Set(programs.map(String)));
+            if (!chosen.every((p) => yurtPrograms.includes(p))) {
+                return res.status(400).json({ message: 'Geçersiz program seçildi.' });
+            }
+        } else {
+            return res.status(400).json({ message: 'Program seçin.' });
+        }
+        if (chosen.length === 0) return res.status(400).json({ message: 'Bu yurtta tanımlı program yok.' });
+
+        // Every student must belong to this yurt
+        const students = await sequelize.query<{ studentid: number; first_name: string; last_name: string | null }>(
+            'SELECT studentid, first_name, last_name FROM student WHERE yurtid = :yurtid AND studentid IN (:ids)',
+            { replacements: { yurtid, ids }, type: QueryTypes.SELECT }
+        );
+        if (students.length !== ids.length) {
+            return res.status(400).json({ message: 'Seçilen talebelerden biri bu yurda ait değil.' });
+        }
+
+        const reason = typeof sebep === 'string' ? sebep.trim().slice(0, 255) : '';
+        const range = { ids, start: start_date, end: end_date, chosen };
+
+        const existing = await sequelize.query<{ attendance_type_name: string }>(
+            `SELECT attendance_type_name FROM attendance
+              WHERE studentid IN (:ids) AND date BETWEEN :start AND :end AND program_name IN (:chosen)`,
+            { replacements: range, type: QueryTypes.SELECT }
+        );
+        const total = ids.length * dates.length * chosen.length;
+        const alreadyIzinli = existing.filter((r) => r.attendance_type_name === 'izinli').length;
+        const summary = {
+            days,
+            total,
+            created: total - existing.length,
+            replaced: existing.length - alreadyIzinli, // records of another type that become izinli
+            already_izinli: alreadyIzinli,
+        };
+        if (dry_run) return res.json(summary);
+
+        // Replace everything in the range in one transaction: all of it is saved, or none of it
+        await sequelize.transaction(async (transaction) => {
+            await sequelize.query(
+                `DELETE FROM attendance
+                  WHERE studentid IN (:ids) AND date BETWEEN :start AND :end AND program_name IN (:chosen)`,
+                { replacements: range, transaction }
+            );
+            const rows: (string | number | null)[][] = [];
+            for (const studentid of ids) {
+                for (const date of dates) {
+                    for (const program_name of chosen) {
+                        rows.push([studentid, date, program_name, 'izinli', reason || null, yurtid]);
+                    }
+                }
+            }
+            for (let i = 0; i < rows.length; i += 500) {
+                await sequelize.query(
+                    'INSERT INTO attendance (studentid, date, program_name, attendance_type_name, sebep, yurtid) VALUES :rows',
+                    { replacements: { rows: rows.slice(i, i + 500) }, transaction }
+                );
+            }
+        });
+
+        // One log entry per student (a failed log never undoes the saved records)
+        for (const st of students) {
+            const studentName = `${st.first_name} ${st.last_name || ''}`.trim();
+            try {
+                await activityLogService.createLog({
+                    userid: req.user!.accountid,
+                    username: req.user!.username,
+                    action: 'create',
+                    entity_type: 'izinli',
+                    entity_id: JSON.stringify({ studentid: st.studentid, start_date, end_date, studentName }),
+                    details: JSON.stringify({
+                        studentName,
+                        start_date,
+                        end_date,
+                        programs: chosen,
+                        sebep: reason || null,
+                        newStatus: 'izinli',
+                        description: `${start_date} - ${end_date} arası ${dates.length * chosen.length} kayıt için ${studentName} - İzinli`,
+                    }),
+                    ip_address: req.ip || req.socket.remoteAddress || null,
+                    yurtid,
+                });
+            } catch (logError) {
+                console.error('Izinli range log failed:', logError);
+            }
+        }
+
+        res.status(201).json({ message: 'İzinli kayıtları eklendi.', ...summary });
+    } catch (err) {
+        console.error('Izinli range error:', err);
+        res.status(500).json({ message: 'İzinli kayıtları eklenemedi.' });
+    }
+});
+
 attendanceRouter.get('/izinli', requireRoles(['admin', 'hoca', 'yoklamaci']), async (req, res) => {
     try {
         const { date, program_name } = req.query;
-        const yurtid = req.user!.yurtid;
+        const yurtid = req.selectedYurtId!; // selected yurt, like every other attendance route
         if (!date || !program_name) {
             return res.status(400).json({ message: 'Eksik bilgi.' });
         }
