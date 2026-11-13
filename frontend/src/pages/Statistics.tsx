@@ -1,5 +1,5 @@
 import { BarChart3, Info } from 'lucide-react';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ExcelJS from 'exceljs';
@@ -8,6 +8,10 @@ import autoTable from 'jspdf-autotable';
 import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
 import { useClassLabels } from '../hooks/useClassLabels';
+import { useAttendanceReasons } from '../hooks/useAttendanceReasons';
+import { useAuth } from '../auth/AuthContext';
+import { prettifyClassName } from '../utils/classNames';
+import { LevelLimits, loadLimits, saveLimits, isValidLimits } from '../utils/attendanceLevels';
 import config from '../config';
 import {
     Chart as ChartJS,
@@ -42,6 +46,7 @@ interface StatisticEntry {
     studentid: number;
     name: string;
     class_name: string;
+    season_year?: string;
     total: number;
     percentages: {
         var?: number;
@@ -51,25 +56,10 @@ interface StatisticEntry {
     };
 }
 
-// 1. Use normalized program names everywhere for logic
-const PROGRAM_ORDER = [
-    'sabah_namazi',
-    'oglen_namazi',
-    'ikindi_namazi',
-    'aksam_namazi',
-    'yatsi_namazi',
-    'hatim'
-];
-
-const PROGRAM_TURKISH_MAP: Record<string, string> = {
-    "sabah_namazi": "Sabah Namazı",
-    "oglen_namazi": "Öğle Namazı",
-    "ikindi_namazi": "İkindi Namazı",
-    "aksam_namazi": "Akşam Namazı",
-    "yatsi_namazi": "Yatsı Namazı",
-    "hatim": "Hatim"
-};
-
+interface ProgramInfo {
+    program_name: string;
+    display_name?: string | null;
+}
 
 // Helper to normalize program names
 function normalizeProgramName(name: string) {
@@ -89,10 +79,49 @@ const Statistics = () => {
     const [selectedProgram, setSelectedProgram] = useState('genel');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
-    // State for programs included in "genel" calculation
-    const [programsForGenel, setProgramsForGenel] = useState<Set<string>>(
-        new Set(PROGRAM_ORDER) // By default, include all programs
-    );
+    // Programs of the selected yurt (Settings > Programlar, in Settings order)
+    const { user, selectedYurt } = useAuth();
+    const yurtKey = selectedYurt?.yurtId ?? user?.yurtid ?? 0;
+    const [programs, setPrograms] = useState<ProgramInfo[]>([]);
+    const [seasons, setSeasons] = useState<{ season_year: string }[]>([]);
+    const sebepList = useAttendanceReasons();
+    const [selectedSeason, setSelectedSeason] = useState('');
+    const [selectedSebep, setSelectedSebep] = useState('');
+    const [hasFetched, setHasFetched] = useState(false);
+
+    // Programs left out of the "genel" calculation (empty = all programs are included)
+    const [genelExcluded, setGenelExcluded] = useState<Set<string>>(new Set());
+
+    // Color limits (green from `good`, yellow from `medium`), adjustable on this page
+    const [limits, setLimits] = useState<LevelLimits>(loadLimits);
+    const [limitDraft, setLimitDraft] = useState({ good: String(limits.good), medium: String(limits.medium) });
+    const limitsInvalid = !isValidLimits({ good: Number(limitDraft.good), medium: Number(limitDraft.medium) });
+    const changeLimit = (key: 'good' | 'medium', value: string) => {
+        const draft = { ...limitDraft, [key]: value };
+        setLimitDraft(draft);
+        const next = { good: Number(draft.good), medium: Number(draft.medium) };
+        if (draft.good !== '' && draft.medium !== '' && isValidLimits(next)) {
+            setLimits(next);
+            saveLimits(next);
+        }
+    };
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const [pr, sr] = await Promise.all([
+                    authFetch(`${config.API_BASE_URL}/program`),
+                    authFetch(`${config.API_BASE_URL}/season`),
+                ]);
+                if (!cancelled && pr.ok) { const d = await pr.json(); if (Array.isArray(d)) setPrograms(d); }
+                if (!cancelled && sr.ok) { const d = await sr.json(); if (Array.isArray(d)) setSeasons(d); }
+            } catch {
+                /* the page still works with the programs found in the records */
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [yurtKey]);
 
     // Pastel color styles for badges
     const pastelStyles = {
@@ -144,13 +173,20 @@ const Statistics = () => {
         }
     };
 
-    // Get all unique normalized program names from attendanceRecords and statistics
-    const allProgramsBase = PROGRAM_ORDER.filter(p =>
-        statistics.length === 0 ||
-        statistics.some(stat => {
-            if (!attendanceRecords.length) return true;
-            return attendanceRecords.some(rec => normalizeProgramName(rec.program_name) === p);
-        })
+    // Programs in Settings order, then any program found in the records that is no longer in Settings
+    const knownProgramKeys = programs.map(p => normalizeProgramName(p.program_name));
+    const extraProgramKeys = Array.from(new Set(attendanceRecords.map(r => normalizeProgramName(r.program_name))))
+        .filter(k => !knownProgramKeys.includes(k));
+    const allProgramKeys = [...knownProgramKeys, ...extraProgramKeys];
+    const programsForGenel = new Set(allProgramKeys.filter(p => !genelExcluded.has(p)));
+    const programLabel = (key: string): string => {
+        const found = programs.find(p => normalizeProgramName(p.program_name) === key);
+        return found?.display_name || prettifyClassName(key);
+    };
+
+    // With records loaded, only programs that have records in the date range are shown
+    const allProgramsBase = allProgramKeys.filter(p =>
+        !attendanceRecords.length || attendanceRecords.some(rec => normalizeProgramName(rec.program_name) === p)
     );
 
     // Filter programs based on selection when in 'genel' view
@@ -166,6 +202,15 @@ const Statistics = () => {
         });
         return programsSet;
     };
+
+    // True when data was loaded but none of the chosen program(s) has a yoklama record in the date range.
+    // Showing 0% for everybody would be wrong then: there is simply nothing to calculate.
+    const noRecordsForSelection = statistics.length > 0 && (() => {
+        const withRecords = getProgramsWithRecords();
+        return selectedProgram === 'genel'
+            ? !Array.from(withRecords).some(p => programsForGenel.has(p))
+            : !withRecords.has(selectedProgram);
+    })();
 
     // Compute program percentages for a statistic entry
     function computeProgramPercentages(
@@ -275,8 +320,7 @@ const Statistics = () => {
         if (!startDate || !endDate) return;
         try {
             const res = await authFetch(
-                `${config.API_BASE_URL}
-/attendance/all?startDate=${startDate}&endDate=${endDate}`
+                `${config.API_BASE_URL}/attendance/all?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
@@ -294,13 +338,13 @@ const Statistics = () => {
         setLoading(true);
         try {
             const res = await authFetch(
-                `${config.API_BASE_URL}
-/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
+                `${config.API_BASE_URL}/attendance/statistics?startDate=${startDate}&endDate=${endDate}`
             );
             if (!res.ok) throw new Error();
             const data = await res.json();
             setStatistics(data);
             await fetchAttendanceRecords();
+            setHasFetched(true);
         } catch {
             toast.error('İstatistik verileri alınamadı.');
         } finally {
@@ -316,6 +360,30 @@ const Statistics = () => {
         // eslint-disable-next-line
     }, []);
 
+    // Which sebep each student has (any record in the date range), for the sebep filter
+    const sebepByStudent = useMemo(() => {
+        const map = new Map<number, Set<string>>();
+        attendanceRecords.forEach((r) => {
+            const sebep = typeof r.sebep === 'string' ? r.sebep.trim().toLowerCase() : '';
+            if (!sebep) return;
+            if (!map.has(r.studentid)) map.set(r.studentid, new Set());
+            map.get(r.studentid)!.add(sebep);
+        });
+        return map;
+    }, [attendanceRecords]);
+
+    // Sebep options: the yurt's list first, then any other sebep found in the records
+    const sebepOptions = useMemo(() => {
+        const inRecords = new Map<string, string>();
+        attendanceRecords.forEach((r) => {
+            const name = typeof r.sebep === 'string' ? r.sebep.trim() : '';
+            if (name && !inRecords.has(name.toLowerCase())) inRecords.set(name.toLowerCase(), name);
+        });
+        const ordered = sebepList.filter((n) => inRecords.has(n.trim().toLowerCase()));
+        const rest = Array.from(inRecords.values()).filter((n) => !ordered.some((o) => o.trim().toLowerCase() === n.toLowerCase()));
+        return [...ordered, ...rest];
+    }, [attendanceRecords, sebepList]);
+
     // Filtering logic for color buttons (now uses "genel" or selected program)
     const filteredStats = statistics.filter((entry) => {
         let value = 0;
@@ -329,13 +397,15 @@ const Statistics = () => {
         }
         const matchesColor =
             selectedColor === '' ||
-            (selectedColor === 'green' && value >= 80) ||
-            (selectedColor === 'yellow' && value >= 60 && value < 80) ||
-            (selectedColor === 'red' && value < 60);
+            (selectedColor === 'green' && value >= limits.good) ||
+            (selectedColor === 'yellow' && value >= limits.medium && value < limits.good) ||
+            (selectedColor === 'red' && value < limits.medium);
 
         const matchesClass = selectedClass === '' || entry.class_name === selectedClass;
+        const matchesSeason = selectedSeason === '' || entry.season_year === selectedSeason;
+        const matchesSebep = selectedSebep === '' || (sebepByStudent.get(entry.studentid)?.has(selectedSebep.toLowerCase()) ?? false);
         const matchesSearch = entry.name.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesColor && matchesClass && matchesSearch;
+        return matchesColor && matchesClass && matchesSeason && matchesSebep && matchesSearch;
     });
 
     // Sorting logic
@@ -389,9 +459,9 @@ const Statistics = () => {
         // Headers
         const headers = ['#', 'İsim', 'Grup'];
         if (selectedProgram === 'genel') {
-            allPrograms.forEach(p => headers.push(PROGRAM_TURKISH_MAP[p] || p));
+            allPrograms.forEach(p => headers.push(programLabel(p)));
         } else {
-            headers.push(PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram);
+            headers.push(programLabel(selectedProgram));
         }
         headers.push('Genel');
         csvRows.push(headers.join(';'));
@@ -451,14 +521,14 @@ const Statistics = () => {
         if (selectedProgram === 'genel') {
             allPrograms.forEach((p) => {
                 columns.push({
-                    header: PROGRAM_TURKISH_MAP[p] || p,
+                    header: programLabel(p),
                     key: p,
                     width: 15
                 });
             });
         } else {
             columns.push({
-                header: PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram,
+                header: programLabel(selectedProgram),
                 key: selectedProgram,
                 width: 15
             });
@@ -559,10 +629,10 @@ const Statistics = () => {
                     let fillColor = 'FF86EFAC'; // Green
                     let fontColor = 'FF166534';
 
-                    if (val < 60) {
+                    if (val < limits.medium) {
                         fillColor = 'FFFCA5A5'; // Red
                         fontColor = 'FF991B1B';
-                    } else if (val < 80) {
+                    } else if (val < limits.good) {
                         fillColor = 'FFFDE047'; // Yellow
                         fontColor = 'FF713F12';
                     }
@@ -631,7 +701,7 @@ const Statistics = () => {
         const headers: string[] = ['#', 'Isim', 'Grup'];
         if (selectedProgram === 'genel') {
             allPrograms.forEach(p => {
-                const turkishName = PROGRAM_TURKISH_MAP[p] || p;
+                const turkishName = programLabel(p);
                 // Convert Turkish characters to ASCII-safe equivalents for PDF
                 const pdfSafeName = turkishName
                     .replace(/İ/g, 'I').replace(/ı/g, 'i')
@@ -643,7 +713,7 @@ const Statistics = () => {
                 headers.push(pdfSafeName);
             });
         } else {
-            const turkishName = PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram;
+            const turkishName = programLabel(selectedProgram);
             const pdfSafeName = turkishName
                 .replace(/İ/g, 'I').replace(/ı/g, 'i')
                 .replace(/Ğ/g, 'G').replace(/ğ/g, 'g')
@@ -732,11 +802,11 @@ const Statistics = () => {
                     const val = parseInt(cellValue);
 
                     if (!isNaN(val)) {
-                        if (val < 60) {
+                        if (val < limits.medium) {
                             data.cell.styles.fillColor = [252, 165, 165]; // Red
                             data.cell.styles.textColor = [153, 27, 27];
                             data.cell.styles.fontStyle = 'bold';
-                        } else if (val < 80) {
+                        } else if (val < limits.good) {
                             data.cell.styles.fillColor = [253, 224, 71]; // Yellow
                             data.cell.styles.textColor = [113, 63, 18];
                             data.cell.styles.fontStyle = 'bold';
@@ -862,7 +932,7 @@ const Statistics = () => {
                                     <option value="genel">Genel</option>
                                     {allPrograms.map(p => (
                                         <option key={p} value={p}>
-                                            {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')}
+                                            {programLabel(p)}
                                         </option>
                                     ))}
                                 </select>
@@ -898,6 +968,62 @@ const Statistics = () => {
                                 >
                                     Verileri Getir
                                 </button>
+                            </div>
+                        </div>
+
+                        <div className="row g-2 mb-3 align-items-end">
+                            <div className="col-6 col-md-3">
+                                <label className="form-label fw-bold mb-1" style={{ fontSize: '0.85rem' }}>Sezon</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    value={selectedSeason}
+                                    onChange={e => setSelectedSeason(e.target.value)}
+                                >
+                                    <option value="">Tümü</option>
+                                    {seasons.map((se) => (
+                                        <option key={se.season_year} value={se.season_year}>{se.season_year}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-6 col-md-3">
+                                <label className="form-label fw-bold mb-1" style={{ fontSize: '0.85rem' }}>Sebep</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    value={selectedSebep}
+                                    onChange={e => setSelectedSebep(e.target.value)}
+                                    disabled={sebepOptions.length === 0}
+                                    title="Seçilen sebeple en az bir yoklama kaydı olan talebeleri gösterir"
+                                >
+                                    <option value="">Tümü</option>
+                                    {sebepOptions.map((n) => (
+                                        <option key={n} value={n}>{n}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-12 col-md-6">
+                                <label className="form-label fw-bold mb-1" style={{ fontSize: '0.85rem' }}>Renk sınırları (%)</label>
+                                <div className="d-flex align-items-center gap-2 flex-wrap" style={{ fontSize: '0.85rem' }}>
+                                    <span>İyi (yeşil) ≥</span>
+                                    <input
+                                        type="number" min={1} max={100} aria-label="İyi sınırı"
+                                        className={`form-control form-control-sm${limitsInvalid ? ' is-invalid' : ''}`}
+                                        style={{ width: 80 }}
+                                        value={limitDraft.good}
+                                        onChange={e => changeLimit('good', e.target.value)}
+                                    />
+                                    <span>Orta (sarı) ≥</span>
+                                    <input
+                                        type="number" min={0} max={99} aria-label="Orta sınırı"
+                                        className={`form-control form-control-sm${limitsInvalid ? ' is-invalid' : ''}`}
+                                        style={{ width: 80 }}
+                                        value={limitDraft.medium}
+                                        onChange={e => changeLimit('medium', e.target.value)}
+                                    />
+                                    <span className="text-muted">altı: Zayıf (kırmızı)</span>
+                                </div>
+                                {limitsInvalid && (
+                                    <small className="text-danger">Orta sınırı, iyi sınırından küçük olmalı (0-100 arası tam sayılar).</small>
+                                )}
                             </div>
                         </div>
 
@@ -968,21 +1094,21 @@ const Statistics = () => {
                                     </label>
                                     <button
                                         className="btn btn-sm btn-outline-primary me-2"
-                                        onClick={() => setProgramsForGenel(new Set(PROGRAM_ORDER))}
+                                        onClick={() => setGenelExcluded(new Set())}
                                         style={{ fontSize: '0.75rem', padding: '4px 12px' }}
                                     >
                                         Tümünü Seç
                                     </button>
                                     <button
                                         className="btn btn-sm btn-outline-secondary"
-                                        onClick={() => setProgramsForGenel(new Set())}
+                                        onClick={() => setGenelExcluded(new Set(allProgramKeys))}
                                         style={{ fontSize: '0.75rem', padding: '4px 12px' }}
                                     >
                                         Tümünü Kaldır
                                     </button>
                                 </div>
                                 <div className="d-flex flex-wrap gap-2">
-                                    {PROGRAM_ORDER.map(program => (
+                                    {allProgramKeys.map(program => (
                                         <div
                                             key={program}
                                             style={{
@@ -999,16 +1125,16 @@ const Statistics = () => {
                                                 userSelect: 'none'
                                             }}
                                             onClick={() => {
-                                                const newSet = new Set(programsForGenel);
-                                                if (newSet.has(program)) {
-                                                    newSet.delete(program);
+                                                const next = new Set(genelExcluded);
+                                                if (next.has(program)) {
+                                                    next.delete(program);
                                                 } else {
-                                                    newSet.add(program);
+                                                    next.add(program);
                                                 }
-                                                setProgramsForGenel(newSet);
+                                                setGenelExcluded(next);
                                             }}
                                         >
-                                            {PROGRAM_TURKISH_MAP[program] || program}
+                                            {programLabel(program)}
                                         </div>
                                     ))}
                                 </div>
@@ -1019,7 +1145,7 @@ const Statistics = () => {
                         )}
 
                         {/* Charts Section */}
-                        {filteredStats.length > 0 && (
+                        {filteredStats.length > 0 && !noRecordsForSelection && (
                             <div className="row g-3 mb-4">
                                 {/* Attendance Distribution Bar Chart */}
                                 <div className="col-md-6">
@@ -1030,16 +1156,16 @@ const Statistics = () => {
                                             </h6>
                                             <Bar
                                                 data={{
-                                                    labels: ['İyi (>80%)', 'Orta (60-80%)', 'Zayıf (<60%)'],
+                                                    labels: [`İyi (≥${limits.good}%)`, `Orta (${limits.medium}-${limits.good - 1}%)`, `Zayıf (<${limits.medium}%)`],
                                                     datasets: [{
                                                         label: 'Talebe Sayısı',
                                                         data: [
-                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) > 80).length,
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) >= limits.good).length,
                                                             filteredStats.filter(s => {
                                                                 const p = getPercentageForProgram(s, selectedProgram);
-                                                                return p >= 60 && p <= 80;
+                                                                return p >= limits.medium && p < limits.good;
                                                             }).length,
-                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) < 60).length
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) < limits.medium).length
                                                         ],
                                                         backgroundColor: [
                                                             'rgba(134, 239, 172, 0.8)',
@@ -1096,12 +1222,12 @@ const Statistics = () => {
                                                     labels: ['İyi', 'Orta', 'Zayıf'],
                                                     datasets: [{
                                                         data: [
-                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) > 80).length,
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) >= limits.good).length,
                                                             filteredStats.filter(s => {
                                                                 const p = getPercentageForProgram(s, selectedProgram);
-                                                                return p >= 60 && p <= 80;
+                                                                return p >= limits.medium && p < limits.good;
                                                             }).length,
-                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) < 60).length
+                                                            filteredStats.filter(s => getPercentageForProgram(s, selectedProgram) < limits.medium).length
                                                         ],
                                                         backgroundColor: [
                                                             'rgba(134, 239, 172, 0.85)',
@@ -1157,7 +1283,7 @@ const Statistics = () => {
                                                 </h6>
                                                 <Bar
                                                     data={{
-                                                        labels: allPrograms.map(p => PROGRAM_TURKISH_MAP[p] || p),
+                                                        labels: allPrograms.map(p => programLabel(p)),
                                                         datasets: [{
                                                             label: 'Ortalama Katılım (%)',
                                                             data: allPrograms.map(prog => {
@@ -1399,6 +1525,27 @@ const Statistics = () => {
                             </div>
                         )}
 
+                        {hasFetched && !loading && statistics.length === 0 ? (
+                            <div className="card shadow-sm border-0 text-center text-muted" style={{ borderRadius: '16px', padding: '48px 16px' }} data-testid="stats-empty">
+                                <Info size={28} className="mb-2 mx-auto" />
+                                <div className="fw-bold">Seçilen tarih aralığında yoklama kaydı yok.</div>
+                                <div style={{ fontSize: '0.9rem' }}>Başka bir tarih aralığı seçip "Verileri Getir"e basın.</div>
+                            </div>
+                        ) : noRecordsForSelection && !loading ? (
+                            <div className="card shadow-sm border-0 text-center text-muted" style={{ borderRadius: '16px', padding: '48px 16px' }} data-testid="stats-no-program-records">
+                                <Info size={28} className="mb-2 mx-auto" />
+                                <div className="fw-bold">
+                                    {selectedProgram === 'genel'
+                                        ? 'Seçilen programlar için bu tarih aralığında yoklama kaydı yok.'
+                                        : `${programLabel(selectedProgram)} için bu tarih aralığında yoklama kaydı yok.`}
+                                </div>
+                                <div style={{ fontSize: '0.9rem' }}>
+                                    {selectedProgram === 'genel'
+                                        ? 'Yoklama alınan programları seçin veya tarih aralığını değiştirin.'
+                                        : 'Başka bir program seçin veya tarih aralığını değiştirin.'}
+                                </div>
+                            </div>
+                        ) : (
                         <div className="card shadow-sm border-0" style={{ borderRadius: '16px', overflow: 'hidden' }}>
                             <div style={{ overflowX: 'auto' }}>
                                 <table className="table align-middle mb-0" style={{ minWidth: '800px' }}>
@@ -1490,7 +1637,7 @@ const Statistics = () => {
                                                             )
                                                         }
                                                     >
-                                                        {PROGRAM_TURKISH_MAP[p] || p.replace(/_/g, ' ')} {getSortIcon(p)}
+                                                        {programLabel(p)} {getSortIcon(p)}
                                                     </th>
                                                 ))
                                                 : (
@@ -1513,7 +1660,7 @@ const Statistics = () => {
                                                             )
                                                         }
                                                     >
-                                                        {PROGRAM_TURKISH_MAP[selectedProgram] || selectedProgram.replace(/_/g, ' ')} {getSortIcon(selectedProgram)}
+                                                        {programLabel(selectedProgram)} {getSortIcon(selectedProgram)}
                                                     </th>
                                                 )
                                             }
@@ -1546,7 +1693,7 @@ const Statistics = () => {
                                                 <td colSpan={selectedProgram === 'genel' ? 4 + allPrograms.length : 5}
                                                     className="text-center text-muted"
                                                     style={{ padding: '40px', fontSize: '0.95rem' }}>
-                                                    Sonuç bulunamadı.
+                                                    Filtrelere uyan talebe bulunamadı.
                                                 </td>
                                             </tr>
                                         ) : sortedStats.map((s, i) => {
@@ -1577,8 +1724,8 @@ const Statistics = () => {
                                                             const val = progData ? (progData.var + progData.izinli) :
                                                                 (programsWithRecordsSet.has(prog) ? 100 : 0);
                                                             let badgeStyle = modernBadgeStyles.success;
-                                                            if (val < 60) badgeStyle = modernBadgeStyles.danger;
-                                                            else if (val < 80) badgeStyle = modernBadgeStyles.warning;
+                                                            if (val < limits.medium) badgeStyle = modernBadgeStyles.danger;
+                                                            else if (val < limits.good) badgeStyle = modernBadgeStyles.warning;
                                                             return (
                                                                 <td key={idx} style={{ padding: '16px', textAlign: 'center' }}>
                                                                     <span style={badgeStyle}>{val}%</span>
@@ -1587,9 +1734,9 @@ const Statistics = () => {
                                                         })}
                                                         <td style={{ padding: '16px', textAlign: 'center' }}>
                                                             <span style={
-                                                                genel < 60
+                                                                genel < limits.medium
                                                                     ? modernBadgeStyles.danger
-                                                                    : genel < 80
+                                                                    : genel < limits.good
                                                                         ? modernBadgeStyles.warning
                                                                         : modernBadgeStyles.success
                                                             }>
@@ -1605,8 +1752,8 @@ const Statistics = () => {
                                                 const val = progData ? (progData.var + progData.izinli) :
                                                     (programsWithRecordsSet.has(selectedProgram) ? 100 : 0);
                                                 let badgeStyle = modernBadgeStyles.success;
-                                                if (val < 60) badgeStyle = modernBadgeStyles.danger;
-                                                else if (val < 75) badgeStyle = modernBadgeStyles.warning;
+                                                if (val < limits.medium) badgeStyle = modernBadgeStyles.danger;
+                                                else if (val < limits.good) badgeStyle = modernBadgeStyles.warning;
                                                 return (
                                                     <tr key={s.studentid} style={{
                                                         borderBottom: '1px solid #f1f5f9',
@@ -1629,9 +1776,9 @@ const Statistics = () => {
                                                         </td>
                                                         <td style={{ padding: '16px', textAlign: 'center' }}>
                                                             <span style={
-                                                                genel < 60
+                                                                genel < limits.medium
                                                                     ? modernBadgeStyles.danger
-                                                                    : genel < 75
+                                                                    : genel < limits.good
                                                                         ? modernBadgeStyles.warning
                                                                         : modernBadgeStyles.success
                                                             }>
@@ -1653,6 +1800,7 @@ const Statistics = () => {
                                 </div>
                             )}
                         </div>
+                        )}
                     </div>
                 </div>
             </div>

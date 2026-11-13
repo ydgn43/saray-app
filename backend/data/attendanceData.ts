@@ -71,6 +71,7 @@ export default class AttendanceData {
                     studentid: +studentId,
                     name: student ? `${student.first_name} ${student.last_name}` : 'Bilinmeyen',
                     class_name: student?.class_name || '',
+                    season_year: student?.season_year || '',
                     total,
                     percentages,
                 };
