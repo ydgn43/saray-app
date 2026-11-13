@@ -56,6 +56,20 @@ interface StatisticEntry {
     };
 }
 
+// Shapes used on this page: one radius per kind of element, so nothing is styled one by one.
+const RADIUS_CARD = '12px';    // cards and panels
+const RADIUS_CONTROL = '8px';  // inputs, selects, buttons, dropdown menus
+const RADIUS_PILL = '20px';    // badges and filter chips
+
+const PAGE_STYLE = `
+.stats-page .card { border-radius: ${RADIUS_CARD}; }
+.stats-page .stats-panel { border-radius: ${RADIUS_CARD}; }
+.stats-page .form-control,
+.stats-page .form-select,
+.stats-page .btn,
+.stats-page .dropdown-menu { border-radius: ${RADIUS_CONTROL}; }
+`;
+
 interface ProgramInfo {
     program_name: string;
     display_name?: string | null;
@@ -145,7 +159,7 @@ const Statistics = () => {
             backgroundColor: 'rgba(134, 239, 172, 0.3)',
             color: '#166534',
             padding: '6px 14px',
-            borderRadius: '20px',
+            borderRadius: RADIUS_PILL,
             fontWeight: '600',
             fontSize: '0.875rem',
             display: 'inline-block',
@@ -155,7 +169,7 @@ const Statistics = () => {
             backgroundColor: 'rgba(253, 224, 71, 0.3)',
             color: '#713f12',
             padding: '6px 14px',
-            borderRadius: '20px',
+            borderRadius: RADIUS_PILL,
             fontWeight: '600',
             fontSize: '0.875rem',
             display: 'inline-block',
@@ -165,7 +179,7 @@ const Statistics = () => {
             backgroundColor: 'rgba(252, 165, 165, 0.3)',
             color: '#991b1b',
             padding: '6px 14px',
-            borderRadius: '20px',
+            borderRadius: RADIUS_PILL,
             fontWeight: '600',
             fontSize: '0.875rem',
             display: 'inline-block',
@@ -385,28 +399,34 @@ const Statistics = () => {
     }, [attendanceRecords, sebepList]);
 
     // Filtering logic for color buttons (now uses "genel" or selected program)
-    const filteredStats = statistics.filter((entry) => {
-        let value = 0;
+    // Percentage of a student for the chosen program (or Genel)
+    const valueOf = (entry: StatisticEntry): number => {
         if (selectedProgram === 'genel') {
-            value = getProgramSums(entry).genel;
-        } else {
-            const programPercentages = computeProgramPercentages(entry, attendanceRecords);
-            const prog = programPercentages[selectedProgram];
-            // If prog doesn't exist, program has no records = 100%
-            value = prog ? (prog.var + prog.izinli) : 100;
+            return getProgramSums(entry).genel;
         }
-        const matchesColor =
-            selectedColor === '' ||
-            (selectedColor === 'green' && value >= limits.good) ||
-            (selectedColor === 'yellow' && value >= limits.medium && value < limits.good) ||
-            (selectedColor === 'red' && value < limits.medium);
+        const programPercentages = computeProgramPercentages(entry, attendanceRecords);
+        const prog = programPercentages[selectedProgram];
+        // If prog doesn't exist, program has no records = 100%
+        return prog ? (prog.var + prog.izinli) : 100;
+    };
+    const levelOf = (value: number): 'green' | 'yellow' | 'red' =>
+        value >= limits.good ? 'green' : value >= limits.medium ? 'yellow' : 'red';
 
+    // Every filter except the color one (the color chips show how many students each level has)
+    const passesOtherFilters = (entry: StatisticEntry): boolean => {
         const matchesClass = selectedClass === '' || entry.class_name === selectedClass;
         const matchesSeason = selectedSeason === '' || entry.season_year === selectedSeason;
         const matchesSebep = selectedSebep === '' || (sebepByStudent.get(entry.studentid)?.has(selectedSebep.toLowerCase()) ?? false);
         const matchesSearch = entry.name.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesColor && matchesClass && matchesSeason && matchesSebep && matchesSearch;
-    });
+        return matchesClass && matchesSeason && matchesSebep && matchesSearch;
+    };
+
+    const levelCounts = { green: 0, yellow: 0, red: 0 };
+    statistics.filter(passesOtherFilters).forEach((entry) => { levelCounts[levelOf(valueOf(entry))] += 1; });
+
+    const filteredStats = statistics.filter(
+        (entry) => passesOtherFilters(entry) && (selectedColor === '' || levelOf(valueOf(entry)) === selectedColor)
+    );
 
     // Sorting logic
     const sortedStats = [...filteredStats];
@@ -858,7 +878,8 @@ const Statistics = () => {
     return (
         <>
             <ToastContainer />
-            <div className="container" style={{ padding: '0 12px', maxWidth: 1200 }}>
+            <style>{PAGE_STYLE}</style>
+            <div className="container stats-page" style={{ padding: '0 12px', maxWidth: 1200 }}>
                 <PageHeader
                     icon=""
                     title="İstatistikler"
@@ -871,7 +892,7 @@ const Statistics = () => {
                         className="badge bg-success"
                         style={{
                             padding: '8px 16px',
-                            borderRadius: '20px',
+                            borderRadius: RADIUS_PILL,
                             fontSize: '0.9rem',
                             fontWeight: '700'
                         }}
@@ -879,7 +900,7 @@ const Statistics = () => {
                         Toplam: {filteredStats.length}
                     </span>
                     <button
-                        className="btn btn-light btn-sm"
+                        className="btn btn-outline-secondary btn-sm"
                         onClick={() => {
                             setSelectedColor('');
                             setSelectedClass('');
@@ -887,7 +908,6 @@ const Statistics = () => {
                             setSelectedProgram('genel');
                         }}
                         style={{
-                            borderRadius: '8px',
                             padding: '6px 16px',
                             fontWeight: '600',
                             fontSize: '0.85rem'
@@ -897,11 +917,7 @@ const Statistics = () => {
                     </button>
                 </div>
 
-                <div className="card shadow border-0 mb-3"
-                    style={{
-                        borderRadius: '12px'
-                    }}
-                >
+                <div className="card shadow-sm border-0 mb-3">
                     <div className="card-body p-2 p-md-3">
                         <div className="row g-2 mb-2">
                             <div className="col-6 col-md-3">
@@ -957,14 +973,10 @@ const Statistics = () => {
                                     className="btn btn-primary btn-sm w-100"
                                     onClick={fetchStatistics}
                                     style={{
-                                        transition: 'all 0.3s ease-in-out',
                                         fontWeight: 600,
-                                        borderRadius: '8px',
                                         padding: '8px 16px',
                                         fontSize: '0.85rem'
                                     }}
-                                    onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
-                                    onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                                 >
                                     Verileri Getir
                                 </button>
@@ -1028,31 +1040,42 @@ const Statistics = () => {
                         </div>
 
                         <div className="mb-3 d-flex flex-wrap gap-2 align-items-center">
-                            {[
-                                { label: 'İyi', color: 'green', value: 'green', textColor: 'white' },
-                                { label: 'Orta', color: 'yellow', value: 'yellow', textColor: 'black' },
-                                { label: 'Zayıf', color: 'red', value: 'red', textColor: 'white' },
-                            ].map(({ label, color, value, textColor }) => (
-                                <span
-                                    key={value}
-                                    className="badge"
-                                    style={{
-                                        backgroundColor: color,
-                                        color: textColor,
-                                        opacity: selectedColor === value ? 1 : 0.5,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease-in-out',
-                                        transform: selectedColor === value ? 'scale(1.05)' : 'scale(1)',
-                                        fontSize: 16,
-                                        padding: '0.7em 1.2em',
-                                        border: selectedColor === value ? '2px solid #333' : undefined,
-                                        boxShadow: selectedColor === value ? '0 2px 8px rgba(0,0,0,0.08)' : undefined,
-                                    }}
-                                    onClick={() => setSelectedColor(selectedColor === value ? '' : value)}
-                                >
-                                    {label}
-                                </span>
-                            ))}
+                            {([
+                                { label: 'İyi', value: 'green', dot: '#22c55e', style: modernBadgeStyles.success },
+                                { label: 'Orta', value: 'yellow', dot: '#eab308', style: modernBadgeStyles.warning },
+                                { label: 'Zayıf', value: 'red', dot: '#ef4444', style: modernBadgeStyles.danger },
+                            ] as const).map(({ label, value, dot, style }) => {
+                                const active = selectedColor === value;
+                                return (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        aria-pressed={active}
+                                        data-testid={`level-${value}`}
+                                        onClick={() => setSelectedColor(active ? '' : value)}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 8,
+                                            padding: '5px 14px',
+                                            borderRadius: RADIUS_PILL,
+                                            fontSize: '0.875rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.15s, border-color 0.15s',
+                                            backgroundColor: active ? style.backgroundColor : '#fff',
+                                            color: active ? style.color : '#475569',
+                                            border: `1px solid ${active ? style.border.replace('1px solid ', '') : '#dee2e6'}`,
+                                        }}
+                                    >
+                                        <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: dot, display: 'inline-block' }} />
+                                        {label}
+                                        {!noRecordsForSelection && statistics.length > 0 && (
+                                            <span style={{ fontWeight: 500, opacity: 0.75 }}>{levelCounts[value]}</span>
+                                        )}
+                                    </button>
+                                );
+                            })}
 
                             <input
                                 className="form-control form-control-sm w-auto ms-2"
@@ -1064,7 +1087,7 @@ const Statistics = () => {
                             />
                             <div className="btn-group ms-2">
                                 <button
-                                    className="btn btn-outline-success btn-sm dropdown-toggle"
+                                    className="btn btn-outline-secondary btn-sm dropdown-toggle"
                                     data-bs-toggle="dropdown"
                                     aria-expanded="false"
                                     type="button"
@@ -1087,13 +1110,13 @@ const Statistics = () => {
 
                         {/* Program selector for "genel" calculation */}
                         {selectedProgram === 'genel' && (
-                            <div className="mb-3 p-3 border rounded" style={{ backgroundColor: '#f8f9fa' }}>
+                            <div className="mb-3 p-3 border stats-panel" style={{ backgroundColor: '#f8f9fa' }}>
                                 <div className="d-flex align-items-center mb-2">
                                     <label className="form-label fw-bold mb-0 me-3" style={{ fontSize: '0.9rem' }}>
                                         <BarChart3 size={16} className="me-1 align-text-bottom" />Genel Hesaplamaya Dahil Programlar:
                                     </label>
                                     <button
-                                        className="btn btn-sm btn-outline-primary me-2"
+                                        className="btn btn-sm btn-outline-secondary me-2"
                                         onClick={() => setGenelExcluded(new Set())}
                                         style={{ fontSize: '0.75rem', padding: '4px 12px' }}
                                     >
@@ -1112,12 +1135,11 @@ const Statistics = () => {
                                         <div
                                             key={program}
                                             style={{
-                                                padding: '10px 16px',
-                                                borderRadius: '8px',
-                                                border: programsForGenel.has(program) ? '2px solid #0d6efd' : '2px solid #dee2e6',
+                                                padding: '5px 14px',
+                                                borderRadius: RADIUS_PILL,
+                                                border: programsForGenel.has(program) ? '1px solid #0d6efd' : '1px solid #dee2e6',
                                                 cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                boxShadow: programsForGenel.has(program) ? '0 2px 8px rgba(13, 110, 253, 0.25)' : 'none',
+                                                transition: 'background-color 0.15s, border-color 0.15s',
                                                 backgroundColor: programsForGenel.has(program) ? '#e7f3ff' : 'white',
                                                 fontSize: '0.85rem',
                                                 fontWeight: programsForGenel.has(program) ? '600' : '500',
@@ -1149,7 +1171,7 @@ const Statistics = () => {
                             <div className="row g-3 mb-4">
                                 {/* Attendance Distribution Bar Chart */}
                                 <div className="col-md-6">
-                                    <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                    <div className="card shadow-sm border-0">
                                         <div className="card-body">
                                             <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
                                                 Yoklama Dağılımı
@@ -1212,7 +1234,7 @@ const Statistics = () => {
 
                                 {/* Performance Percentage Doughnut Chart */}
                                 <div className="col-md-6">
-                                    <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                    <div className="card shadow-sm border-0">
                                         <div className="card-body">
                                             <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
                                                 Performans Dağılımı (%)
@@ -1276,7 +1298,7 @@ const Statistics = () => {
                                 {/* Program-wise Performance Bar Chart */}
                                 {selectedProgram === 'genel' && allPrograms.length > 0 && (
                                     <div className="col-12">
-                                        <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                        <div className="card shadow-sm border-0">
                                             <div className="card-body">
                                                 <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
                                                     Program Bazında Ortalama Katılım
@@ -1346,7 +1368,7 @@ const Statistics = () => {
                                 {/* Attendance Trend Line Chart */}
                                 {attendanceRecords.length > 0 && (
                                     <div className="col-12">
-                                        <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
+                                        <div className="card shadow-sm border-0">
                                             <div className="card-body">
                                                 <h6 className="card-title mb-3 fw-bold" style={{ color: '#1e40af' }}>
                                                     Zaman İçinde Katılım Trendi
@@ -1526,13 +1548,13 @@ const Statistics = () => {
                         )}
 
                         {hasFetched && !loading && statistics.length === 0 ? (
-                            <div className="card shadow-sm border-0 text-center text-muted" style={{ borderRadius: '16px', padding: '48px 16px' }} data-testid="stats-empty">
+                            <div className="card shadow-sm border-0 text-center text-muted" style={{ padding: '48px 16px' }} data-testid="stats-empty">
                                 <Info size={28} className="mb-2 mx-auto" />
                                 <div className="fw-bold">Seçilen tarih aralığında yoklama kaydı yok.</div>
                                 <div style={{ fontSize: '0.9rem' }}>Başka bir tarih aralığı seçip "Verileri Getir"e basın.</div>
                             </div>
                         ) : noRecordsForSelection && !loading ? (
-                            <div className="card shadow-sm border-0 text-center text-muted" style={{ borderRadius: '16px', padding: '48px 16px' }} data-testid="stats-no-program-records">
+                            <div className="card shadow-sm border-0 text-center text-muted" style={{ padding: '48px 16px' }} data-testid="stats-no-program-records">
                                 <Info size={28} className="mb-2 mx-auto" />
                                 <div className="fw-bold">
                                     {selectedProgram === 'genel'
@@ -1546,7 +1568,7 @@ const Statistics = () => {
                                 </div>
                             </div>
                         ) : (
-                        <div className="card shadow-sm border-0" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+                        <div className="card shadow-sm border-0" style={{ overflow: 'hidden' }}>
                             <div style={{ overflowX: 'auto' }}>
                                 <table className="table align-middle mb-0" style={{ minWidth: '800px' }}>
                                     <thead style={{
