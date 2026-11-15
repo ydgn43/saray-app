@@ -20,19 +20,23 @@ import superAdminRouter from './routes/superAdminRoute';
 import exitRouter from './routes/exitRoute';
 import attendanceReasonRouter from './routes/attendanceReasonRoute';
 import { initializeWebSocket } from './websocket/socketServer';
+import path from 'path';
+import fs from 'fs';
+import { getAllowedOrigins, isServingFrontend, assertStrongJwtSecret } from './utils/hostingConfig';
 
 const app = express();
 const httpServer = createServer(app);
 const port = Number(process.env.PORT_HTTP) || 3001;
 const host = '0.0.0.0';
 
-// Define the whitelist of allowed frontend origins
-const allowedOrigins = [
-    "http://localhost:3000",
-    "http://192.168.50.238:3000",
-    "https://app.efendim.nl",
-    "https://api.efendim.nl"
-];
+// Whitelist of allowed frontend origins (ALLOWED_ORIGINS in config.env, or the built-in list)
+const allowedOrigins = getAllowedOrigins();
+
+// Hosting mode: this server also serves the built frontend (see deploy/README.md)
+const serveFrontend = isServingFrontend();
+if (serveFrontend) {
+    assertStrongJwtSecret();
+}
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -50,6 +54,25 @@ app.use(cors({
 // The 'cors' middleware above handles preflight requests correctly.
 
 app.use(express.json());
+
+// Hosting mode: serve the built React app from the same address as the API.
+// Browser page loads (Accept: text/html) get index.html so that refreshing a page
+// like /attendance works; API calls (fetch, Accept: */* or json) are unaffected.
+if (serveFrontend) {
+    const buildDir = path.resolve(process.env.FRONTEND_BUILD_DIR || path.join(__dirname, '..', 'frontend', 'build'));
+    const indexFile = path.join(buildDir, 'index.html');
+    if (!fs.existsSync(indexFile)) {
+        console.error(`FATAL: SERVE_FRONTEND=true but ${indexFile} does not exist. Build the frontend first.`);
+        process.exit(1);
+    }
+    app.use(express.static(buildDir, { index: false }));
+    app.get('*', (req, res, next) => {
+        const wantsHtml = (req.headers.accept || '').includes('text/html');
+        if (!wantsHtml || req.path.startsWith('/socket.io') || req.path === '/health') return next();
+        res.sendFile(indexFile);
+    });
+    console.log(`Serving frontend from ${buildDir}`);
+}
 
 // 2. Routes go AFTER the CORS middleware
 app.use('/student', studentRouter);

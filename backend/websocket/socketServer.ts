@@ -4,11 +4,12 @@ import { Server as HttpServer } from 'http';
 import { socketAuthMiddleware } from './middleware/socketAuth';
 import { setupAttendanceSocket } from './attendanceSocket';
 import { setupPresenceSocket } from './presenceSocket';
+import { getAllowedOrigins } from '../utils/hostingConfig';
 
 export function initializeWebSocket(httpServer: HttpServer) {
     const io = new SocketIOServer(httpServer, {
         cors: {
-            origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+            origin: [...new Set([process.env.FRONTEND_URL || 'http://localhost:3000', ...getAllowedOrigins()])],
             methods: ['GET', 'POST'],
             credentials: true
         },
