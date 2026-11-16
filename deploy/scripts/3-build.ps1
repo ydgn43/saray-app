@@ -22,11 +22,14 @@ function Invoke-Checked([string]$what, [scriptblock]$block) {
 }
 
 Push-Location (Join-Path $repo 'backend')
-Invoke-Checked 'Backend packages' { npm ci }
+$beCmd = if (Test-Path 'package-lock.json') { 'ci' } else { 'install' }
+Invoke-Checked 'Backend packages' { npm $beCmd }
 Pop-Location
 
 Push-Location (Join-Path $repo 'frontend')
-Invoke-Checked 'Frontend packages' { npm ci }
+$feCmd = if (Test-Path 'package-lock.json') { 'ci' } else { 'install' }
+Invoke-Checked 'Frontend packages' { npm $feCmd }
+
 $env:REACT_APP_API_BASE_URL = $url   # used by the normal requests (src\config.js)
 $env:REACT_APP_BACKEND_URL  = $url   # used by the live connection / websocket (src\websocket\SocketProvider.tsx)
 $env:CI = 'false'          # do not turn warnings into errors
