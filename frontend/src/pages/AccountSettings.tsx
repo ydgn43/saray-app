@@ -167,12 +167,12 @@ const AccountSettings = () => {
                                                 {isLoading ? (
                                                     <>
                                                         <span className="spinner-border spinner-border-sm me-2" />
-                                                        Kaydediliyor...
+                                                        <span>Kaydediliyor...</span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <IconComponent icon={FaSave} className="me-2" />
-                                                        Kaydet
+                                                        <span>Kaydet</span>
                                                     </>
                                                 )}
                                             </button>

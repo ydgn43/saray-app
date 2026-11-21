@@ -4,6 +4,7 @@ dotenv.config({ path: './config.env' });
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
+import compression from 'compression';
 import { sequelize } from './data/sequelize';
 import { studentRouter } from './routes/studentRoute';
 import { attendanceRouter } from './routes/attendanceRoute';
@@ -65,11 +66,22 @@ if (serveFrontend) {
         console.error(`FATAL: SERVE_FRONTEND=true but ${indexFile} does not exist. Build the frontend first.`);
         process.exit(1);
     }
-    app.use(express.static(buildDir, { index: false }));
+    // Compress responses (JS, CSS, HTML, JSON): about 70% less to send over mobile data.
+    app.use(compression());
+    app.use(express.static(buildDir, {
+        index: false,
+        setHeaders: (res, filePath) => {
+            // Files in /static have a content hash in their name, so they can be cached for a year.
+            // Everything else (favicon, manifest, ...) is re-checked each time.
+            const inStatic = filePath.includes(`${path.sep}static${path.sep}`);
+            res.setHeader('Cache-Control', inStatic ? 'public, max-age=31536000, immutable' : 'no-cache');
+        }
+    }));
     app.get('*', (req, res, next) => {
         const wantsHtml = (req.headers.accept || '').includes('text/html');
         if (!wantsHtml || req.path.startsWith('/socket.io') || req.path === '/health') return next();
-        res.sendFile(indexFile);
+        // index.html must always be re-checked, so a new build is picked up at once
+        res.sendFile(indexFile, { headers: { 'Cache-Control': 'no-cache' } });
     });
     console.log(`Serving frontend from ${buildDir}`);
 }

@@ -1,27 +1,28 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { SocketProvider } from './websocket/SocketProvider';
 import PrivateRoute from './auth/PrivateRoute';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Attendance from './pages/Attendance';
-import Statistics from './pages/Statistics';
-import Talebeler from './pages/Talebeler';
 import Layout from './components/Layout';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
 import PageTransition from './components/PageTransition';
-import Home from './pages/Home';
-import IzinliTalebeler from './pages/IzinliTalebeler';
-import ReferenceCodeManagement from './pages/ReferenceCodeManagement';
-import StudentPortal from './pages/StudentPortal';
-import ActivityLogs from './pages/ActivityLogs';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import ExitTracking from './pages/ExitTracking';
 
+// Pages are downloaded when first opened, so the first screen loads fast.
+const Signup = React.lazy(() => import('./pages/Signup'));
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
+const Attendance = React.lazy(() => import('./pages/Attendance'));
+const Statistics = React.lazy(() => import('./pages/Statistics'));
+const Talebeler = React.lazy(() => import('./pages/Talebeler'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+const Home = React.lazy(() => import('./pages/Home'));
+const IzinliTalebeler = React.lazy(() => import('./pages/IzinliTalebeler'));
+const ReferenceCodeManagement = React.lazy(() => import('./pages/ReferenceCodeManagement'));
+const StudentPortal = React.lazy(() => import('./pages/StudentPortal'));
+const ActivityLogs = React.lazy(() => import('./pages/ActivityLogs'));
+const SuperAdminDashboard = React.lazy(() => import('./pages/SuperAdminDashboard'));
+const ExitTracking = React.lazy(() => import('./pages/ExitTracking'));
 
 function RequireRole({ roles, children }: { roles: string[]; children: React.ReactElement }) {
   const { user } = useAuth();
@@ -53,6 +54,13 @@ function App() {
     <AuthProvider>
       <SocketProvider>
         <Router>
+          <Suspense
+            fallback={
+              <div className="d-flex justify-content-center py-5">
+                <div className="spinner-border" role="status" aria-hidden="true"></div>
+              </div>
+            }
+          >
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -213,6 +221,7 @@ function App() {
               }
             />
           </Routes>
+          </Suspense>
 
         </Router>
       </SocketProvider>

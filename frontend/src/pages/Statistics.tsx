@@ -2,9 +2,6 @@ import { BarChart3, Info } from 'lucide-react';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ExcelJS from 'exceljs';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import PageHeader from '../components/PageHeader';
 import { authFetch } from '../utils/authFetch';
 import { useClassLabels } from '../hooks/useClassLabels';
@@ -526,6 +523,8 @@ const Statistics = () => {
     };
 
     const handleExportToExcel = async () => {
+        // Loaded only when the button is pressed, so it is not part of the first download
+        const ExcelJS = (await import('exceljs')).default;
         // Create a new workbook and worksheet
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('İstatistikler');
@@ -684,7 +683,14 @@ const Statistics = () => {
         a.download = `istatistikler_${new Date().toLocaleDateString('tr-TR')}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
-    }; const handleExportToPDF = () => {
+    };
+
+    const handleExportToPDF = async () => {
+        // Loaded only when the button is pressed, so it is not part of the first download
+        const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+            import('jspdf'),
+            import('jspdf-autotable')
+        ]);
         const doc = new jsPDF({
             orientation: 'l',
             unit: 'mm',

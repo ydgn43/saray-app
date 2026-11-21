@@ -847,11 +847,11 @@ const Attendance = () => {
                 {loading ? (
                   <>
                     <span className="spinner-border spinner-border-sm me-1" />
-                    Yükleniyor...
+                    <span>Yükleniyor...</span>
                   </>
                 ) : (
                   <>
-                    Göster
+                    <span>Göster</span>
                   </>
                 )}
               </button>
@@ -908,11 +908,11 @@ const Attendance = () => {
             {submitting ? (
               <>
                 <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Kaydediliyor...
+                <span>Kaydediliyor...</span>
               </>
             ) : (
               <>
-                <Save size={16} className="me-1 align-text-bottom" />Tümünü Kaydet
+                <Save size={16} className="me-1 align-text-bottom" /><span>Tümünü Kaydet</span>
               </>
             )}
           </motion.button>
@@ -958,11 +958,11 @@ const Attendance = () => {
               {deleting ? (
                 <>
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Siliniyor...
+                  <span>Siliniyor...</span>
                 </>
               ) : (
                 <>
-                  <Trash2 size={16} className="me-1 align-text-bottom" />Tüm Kayıtları Sil
+                  <Trash2 size={16} className="me-1 align-text-bottom" /><span>Tüm Kayıtları Sil</span>
                 </>
               )}
             </motion.button>
